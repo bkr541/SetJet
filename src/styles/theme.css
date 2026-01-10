@@ -1,0 +1,42 @@
+:root {
+  /* =========================
+     NEUTRALS (Carbon-style)
+     ========================= */
+  --bg-app: #f4f4f4;
+  --bg-surface: #ffffff;
+
+  --border-default: #e0e0e0;
+  --border-muted: #c6c6c6;
+
+  --text-primary: #161616;
+  --text-secondary: #525252;
+  --text-muted: #6f6f6f;
+  --text-disabled: #8d8d8d;
+  --text-inverse: #ffffff;
+
+  /* =========================
+     SETJET BRAND (LOCKED)
+     ========================= */
+  --sj-primary: #004e5a;   /* main blue-green */
+  --sj-hover: #006b78;     /* hover */
+  --sj-active: #0096a6;    /* active / focus */
+  --sj-accent: #0096a6;    /* accents (same family) */
+
+  /* =========================
+     SEMANTIC COLORS
+     ========================= */
+  --focus-ring: #0096a6;
+
+  --info-bg: rgba(0, 150, 166, 0.12);
+  --info-border: #0096a6;
+
+  --success: #0096a6;
+  --warning: #d93025;
+
+  /* =========================
+     SHADOWS
+     ========================= */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.08);
+}

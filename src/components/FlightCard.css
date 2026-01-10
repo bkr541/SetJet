@@ -1,24 +1,25 @@
 .flight-card {
-  border: 2px solid #e2e8f0;
+  border: 1px solid #e0e0e0;
   border-radius: 12px;
   padding: 1.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-  background: white;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  background: #ffffff;
 }
 
 .flight-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  border-color: #0096a6;
 }
 
+/* HEADER */
 .flight-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .route {
@@ -29,39 +30,30 @@
 
 .airport {
   font-size: 1.25rem;
-  font-weight: bold;
-  color: #2d3748;
+  font-weight: 700;
+  color: #161616;
 }
 
 .arrow {
-  color: #667eea;
+  color: #0096a6;
   font-size: 1.5rem;
 }
 
+/* GoWild badge – flat, confident */
 .gowild-badge {
   display: inline-block;
   margin-left: 0.75rem;
   padding: 0.25rem 0.75rem;
-  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-  color: white;
+  background: #0096a6;
+  color: #ffffff;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(72, 187, 120, 0.3);
-  animation: glow 2s ease-in-out infinite;
 }
 
-@keyframes glow {
-  0%, 100% {
-    box-shadow: 0 2px 4px rgba(72, 187, 120, 0.3);
-  }
-  50% {
-    box-shadow: 0 2px 8px rgba(72, 187, 120, 0.6);
-  }
-}
-
+/* PRICE SECTION */
 .price-section {
   display: flex;
   flex-direction: column;
@@ -70,59 +62,53 @@
 
 .price {
   font-size: 1.75rem;
-  font-weight: bold;
-  color: #667eea;
+  font-weight: 700;
+  color: #004e5a;
 }
 
 .gowild-price {
   font-size: 1.5rem;
-  color: #48bb78;
-  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #0096a6;
+  font-weight: 700;
 }
 
 .price-label {
   font-size: 0.75rem;
-  color: #718096;
+  color: #6f6f6f;
   margin-top: -0.25rem;
 }
 
 .gowild-label {
-  color: #48bb78;
+  color: #0096a6;
   font-weight: 600;
 }
 
 .regular-price-strikethrough {
   font-size: 0.85rem;
-  color: #a0aec0;
+  color: #8d8d8d;
   text-decoration: line-through;
   margin-top: 0.25rem;
 }
 
 .seats-remaining {
   font-size: 0.7rem;
-  color: #48bb78;
+  color: #0096a6;
   font-weight: 600;
   margin-top: 0.25rem;
   text-align: right;
 }
 
 .seats-remaining.low {
-  color: #f56565;
+  color: #d93025;
   animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
 }
 
+/* DETAILS */
 .flight-details {
   display: flex;
   flex-direction: column;
@@ -137,46 +123,48 @@
 }
 
 .label {
-  color: #718096;
+  color: #6f6f6f;
   font-weight: 500;
 }
 
 .value {
-  color: #2d3748;
+  color: #161616;
   font-weight: 600;
 }
 
+/* FOOTER */
 .flight-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e0e0e0;
 }
 
 .airline {
-  color: #4a5568;
+  color: #525252;
   font-weight: 500;
 }
 
 .book-button {
-  background-color: #667eea;
-  color: white;
+  background-color: #004e5a;
+  color: #ffffff;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.15s, transform 0.15s;
 }
 
 .book-button:hover {
-  background-color: #5568d3;
+  background-color: #006b78;
+  transform: translateY(-1px);
 }
 
-/* Round-trip specific styles */
+/* ROUND TRIP */
 .flight-card.round-trip {
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #0096a6;
 }
 
 .round-trip-container {
@@ -193,44 +181,33 @@
 
 .segment-label {
   font-weight: 600;
-  color: #4a5568;
+  color: #161616;
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
   padding: 0.25rem 0.75rem;
-  background: #f7fafc;
-  border-left: 3px solid #667eea;
+  background: #f4f4f4;
+  border-left: 3px solid #0096a6;
   border-radius: 4px;
 }
 
 .segment-divider {
   height: 1px;
-  background: linear-gradient(to right, transparent, #cbd5e0, transparent);
+  background: #e0e0e0;
   margin: 0.5rem 0;
 }
 
-/* Blackout date styles */
+/* BLACKOUT */
 .blackout-badge {
   display: inline-block;
   margin-left: 0.75rem;
   padding: 0.25rem 0.75rem;
-  background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
-  color: white;
+  background: #d93025;
+  color: #ffffff;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(245, 101, 101, 0.3);
-  animation: warning-pulse 2s ease-in-out infinite;
-}
-
-@keyframes warning-pulse {
-  0%, 100% {
-    box-shadow: 0 2px 4px rgba(245, 101, 101, 0.3);
-  }
-  50% {
-    box-shadow: 0 2px 8px rgba(245, 101, 101, 0.6);
-  }
 }
 
 .blackout-warning {
@@ -239,10 +216,9 @@
   gap: 1rem;
   padding: 1rem;
   margin: 1rem 0;
-  background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
-  border: 2px solid #fc8181;
+  background: #fff1f0;
+  border: 1px solid #f28b82;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(245, 101, 101, 0.1);
 }
 
 .warning-icon {
@@ -250,59 +226,54 @@
   flex-shrink: 0;
 }
 
-.warning-content {
-  flex: 1;
-}
-
 .warning-content strong {
   display: block;
-  color: #c53030;
+  color: #a50e0e;
   font-size: 0.95rem;
   margin-bottom: 0.25rem;
 }
 
 .warning-content p {
-  color: #742a2a;
+  color: #5f2120;
   font-size: 0.85rem;
   margin: 0.25rem 0;
   font-weight: 500;
 }
 
 .warning-content small {
-  color: #9b2c2c;
+  color: #8a1c1c;
   font-size: 0.75rem;
   font-style: italic;
 }
 
-/* Build your own mode styles */
+/* BUILD YOUR OWN */
 .select-flight-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #004e5a;
+  color: #ffffff;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.15s, transform 0.15s;
   font-size: 0.95rem;
-  letter-spacing: 0.3px;
 }
 
 .select-flight-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: #006b78;
+  transform: translateY(-1px);
 }
 
-/* Completed Trip Styles */
+/* COMPLETED TRIP */
 .flight-card.completed-trip {
-  border: 3px solid #48bb78;
-  box-shadow: 0 8px 24px rgba(72, 187, 120, 0.2);
+  border: 2px solid #0096a6;
+  box-shadow: 0 8px 24px rgba(0, 150, 166, 0.18);
 }
 
 .trip-summary-header {
-  background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+  background: #f2f9fa;
   padding: 1.5rem;
-  border-bottom: 2px solid #48bb78;
+  border-bottom: 2px solid #0096a6;
   border-radius: 12px 12px 0 0;
   margin: -1.5rem -1.5rem 1.5rem -1.5rem;
 }
@@ -320,17 +291,16 @@
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-  color: white;
+  background: #0096a6;
+  color: #ffffff;
   border-radius: 50%;
   font-size: 1.5rem;
   font-weight: bold;
-  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
 }
 
 .trip-summary-title h3 {
   margin: 0;
-  color: #2d3748;
+  color: #161616;
   font-size: 1.5rem;
   font-weight: 700;
 }
@@ -345,60 +315,48 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: white;
+  background: #ffffff;
   padding: 1rem;
   border-radius: 10px;
-  border: 2px solid #c6f6d5;
-  transition: all 0.2s;
+  border: 1px solid #e0e0e0;
+  transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .trip-stat:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.15);
-}
-
-.stat-icon {
-  font-size: 2rem;
-  flex-shrink: 0;
-}
-
-.stat-content {
-  flex: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .stat-value {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 0.25rem;
+  color: #161616;
 }
 
 .stat-label {
   font-size: 0.75rem;
-  color: #718096;
+  color: #6f6f6f;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
 }
 
 .book-trip-button {
-  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  background: #004e5a;
   font-size: 1.1rem;
   padding: 0.75rem 2rem;
-  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+  color: #ffffff;
 }
 
 .book-trip-button:hover {
-  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(72, 187, 120, 0.4);
+  background: #006b78;
 }
 
 @media (max-width: 768px) {
   .trip-stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .trip-summary-title h3 {
     font-size: 1.25rem;
   }
