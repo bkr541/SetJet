@@ -1,14 +1,14 @@
 .search-form-container {
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
 }
 
 .search-form-container h2 {
   margin-bottom: 1.5rem;
-  color: #2d3748;
+  color: #161616;
 }
 
 .search-form {
@@ -25,25 +25,28 @@
 
 .form-group label {
   font-weight: 600;
-  color: #4a5568;
+  color: #161616;
   font-size: 0.95rem;
 }
 
 .form-group input {
   padding: 0.75rem;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   font-size: 1rem;
-  transition: border-color 0.2s;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background: #ffffff;
+  color: #161616;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #0096a6;
+  box-shadow: 0 0 0 1px #0096a6;
 }
 
 .form-group small {
-  color: #718096;
+  color: #6f6f6f;
   font-size: 0.85rem;
 }
 
@@ -53,33 +56,39 @@
   gap: 1rem;
 }
 
+/* PRIMARY ACTION BUTTON */
 .search-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #004e5a; /* greener blue-green */
+  color: #ffffff;
   border: none;
   padding: 1rem 2rem;
   font-size: 1.1rem;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: background-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
 .search-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+  background: #006b78;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0, 78, 90, 0.22);
 }
 
 .search-button:active {
+  background: #0096a6;
   transform: translateY(0);
+  box-shadow: none;
 }
 
 .search-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
+/* TRIP TYPE SELECTORS */
 .trip-type-selector {
   display: flex;
   gap: 0.5rem;
@@ -92,22 +101,23 @@
   align-items: center;
   justify-content: center;
   padding: 0.75rem 1rem;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
-  background: white;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  background: #ffffff;
+  color: #161616;
 }
 
 .trip-type-option:hover {
-  border-color: #667eea;
-  background: #f7fafc;
+  border-color: #0096a6;
+  background: #f2f9fa;
 }
 
 .trip-type-option.active {
-  border-color: #667eea;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  border-color: #004e5a;
+  background: #004e5a;
+  color: #ffffff;
 }
 
 .trip-type-option input[type="radio"] {
@@ -119,6 +129,7 @@
   font-size: 0.95rem;
 }
 
+/* CHECKBOXES */
 .checkbox-group {
   margin-bottom: 0.5rem;
 }
@@ -130,55 +141,60 @@
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 6px;
-  transition: background-color 0.2s;
+  transition: background-color 0.15s;
   font-weight: 500;
 }
 
 .checkbox-label:hover {
-  background-color: #f7fafc;
+  background-color: #f2f9fa;
 }
 
 .checkbox-label input[type="checkbox"] {
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #667eea;
+  accent-color: #0096a6;
 }
 
 .checkbox-label span {
-  color: #2d3748;
+  color: #161616;
 }
 
+/* INFO NOTE */
 .any-destination-note {
-  color: #667eea;
+  color: #161616;
   font-weight: 500;
   padding: 0.5rem;
-  background-color: #f0f4ff;
+  background-color: rgba(0, 150, 166, 0.14);
   border-radius: 6px;
   display: block;
   margin-top: 0.5rem;
 }
 
+/* DISABLED INPUTS */
 .form-group input[type="text"]:disabled,
 .form-group input[type="date"]:disabled {
-  background-color: #f7fafc;
-  color: #a0aec0;
+  background-color: #f4f4f4;
+  color: #8d8d8d;
   cursor: not-allowed;
 }
 
+/* SELECT */
 .unit-select {
   padding: 0.75rem;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   font-size: 1rem;
-  background-color: white;
+  background-color: #ffffff;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  color: #161616;
 }
 
 .unit-select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #0096a6;
+  box-shadow: 0 0 0 1px #0096a6;
 }
 
 @media (max-width: 768px) {
