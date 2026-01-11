@@ -257,7 +257,7 @@
 .sj-toggle.active {
   background: var(--bg-surface);
   color: var(--sj-primary);
-  border-color: rgba(0, 150, 166, 0.25); /* subtle SetJet tint */
+  border-color: rgba(0, 0, 0, 0.06);
   box-shadow: var(--shadow-sm);
 }
 
