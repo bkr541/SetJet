@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import './SearchForm.css';
+import { LuSearch, LuSliders, LuRepeat, LuArrowRight } from "react-icons/lu";
+
 
 function SearchForm({ onSearch, loading }) {
   const [searchMode, setSearchMode] = useState('package'); // 'package' or 'build-your-own'
