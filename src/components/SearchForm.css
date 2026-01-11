@@ -206,3 +206,84 @@
     flex-direction: column;
   }
 }
+
+/* ===========================
+   SetJet Segmented Toggles
+   (Search Mode + Trip Type)
+   =========================== */
+
+.sj-toggle-group {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--bg-app);
+  padding: 0.25rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-default);
+  width: 100%;
+}
+
+.sj-toggle {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  white-space: nowrap;
+  user-select: none;
+  line-height: 1;
+
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.sj-toggle:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.sj-toggle:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.sj-toggle.active {
+  background: var(--bg-surface);
+  color: var(--sj-primary);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
+}
+
+.sj-toggle-icon {
+  font-size: 1.05rem;
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+/* Trip Type has 4 options: allow wrap on smaller widths */
+.sj-toggle-group--wrap {
+  flex-wrap: wrap;
+}
+
+.sj-toggle-group--wrap .sj-toggle {
+  min-width: 160px;
+}
+
+/* Optional: tighten on mobile */
+@media (max-width: 768px) {
+  .sj-toggle {
+    justify-content: flex-start;
+    padding: 0.6rem 0.85rem;
+  }
+
+  .sj-toggle-group--wrap .sj-toggle {
+    min-width: 140px;
+  }
+}

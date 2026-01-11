@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
 import './SearchForm.css';
+import {
+  LuArrowRight,
+  LuRepeat,
+  LuSun,
+  LuCalendarCheck,
+  LuSearch,
+  LuSlidersHorizontal,
+} from 'react-icons/lu';
 
 function SearchForm({ onSearch, loading }) {
   const [searchMode, setSearchMode] = useState('package'); // 'package' or 'build-your-own'
@@ -18,10 +26,10 @@ function SearchForm({ onSearch, loading }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const originAirports = origins.split(',').map(s => s.trim()).filter(s => s);
+    const originAirports = origins.split(',').map((s) => s.trim()).filter((s) => s);
     const destinationAirports = anyDestination
       ? ['ANY']
-      : destinations.split(',').map(s => s.trim()).filter(s => s);
+      : destinations.split(',').map((s) => s.trim()).filter((s) => s);
 
     const searchParams = {
       searchMode,
@@ -57,28 +65,29 @@ function SearchForm({ onSearch, loading }) {
       <form onSubmit={handleSubmit} className="search-form">
         <div className="form-group">
           <label htmlFor="searchMode">Search Mode</label>
-          <div className="trip-type-selector">
-            <label className={`trip-type-option ${searchMode === 'package' ? 'active' : ''}`}>
-              <input
-                type="radio"
-                name="searchMode"
-                value="package"
-                checked={searchMode === 'package'}
-                onChange={(e) => setSearchMode(e.target.value)}
-              />
+
+          <div className="sj-toggle-group" aria-label="Search Mode">
+            <button
+              type="button"
+              className={`sj-toggle ${searchMode === 'package' ? 'active' : ''}`}
+              onClick={() => setSearchMode('package')}
+              aria-pressed={searchMode === 'package'}
+            >
+              <LuSearch className="sj-toggle-icon" />
               <span>Package Trip</span>
-            </label>
-            <label className={`trip-type-option ${searchMode === 'build-your-own' ? 'active' : ''}`}>
-              <input
-                type="radio"
-                name="searchMode"
-                value="build-your-own"
-                checked={searchMode === 'build-your-own'}
-                onChange={(e) => setSearchMode(e.target.value)}
-              />
+            </button>
+
+            <button
+              type="button"
+              className={`sj-toggle ${searchMode === 'build-your-own' ? 'active' : ''}`}
+              onClick={() => setSearchMode('build-your-own')}
+              aria-pressed={searchMode === 'build-your-own'}
+            >
+              <LuSlidersHorizontal className="sj-toggle-icon" />
               <span>Build Your Own</span>
-            </label>
+            </button>
           </div>
+
           <small>
             {searchMode === 'package'
               ? 'Search for complete round-trip packages'
@@ -89,47 +98,47 @@ function SearchForm({ onSearch, loading }) {
         {searchMode === 'package' && (
           <div className="form-group">
             <label htmlFor="tripType">Trip Type</label>
-            <div className="trip-type-selector">
-              <label className={`trip-type-option ${tripType === 'one-way' ? 'active' : ''}`}>
-                <input
-                  type="radio"
-                  name="tripType"
-                  value="one-way"
-                  checked={tripType === 'one-way'}
-                  onChange={(e) => setTripType(e.target.value)}
-                />
+
+            <div className="sj-toggle-group sj-toggle-group--wrap" aria-label="Trip Type">
+              <button
+                type="button"
+                className={`sj-toggle ${tripType === 'one-way' ? 'active' : ''}`}
+                onClick={() => setTripType('one-way')}
+                aria-pressed={tripType === 'one-way'}
+              >
+                <LuArrowRight className="sj-toggle-icon" />
                 <span>One Way</span>
-              </label>
-              <label className={`trip-type-option ${tripType === 'round-trip' ? 'active' : ''}`}>
-                <input
-                  type="radio"
-                  name="tripType"
-                  value="round-trip"
-                  checked={tripType === 'round-trip'}
-                  onChange={(e) => setTripType(e.target.value)}
-                />
+              </button>
+
+              <button
+                type="button"
+                className={`sj-toggle ${tripType === 'round-trip' ? 'active' : ''}`}
+                onClick={() => setTripType('round-trip')}
+                aria-pressed={tripType === 'round-trip'}
+              >
+                <LuRepeat className="sj-toggle-icon" />
                 <span>Round Trip</span>
-              </label>
-              <label className={`trip-type-option ${tripType === 'day-trip' ? 'active' : ''}`}>
-                <input
-                  type="radio"
-                  name="tripType"
-                  value="day-trip"
-                  checked={tripType === 'day-trip'}
-                  onChange={(e) => setTripType(e.target.value)}
-                />
+              </button>
+
+              <button
+                type="button"
+                className={`sj-toggle ${tripType === 'day-trip' ? 'active' : ''}`}
+                onClick={() => setTripType('day-trip')}
+                aria-pressed={tripType === 'day-trip'}
+              >
+                <LuSun className="sj-toggle-icon" />
                 <span>Day Trip</span>
-              </label>
-              <label className={`trip-type-option ${tripType === 'trip-planner' ? 'active' : ''}`}>
-                <input
-                  type="radio"
-                  name="tripType"
-                  value="trip-planner"
-                  checked={tripType === 'trip-planner'}
-                  onChange={(e) => setTripType(e.target.value)}
-                />
+              </button>
+
+              <button
+                type="button"
+                className={`sj-toggle ${tripType === 'trip-planner' ? 'active' : ''}`}
+                onClick={() => setTripType('trip-planner')}
+                aria-pressed={tripType === 'trip-planner'}
+              >
+                <LuCalendarCheck className="sj-toggle-icon" />
                 <span>Trip Planner</span>
-              </label>
+              </button>
             </div>
           </div>
         )}
@@ -178,7 +187,9 @@ function SearchForm({ onSearch, loading }) {
             </>
           )}
           {anyDestination && (
-            <small className="any-destination-note">Will search all available destinations from your origin airports</small>
+            <small className="any-destination-note">
+              Will search all available destinations from your origin airports
+            </small>
           )}
         </div>
 
@@ -239,9 +250,7 @@ function SearchForm({ onSearch, loading }) {
                   required
                   disabled={tripType === 'day-trip'}
                 />
-                {tripType === 'day-trip' && (
-                  <small>Automatically set to same day as departure</small>
-                )}
+                {tripType === 'day-trip' && <small>Automatically set to same day as departure</small>}
               </div>
             )}
           </div>
