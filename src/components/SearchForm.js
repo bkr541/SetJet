@@ -179,9 +179,9 @@ function SearchForm({ onSearch, loading }) {
               </small>
             )}
 
-            {/* --- NEW: Modern Toggle Switch --- */}
-            <div className="toggle-group" style={{ marginTop: '0.5rem' }}>
-              <label className="switch">
+            {/* Checkbox moved to bottom */}
+            <div className="checkbox-group" style={{ marginTop: '0.25rem' }}>
+              <label className="checkbox-label">
                 <input
                   type="checkbox"
                   checked={anyDestination}
@@ -192,12 +192,9 @@ function SearchForm({ onSearch, loading }) {
                     }
                   }}
                 />
-                <span className="slider round"></span>
+                <span>Any Airport</span>
               </label>
-              <span className="toggle-label-text">Any Airport</span>
             </div>
-            {/* --------------------------------- */}
-
           </div>
         </div>
 
