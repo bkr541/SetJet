@@ -1,4 +1,11 @@
 import React, { useState } from 'react';
+import { 
+  Layers, 
+  MapPin, 
+  Plane, 
+  Clock, 
+  CalendarDays 
+} from 'lucide-react';
 import './DestinationCard.css';
 import FlightCard from './FlightCard';
 
@@ -12,6 +19,9 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
 
   // Count non-stop flights
   const nonstopCount = flights.filter(f => f.stops === 0).length;
+
+  // Calculate distinct origin airports
+  const uniqueOrigins = [...new Set(flights.map(f => f.origin))].length;
 
   // Check if this is trip planner mode (has trip_duration_display)
   const isTripPlanner = cheapestFlight.trip_duration_display !== undefined;
@@ -46,27 +56,71 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
           </div>
         </div>
 
-        <div className="destination-stats">
-          <div className="stat">
-            <span className="stat-value">{flights.length}</span>
-            <span className="stat-label">options</span>
-          </div>
-          <div className="stat">
-            <span className="stat-value">{nonstopCount}</span>
-            <span className="stat-label">nonstop</span>
-          </div>
-          {!isTripPlanner && (
-            <div className="stat">
-              <span className="stat-value">{cheapestFlight.departure_time}</span>
-              <span className="stat-label">earliest</span>
+        {/* Updated Stats Section using Cards */}
+        <div className="destination-stats-container">
+          
+          {/* Options Card */}
+          <div className="dest-stat-card">
+            <div className="dest-stat-icon-box">
+              <Layers size={20} className="dest-stat-icon" />
             </div>
-          )}
-          {isTripPlanner && (
-            <div className="stat">
-              <span className="stat-value">{cheapestFlight.trip_duration_display || 'N/A'}</span>
-              <span className="stat-label">trip time</span>
+            <div className="dest-stat-info">
+              <span className="dest-stat-label">Options</span>
+              <span className="dest-stat-value">{flights.length}</span>
             </div>
-          )}
+          </div>
+
+          {/* Airports Card (New) */}
+          <div className="dest-stat-card">
+            <div className="dest-stat-icon-box">
+              <MapPin size={20} className="dest-stat-icon" />
+            </div>
+            <div className="dest-stat-info">
+              <span className="dest-stat-label">Airports</span>
+              <span className="dest-stat-value">{uniqueOrigins}</span>
+            </div>
+          </div>
+
+          {/* Nonstop Card */}
+          <div className="dest-stat-card">
+            <div className="dest-stat-icon-box">
+              <Plane size={20} className="dest-stat-icon" />
+            </div>
+            <div className="dest-stat-info">
+              <span className="dest-stat-label">Nonstop</span>
+              <span className="dest-stat-value">{nonstopCount}</span>
+            </div>
+          </div>
+
+          {/* Earliest / Trip Time Card */}
+          <div className="dest-stat-card">
+            <div className="dest-stat-icon-box">
+              <Clock size={20} className="dest-stat-icon" />
+            </div>
+            <div className="dest-stat-info">
+              <span className="dest-stat-label">
+                {isTripPlanner ? 'Trip Time' : 'Earliest'}
+              </span>
+              <span className="dest-stat-value">
+                {isTripPlanner 
+                  ? (cheapestFlight.trip_duration_display || 'N/A')
+                  : cheapestFlight.departure_time
+                }
+              </span>
+            </div>
+          </div>
+
+          {/* Events Card (New - Placeholder) */}
+          <div className="dest-stat-card">
+            <div className="dest-stat-icon-box">
+              <CalendarDays size={20} className="dest-stat-icon" />
+            </div>
+            <div className="dest-stat-info">
+              <span className="dest-stat-label">Events</span>
+              <span className="dest-stat-value">-</span>
+            </div>
+          </div>
+
         </div>
 
         <div className="expand-indicator">

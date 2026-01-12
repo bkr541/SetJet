@@ -25,7 +25,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .destination-route {
@@ -98,34 +98,62 @@
   margin-top: 0.25rem;
 }
 
-.destination-stats {
-  display: flex;
-  gap: 2rem;
-  padding: 1rem;
-  background-color: #f7fafc;
-  border-radius: 8px;
-  margin-bottom: 1rem;
+/* --- STATS CARD STYLING --- */
+.destination-stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.stat {
+.dest-stat-card {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  /* Slight shadow to match the look of independent cards */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.dest-stat-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f2f9fa;
+  border-radius: 6px;
+  padding: 0.5rem;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.dest-stat-icon {
+  color: #0096a6;
+}
+
+.dest-stat-info {
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
-.stat-value {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #2d3748;
-}
-
-.stat-label {
-  font-size: 0.75rem;
+.dest-stat-label {
+  font-size: 0.7rem;
   color: #718096;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-weight: 600;
+  margin-bottom: 0.1rem;
 }
 
+.dest-stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2d3748;
+  line-height: 1.2;
+}
+
+/* EXPAND INDICATOR */
 .expand-indicator {
   display: flex;
   align-items: center;
@@ -135,6 +163,8 @@
   color: #667eea;
   font-weight: 600;
   font-size: 0.9rem;
+  border-top: 1px solid #f0f4f8; /* Added subtle separator */
+  margin-top: 0.5rem; 
 }
 
 .arrow-icon {
@@ -150,6 +180,7 @@
   user-select: none;
 }
 
+/* FLIGHTS DROPDOWN */
 .destination-flights {
   border-top: 2px solid #e2e8f0;
   padding: 1.5rem;
@@ -175,8 +206,8 @@
 }
 
 @media (max-width: 768px) {
-  .destination-stats {
-    gap: 1rem;
+  .destination-stats-container {
+    grid-template-columns: 1fr 1fr; /* 2 cols on mobile */
   }
 
   .destination-route {
