@@ -11,7 +11,7 @@ import {
   Calendar,
   MapPin,
   Building2,
-  X // Added X icon
+  X 
 } from 'lucide-react';
 import './SearchForm.css';
 
@@ -19,10 +19,13 @@ function SearchForm({ onSearch, loading }) {
   const [searchMode, setSearchMode] = useState('package');
   
   // --- ORIGIN SEARCH STATE ---
-  const [origins, setOrigins] = useState('');
+  // Store selected airports as an array of strings (e.g. ['ATL', 'MCO'])
+  const [originPills, setOriginPills] = useState([]);
+  // Store the current text being typed for search
+  const [originSearchText, setOriginSearchText] = useState('');
+  
   const [originResults, setOriginResults] = useState([]);
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
-  const [isOriginSelected, setIsOriginSelected] = useState(false);
   // ---------------------------
 
   const [destinations, setDestinations] = useState('');
@@ -36,19 +39,18 @@ function SearchForm({ onSearch, loading }) {
   const [maxTripDurationUnit, setMaxTripDurationUnit] = useState('days');
   const [nonstopPreferred, setNonstopPreferred] = useState(false);
 
-  // Debounce logic for Origin Search
+  // Search API Logic
   useEffect(() => {
     const searchLocations = async () => {
-      if (isOriginSelected) return;
-
-      if (origins.length < 2) {
+      // Use the current typing text for search
+      if (originSearchText.length < 2) {
         setOriginResults([]);
         setShowOriginDropdown(false);
         return;
       }
 
       try {
-        const response = await fetch(`http://localhost:5001/api/locations?keyword=${origins}`);
+        const response = await fetch(`http://localhost:5001/api/locations?keyword=${originSearchText}`);
         if (response.ok) {
           const data = await response.json();
           setOriginResults(data);
@@ -60,34 +62,54 @@ function SearchForm({ onSearch, loading }) {
     };
 
     const timeoutId = setTimeout(() => {
-      if (!isOriginSelected && (showOriginDropdown || origins.length >= 2)) { 
+      if (originSearchText.length >= 2) { 
         searchLocations();
       }
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [origins, showOriginDropdown, isOriginSelected]);
+  }, [originSearchText]);
 
+  // Add a selected code to the pill list
   const handleSelectOrigin = (code) => {
-    setOrigins(code);
-    setIsOriginSelected(true);
+    // Prevent duplicates
+    if (!originPills.includes(code)) {
+      setOriginPills([...originPills, code]);
+    }
+    
+    // Clear search text and close dropdown
+    setOriginSearchText('');
     setShowOriginDropdown(false);
     setOriginResults([]);
   };
 
-  // NEW: Handle clearing the origin selection
-  const handleClearOrigin = (e) => {
-    e.stopPropagation(); // Prevent event bubbling
-    setOrigins('');
-    setIsOriginSelected(false);
-    setShowOriginDropdown(false);
-    setOriginResults([]);
+  // Remove a specific pill
+  const handleRemoveOrigin = (codeToRemove) => {
+    setOriginPills(originPills.filter(code => code !== codeToRemove));
+  };
+
+  // Handle Backspace to remove last pill if input is empty
+  const handleOriginKeyDown = (e) => {
+    if (e.key === 'Backspace' && originSearchText === '' && originPills.length > 0) {
+      const newPills = [...originPills];
+      newPills.pop();
+      setOriginPills(newPills);
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const originAirports = origins.split(',').map(s => s.trim()).filter(s => s);
+    // Use the pills array directly
+    const originAirports = [...originPills];
+    
+    // If user typed something valid but didn't select it, optionally add it?
+    // For now, let's rely on explicit selections or the pills. 
+    // If pills are empty, maybe try to parse the text.
+    if (originAirports.length === 0 && originSearchText.length === 3) {
+        originAirports.push(originSearchText.toUpperCase());
+    }
+
     const destinationAirports = anyDestination
       ? ['ANY']
       : destinations.split(',').map(s => s.trim()).filter(s => s);
@@ -217,32 +239,56 @@ function SearchForm({ onSearch, loading }) {
             <label htmlFor="origins">Origin Airports</label>
             
             <div className="relative-input-container">
-              <div className={`search-input-wrapper ${isOriginSelected ? 'has-value' : ''}`}>
+              {/* Added 'has-pills' class if pills exist to help styling if needed */}
+              <div className={`search-input-wrapper ${originPills.length > 0 ? 'has-value' : ''}`}>
                 <PlaneTakeoff className="search-icon" size={20} />
-                <input
-                  type="text"
-                  id="origins"
-                  value={origins}
-                  onChange={(e) => {
-                    setOrigins(e.target.value);
-                    setIsOriginSelected(false);
-                    setShowOriginDropdown(true);
-                  }}
-                  onFocus={() => {
-                    if (origins.length >= 2 && !isOriginSelected) setShowOriginDropdown(true);
-                  }}
-                  onBlur={() => setTimeout(() => setShowOriginDropdown(false), 200)}
-                  placeholder="e.g., DEN, LAX, SFO"
-                  required
-                  className="search-box-input"
-                  autoComplete="off"
-                />
-                {/* NEW CLEAR BUTTON */}
-                {isOriginSelected && (
+                
+                {/* RENDER PILLS */}
+                <div className="pills-container">
+                  {originPills.map((code) => (
+                    <div key={code} className="origin-pill">
+                      <span>{code}</span>
+                      <X 
+                        size={14} 
+                        className="pill-remove-icon" 
+                        onClick={(e) => {
+                          e.stopPropagation(); // Stop clicking pill from focusing input unnecessarily
+                          handleRemoveOrigin(code);
+                        }}
+                      />
+                    </div>
+                  ))}
+                  
+                  {/* INPUT FIELD - now sits inline with pills */}
+                  <input
+                    type="text"
+                    id="origins"
+                    value={originSearchText}
+                    onChange={(e) => {
+                        setOriginSearchText(e.target.value);
+                        if (e.target.value.length >= 2) setShowOriginDropdown(true);
+                    }}
+                    onKeyDown={handleOriginKeyDown}
+                    onFocus={() => {
+                        if (originSearchText.length >= 2) setShowOriginDropdown(true);
+                    }}
+                    onBlur={() => setTimeout(() => setShowOriginDropdown(false), 200)}
+                    placeholder={originPills.length === 0 ? "e.g., DEN, LAX, SFO" : ""}
+                    className="search-box-input"
+                    autoComplete="off"
+                  />
+                </div>
+
+                {/* Clear All Button - Only show if we have pills or text */}
+                {(originPills.length > 0 || originSearchText) && (
                   <X 
                     className="clear-icon" 
                     size={18} 
-                    onClick={handleClearOrigin}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setOriginPills([]);
+                        setOriginSearchText('');
+                    }}
                   />
                 )}
               </div>
@@ -250,18 +296,18 @@ function SearchForm({ onSearch, loading }) {
               {/* FLOATING DROPDOWN GROUP */}
               {showOriginDropdown && originResults.length > 0 && (
                 <div className="autocomplete-dropdown">
-                  {originResults.map((result) => (
+                  {originResults.map((result, index) => (
                     <div 
-                      key={result.value} 
-                      className="autocomplete-item"
+                      key={`${result.value}-${index}`}
+                      className={`autocomplete-item ${result.indent ? 'indented' : ''} ${result.is_header ? 'is-header' : ''}`}
                       onClick={() => handleSelectOrigin(result.value)}
                     >
                       <div className="item-icon">
-                        {result.type === 'City' ? <Building2 size={16} /> : <MapPin size={16} />}
+                        {result.type === 'Airport' ? <PlaneTakeoff size={16} /> : <Building2 size={16} />}
                       </div>
                       <div className="item-info">
                         <span className="item-label">{result.label}</span>
-                        <span className="item-sub">{result.country}</span>
+                        {!result.indent && <span className="item-sub">{result.country}</span>}
                       </div>
                     </div>
                   ))}
@@ -269,7 +315,7 @@ function SearchForm({ onSearch, loading }) {
               )}
             </div>
             
-            <small>Comma-separated (e.g., DEN, LAX)</small>
+            <small>Search and select multiple airports</small>
           </div>
 
           {/* Destination Column */}

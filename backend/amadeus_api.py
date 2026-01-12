@@ -23,6 +23,7 @@ class AmadeusFlightSearch:
     def search_locations(self, keyword):
         """
         Search for airports and cities by keyword for autocomplete dropdowns.
+        Groups airports under their respective cities.
         
         Args:
             keyword: The search term (e.g., 'New Y', 'Londo', 'ATL')
@@ -40,32 +41,87 @@ class AmadeusFlightSearch:
                 subType='AIRPORT,CITY'
             )
 
-            results = []
+            cities = []
+            airports = []
+            
+            # Map to store airports by their city name for grouping
+            city_airports_map = {}
+
             for location in response.data:
-                # Extract and format data for the dropdown
+                sub_type = location.get('subType')
                 name = location.get('name', '').title()
                 code = location.get('iataCode', '')
-                city = location.get('address', {}).get('cityName', '').title()
+                city_name = location.get('address', {}).get('cityName', '').title()
                 country = location.get('address', {}).get('countryName', '').title()
                 
-                # Distinguish between City (generic) and Airport (specific)
-                loc_type = "City" if location.get('subType') == 'CITY' else "Airport"
+                # Create a clean object
+                item = {
+                    'label': f"{city_name} ({code}) - {name}",
+                    'value': code,
+                    'type': "City" if sub_type == 'CITY' else "Airport",
+                    'city': city_name,
+                    'country': country,
+                    'name': name,
+                    'code': code,
+                    'indent': False, # Default no indentation
+                    'is_header': False # Default not a header
+                }
 
-                results.append({
-                    'label': f"{city} ({code}) - {name}",  # Display: "Atlanta (ATL) - Hartsfield..."
-                    'value': code,                          # Value used for search: "ATL"
-                    'type': loc_type,
-                    'city': city,
-                    'country': country
-                })
+                if sub_type == 'CITY':
+                    cities.append(item)
+                else:
+                    airports.append(item)
+                    # Group airports by city name
+                    city_key = city_name.upper()
+                    if city_key not in city_airports_map:
+                        city_airports_map[city_key] = []
+                    city_airports_map[city_key].append(item)
+
+            # Build the final structured list
+            final_results = []
             
-            return results
+            # Track which airports we've added to avoid duplicates
+            added_airport_codes = set()
+
+            for city in cities:
+                city_key = city['city'].upper()
+                
+                # Find children airports for this city
+                children = city_airports_map.get(city_key, [])
+                
+                if children:
+                    # If city has airports, update the CITY item to be a "Group Header"
+                    child_codes = [child['code'] for child in children]
+                    
+                    # Update City Label to indicate "Any"
+                    city['label'] = f"{city['city']}, {city['country']} (Any)"
+                    city['value'] = ", ".join(child_codes) # This populates "ORD, MDW" into the input
+                    city['is_header'] = True
+                    
+                    final_results.append(city)
+                    
+                    # Add the children immediately after, indented
+                    for child in children:
+                        child['indent'] = True
+                        child['label'] = f"({child['code']}) {child['name']}" 
+                        final_results.append(child)
+                        added_airport_codes.add(child['code'])
+                else:
+                    # City with no airports found (or matching airports not returned), add as is
+                    final_results.append(city)
+
+            # Add any orphaned airports (those that didn't match a City object in the response)
+            for airport in airports:
+                if airport['code'] not in added_airport_codes:
+                    # Format label for standalone airports
+                    airport['label'] = f"{airport['city']} ({airport['code']}) - {airport['name']}"
+                    final_results.append(airport)
+            
+            return final_results
 
         except ResponseError as error:
             print(f"Error fetching locations: {error}")
             return []
-
-            
 
     def search_flights(self, origins, destinations, departure_date, return_date=None, adults=1, callback=None):
         """
