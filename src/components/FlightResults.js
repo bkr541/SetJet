@@ -1,9 +1,16 @@
 import React, { useState, useMemo } from 'react';
+import { 
+  CircleDollarSign, 
+  Plane, 
+  Sunrise, 
+  Hourglass, 
+  Ticket 
+} from 'lucide-react';
 import './FlightResults.css';
 import DestinationCard from './DestinationCard';
 
 function FlightResults({
-  flights,
+  flights = [], // Default to empty array to prevent crash
   searchParams,
   fromCache,
   tripPlannerInfo,
@@ -20,6 +27,9 @@ function FlightResults({
 
   // Group flights by destination and sort
   const groupedFlights = useMemo(() => {
+    // Safety check: if flights is null or undefined, return empty array
+    if (!flights) return [];
+
     // Filter flights if nonstop-only is enabled
     let filteredFlights = flights;
     if (nonstopOnly) {
@@ -31,13 +41,15 @@ function FlightResults({
 
     // Group by destination
     const groups = {};
-    filteredFlights.forEach(flight => {
-      const dest = flight.destination;
-      if (!groups[dest]) {
-        groups[dest] = [];
-      }
-      groups[dest].push(flight);
-    });
+    if (Array.isArray(filteredFlights)) {
+      filteredFlights.forEach(flight => {
+        const dest = flight.destination;
+        if (!groups[dest]) {
+          groups[dest] = [];
+        }
+        groups[dest].push(flight);
+      });
+    }
 
     // Sort flights within each destination group
     Object.keys(groups).forEach(dest => {
@@ -181,59 +193,69 @@ function FlightResults({
       ) : (
         <>
           <div className="sort-controls">
-            <div className="sort-section">
-              <span className="sort-label">Sort by:</span>
-              <div className="sort-buttons">
+            
+            {/* Sort Section */}
+            <div className="control-group">
+              <span className="control-label">Sort by:</span>
+              <div className="control-track">
                 <button
-                  className={`sort-button ${sortBy === 'price' ? 'active' : ''}`}
+                  className={`control-option ${sortBy === 'price' ? 'active' : ''}`}
                   onClick={() => setSortBy('price')}
                 >
-                  💰 Lowest Price
+                  <CircleDollarSign size={16} className="option-icon" />
+                  Lowest Price
                 </button>
                 <button
-                  className={`sort-button ${sortBy === 'nonstop' ? 'active' : ''}`}
+                  className={`control-option ${sortBy === 'nonstop' ? 'active' : ''}`}
                   onClick={() => setSortBy('nonstop')}
                 >
-                  ✈️ Non-Stop First
+                  <Plane size={16} className="option-icon" />
+                  Non-Stop
                 </button>
                 <button
-                  className={`sort-button ${sortBy === 'earliest' ? 'active' : ''}`}
+                  className={`control-option ${sortBy === 'earliest' ? 'active' : ''}`}
                   onClick={() => setSortBy('earliest')}
                 >
-                  🕐 Earliest Departure
+                  <Sunrise size={16} className="option-icon" />
+                  Earliest
                 </button>
                 {(searchParams.tripType === 'round-trip' || searchParams.tripType === 'day-trip') && (
                   <button
-                    className={`sort-button ${sortBy === 'longest-trip' ? 'active' : ''}`}
+                    className={`control-option ${sortBy === 'longest-trip' ? 'active' : ''}`}
                     onClick={() => setSortBy('longest-trip')}
                   >
-                    ⏱️ Longest Trip
+                    <Hourglass size={16} className="option-icon" />
+                    Longest Trip
                   </button>
                 )}
               </div>
             </div>
 
-            <div className="filter-section">
-              <button
-                className={`filter-toggle ${nonstopOnly ? 'active' : ''}`}
-                onClick={() => setNonstopOnly(!nonstopOnly)}
-                title="Show only non-stop flights"
-              >
-                <span className="filter-icon">✈️</span>
-                <span className="filter-text">Non-Stop Only</span>
-                {nonstopOnly && <span className="filter-badge">ON</span>}
-              </button>
-              <button
-                className={`filter-toggle gowild ${gowildOnly ? 'active' : ''}`}
-                onClick={() => setGowildOnly(!gowildOnly)}
-                title="Show only GoWild Pass eligible flights"
-              >
-                <span className="filter-icon">🎫</span>
-                <span className="filter-text">GoWild Only</span>
-                {gowildOnly && <span className="filter-badge">ON</span>}
-              </button>
+            {/* Filter Section */}
+            <div className="control-group">
+              <span className="control-label filter-label">
+                Filter By:
+              </span>
+              <div className="control-track">
+                <button
+                  className={`control-option ${nonstopOnly ? 'active' : ''}`}
+                  onClick={() => setNonstopOnly(!nonstopOnly)}
+                >
+                  <Plane size={16} className="option-icon" />
+                  Non-Stop Only
+                </button>
+                <button
+                  className={`control-option ${gowildOnly ? 'active' : ''}`}
+                  onClick={() => setGowildOnly(!gowildOnly)}
+                >
+                  <Ticket size={16} className="option-icon" />
+                  GoWild Only
+                </button>
+              </div>
             </div>
+
           </div>
+
           <div className="destinations-grid">
             {groupedFlights.map((group, index) => (
               <DestinationCard

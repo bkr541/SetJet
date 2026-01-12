@@ -169,28 +169,26 @@ function SearchForm({ onSearch, loading }) {
           <div className="form-group">
             <label htmlFor="destinations">Destination Airports</label>
             
-            {!anyDestination && (
-              <>
-                <input
-                  type="text"
-                  id="destinations"
-                  value={destinations}
-                  onChange={(e) => setDestinations(e.target.value)}
-                  placeholder="e.g., MCO, MIA, LAS"
-                  required={!anyDestination}
-                />
-                <small>Comma-separated (e.g., MCO, MIA)</small>
-              </>
-            )}
+            {/* Input remains rendered even if disabled to maintain height */}
+            <input
+              type="text"
+              id="destinations"
+              value={anyDestination ? '' : destinations}
+              onChange={(e) => setDestinations(e.target.value)}
+              placeholder={anyDestination ? "Searching all airports..." : "e.g., MCO, MIA, LAS"}
+              disabled={anyDestination}
+              required={!anyDestination}
+              className={anyDestination ? 'input-disabled-placeholder' : ''}
+            />
+            <small>
+              {anyDestination 
+                ? "We'll search every available route from your origin." 
+                : "Comma-separated (e.g., MCO, MIA)"}
+            </small>
 
-            {anyDestination && (
-              <small className="any-destination-note">
-                Searching all available destinations from your origin airports.
-              </small>
-            )}
-
-            <div className="checkbox-group right-align">
-              <label className="checkbox-label">
+            {/* Right-aligned Toggle */}
+            <div className="toggle-group right-align">
+              <label className="toggle-switch">
                 <input
                   type="checkbox"
                   checked={anyDestination}
@@ -201,8 +199,9 @@ function SearchForm({ onSearch, loading }) {
                     }
                   }}
                 />
-                <span>Any Airport</span>
+                <span className="toggle-slider"></span>
               </label>
+              <span className="toggle-label">Any Airport</span>
             </div>
           </div>
         </div>

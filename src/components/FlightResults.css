@@ -62,7 +62,6 @@
   margin-right: 0.25rem;
 }
 
-/* Notice styling aligned to SetJet palette */
 .trip-planner-notice {
   margin-top: 0.75rem;
   padding: 0.75rem 1rem;
@@ -102,145 +101,97 @@
   border-left: 4px solid #0096a6;
 }
 
-/* Sort + filter control bar */
+/* --- CONTROL BAR (SORT & FILTER) --- */
 .sort-controls {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 2rem;
   margin-bottom: 1.5rem;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
   background-color: #f4f4f4;
-  border-radius: 8px;
+  border-radius: 12px;
   flex-wrap: wrap;
 }
 
-.sort-section {
+.control-group {
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex-wrap: wrap;
 }
 
-.filter-section {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.sort-label {
+.control-label {
   font-weight: 600;
   color: #161616;
   font-size: 0.95rem;
-}
-
-.sort-buttons {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.sort-button {
-  padding: 0.5rem 1rem;
-  border: 1px solid #e0e0e0;
-  background-color: #ffffff;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #161616;
-  cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   white-space: nowrap;
-}
-
-.sort-button:hover {
-  border-color: #0096a6;
-  background-color: #f2f9fa;
-  transform: translateY(-1px);
-}
-
-.sort-button.active {
-  background-color: #004e5a;
-  color: #ffffff;
-  border-color: #004e5a;
-  box-shadow: 0 2px 8px rgba(0, 78, 90, 0.22);
-}
-
-/* Filter toggle aligned to same system (no separate green) */
-.filter-toggle {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid #e0e0e0;
-  background-color: #ffffff;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #161616;
+  gap: 6px;
+}
+
+/* Track / Pill Container */
+.control-track {
+  display: flex;
+  gap: 4px;
+  background-color: #e0e0e0;
+  
+  /* MATCHING SEARCHFORM PADDING */
+  padding: 5px; 
+  
+  border-radius: 50px;
+  border: 1px solid #d0d0d0;
+}
+
+/* Toggle Option (Pill) */
+.control-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* MATCHING SEARCHFORM PADDING */
+  padding: 0.65rem 1rem;
+  
+  border: none;
+  border-radius: 50px;
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: #525252;
+  font-size: 0.9rem;
+  font-weight: 500;
   white-space: nowrap;
 }
 
-.filter-toggle:hover {
-  border-color: #0096a6;
-  background-color: #f2f9fa;
-  transform: translateY(-1px);
+.control-option:hover {
+  background: rgba(255, 255, 255, 0.5);
+  color: #161616;
 }
 
-.filter-toggle.active {
-  background-color: #004e5a;
+.control-option.active {
+  background: #004e5a;
   color: #ffffff;
-  border-color: #004e5a;
-  box-shadow: 0 2px 8px rgba(0, 78, 90, 0.22);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  font-weight: 600;
 }
 
-.filter-toggle.active:hover {
-  background-color: #006b78;
-  border-color: #006b78;
+.option-icon {
+  margin-right: 6px;
+  stroke-width: 2.5px;
 }
 
-.filter-icon {
-  font-size: 1rem;
-}
-
-.filter-text {
-  user-select: none;
-}
-
-.filter-badge {
-  background-color: rgba(255, 255, 255, 0.25);
-  padding: 0.125rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: bold;
-  letter-spacing: 0.05em;
-}
-
-.flights-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-}
-
+/* Destination Grid */
 .destinations-grid {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-@media (max-width: 768px) {
-  .flights-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* Build Your Own Mode Styles */
 .build-your-own-status {
   margin: 1.5rem 0;
   padding: 1.5rem;
-  background: #f4f4f4; /* flat */
+  background: #f4f4f4;
   border: 1px solid rgba(0, 150, 166, 0.45);
   border-radius: 12px;
 }
@@ -266,13 +217,13 @@
 }
 
 .step-number.active {
-  background: #004e5a; /* flat */
+  background: #004e5a;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(0, 78, 90, 0.22);
 }
 
 .step-number.completed {
-  background: #0096a6; /* flat, brighter */
+  background: #0096a6;
   color: #ffffff;
 }
 
@@ -334,4 +285,28 @@
   color: #004e5a;
   font-size: 1.2rem;
   font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .sort-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .control-group {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .control-track {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .control-option {
+    flex: 1;
+  }
 }
