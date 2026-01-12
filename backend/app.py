@@ -61,6 +61,52 @@ def health_check():
         'dev_mode': DEV_MODE
     })
 
+# --- NEW ENDPOINT FOR AUTOCOMPLETE ---
+@app.route('/api/locations', methods=['GET'])
+def search_locations():
+    """
+    Search for airports and cities by keyword for autocomplete
+    """
+    keyword = request.args.get('keyword')
+    
+    # Basic validation
+    if not keyword or len(keyword) < 2:
+        return jsonify([])
+
+    try:
+        if AMADEUS_ENABLED and amadeus_client:
+            # Use the method added to your Amadeus class
+            results = amadeus_client.search_locations(keyword)
+            return jsonify(results)
+        
+        elif DEV_MODE:
+            # Mock results for testing if API is disabled/offline
+            mock_results = [
+                {
+                    'label': f"Mock City - {keyword.title()} (MCK)", 
+                    'value': "MCK", 
+                    'type': "City", 
+                    'country': "United States"
+                },
+                {
+                    'label': f"Mock Airport - {keyword.title()} Intl (MAI)", 
+                    'value': "MAI", 
+                    'type': "Airport", 
+                    'country': "United States"
+                }
+            ]
+            return jsonify(mock_results)
+            
+        else:
+            # API not enabled and not in Dev Mode
+            return jsonify([])
+            
+    except Exception as e:
+        print(f"Error in search_locations: {str(e)}")
+        # Return empty list on error so frontend doesn't crash
+        return jsonify([])
+# -------------------------------------
+
 def generate_mock_flights(origins, destinations, departure_date, return_date=None):
     """Generate mock flight data for development/testing"""
     flights = []

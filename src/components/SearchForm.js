@@ -1,17 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Package, 
   Wrench, 
   ArrowRight, 
   Repeat, 
   Sun, 
-  CalendarRange 
+  CalendarRange,
+  PlaneTakeoff,
+  PlaneLanding,
+  Calendar,
+  MapPin,
+  Building2,
+  X // Added X icon
 } from 'lucide-react';
 import './SearchForm.css';
 
 function SearchForm({ onSearch, loading }) {
-  const [searchMode, setSearchMode] = useState('package'); // 'package' or 'build-your-own'
+  const [searchMode, setSearchMode] = useState('package');
+  
+  // --- ORIGIN SEARCH STATE ---
   const [origins, setOrigins] = useState('');
+  const [originResults, setOriginResults] = useState([]);
+  const [showOriginDropdown, setShowOriginDropdown] = useState(false);
+  const [isOriginSelected, setIsOriginSelected] = useState(false);
+  // ---------------------------
+
   const [destinations, setDestinations] = useState('');
   const [anyDestination, setAnyDestination] = useState(false);
   const [tripType, setTripType] = useState('round-trip');
@@ -22,6 +35,54 @@ function SearchForm({ onSearch, loading }) {
   const [maxTripDuration, setMaxTripDuration] = useState('');
   const [maxTripDurationUnit, setMaxTripDurationUnit] = useState('days');
   const [nonstopPreferred, setNonstopPreferred] = useState(false);
+
+  // Debounce logic for Origin Search
+  useEffect(() => {
+    const searchLocations = async () => {
+      if (isOriginSelected) return;
+
+      if (origins.length < 2) {
+        setOriginResults([]);
+        setShowOriginDropdown(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:5001/api/locations?keyword=${origins}`);
+        if (response.ok) {
+          const data = await response.json();
+          setOriginResults(data);
+          setShowOriginDropdown(true);
+        }
+      } catch (error) {
+        console.error("Error searching locations:", error);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      if (!isOriginSelected && (showOriginDropdown || origins.length >= 2)) { 
+        searchLocations();
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [origins, showOriginDropdown, isOriginSelected]);
+
+  const handleSelectOrigin = (code) => {
+    setOrigins(code);
+    setIsOriginSelected(true);
+    setShowOriginDropdown(false);
+    setOriginResults([]);
+  };
+
+  // NEW: Handle clearing the origin selection
+  const handleClearOrigin = (e) => {
+    e.stopPropagation(); // Prevent event bubbling
+    setOrigins('');
+    setIsOriginSelected(false);
+    setShowOriginDropdown(false);
+    setOriginResults([]);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -152,16 +213,62 @@ function SearchForm({ onSearch, loading }) {
         {/* Origin and Destination Row */}
         <div className="form-row">
           {/* Origin Column */}
-          <div className="form-group">
+          <div className="form-group"> 
             <label htmlFor="origins">Origin Airports</label>
-            <input
-              type="text"
-              id="origins"
-              value={origins}
-              onChange={(e) => setOrigins(e.target.value)}
-              placeholder="e.g., DEN, LAX, SFO"
-              required
-            />
+            
+            <div className="relative-input-container">
+              <div className={`search-input-wrapper ${isOriginSelected ? 'has-value' : ''}`}>
+                <PlaneTakeoff className="search-icon" size={20} />
+                <input
+                  type="text"
+                  id="origins"
+                  value={origins}
+                  onChange={(e) => {
+                    setOrigins(e.target.value);
+                    setIsOriginSelected(false);
+                    setShowOriginDropdown(true);
+                  }}
+                  onFocus={() => {
+                    if (origins.length >= 2 && !isOriginSelected) setShowOriginDropdown(true);
+                  }}
+                  onBlur={() => setTimeout(() => setShowOriginDropdown(false), 200)}
+                  placeholder="e.g., DEN, LAX, SFO"
+                  required
+                  className="search-box-input"
+                  autoComplete="off"
+                />
+                {/* NEW CLEAR BUTTON */}
+                {isOriginSelected && (
+                  <X 
+                    className="clear-icon" 
+                    size={18} 
+                    onClick={handleClearOrigin}
+                  />
+                )}
+              </div>
+
+              {/* FLOATING DROPDOWN GROUP */}
+              {showOriginDropdown && originResults.length > 0 && (
+                <div className="autocomplete-dropdown">
+                  {originResults.map((result) => (
+                    <div 
+                      key={result.value} 
+                      className="autocomplete-item"
+                      onClick={() => handleSelectOrigin(result.value)}
+                    >
+                      <div className="item-icon">
+                        {result.type === 'City' ? <Building2 size={16} /> : <MapPin size={16} />}
+                      </div>
+                      <div className="item-info">
+                        <span className="item-label">{result.label}</span>
+                        <span className="item-sub">{result.country}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
             <small>Comma-separated (e.g., DEN, LAX)</small>
           </div>
 
@@ -169,17 +276,20 @@ function SearchForm({ onSearch, loading }) {
           <div className="form-group">
             <label htmlFor="destinations">Destination Airports</label>
             
-            {/* Input remains rendered even if disabled to maintain height */}
-            <input
-              type="text"
-              id="destinations"
-              value={anyDestination ? '' : destinations}
-              onChange={(e) => setDestinations(e.target.value)}
-              placeholder={anyDestination ? "Searching all airports..." : "e.g., MCO, MIA, LAS"}
-              disabled={anyDestination}
-              required={!anyDestination}
-              className={anyDestination ? 'input-disabled-placeholder' : ''}
-            />
+            <div className={`search-input-wrapper ${anyDestination ? 'disabled' : ''} ${!anyDestination && destinations ? 'has-value' : ''}`}>
+              <PlaneLanding className="search-icon" size={20} />
+              <input
+                type="text"
+                id="destinations"
+                value={anyDestination ? '' : destinations}
+                onChange={(e) => setDestinations(e.target.value)}
+                placeholder={anyDestination ? "Searching all airports..." : "e.g., MCO, MIA, LAS"}
+                disabled={anyDestination}
+                required={!anyDestination}
+                className={`search-box-input ${anyDestination ? 'input-disabled-placeholder' : ''}`}
+              />
+            </div>
+
             <small>
               {anyDestination 
                 ? "We'll search every available route from your origin." 
@@ -211,24 +321,32 @@ function SearchForm({ onSearch, loading }) {
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="departureDate">Outbound Departure Date</label>
-                <input
-                  type="date"
-                  id="departureDate"
-                  value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  required
-                />
+                <div className={`search-input-wrapper ${departureDate ? 'has-value' : ''}`}>
+                  <Calendar className="search-icon" size={20} />
+                  <input
+                    type="date"
+                    id="departureDate"
+                    value={departureDate}
+                    onChange={(e) => setDepartureDate(e.target.value)}
+                    required
+                    className="search-box-input"
+                  />
+                </div>
               </div>
 
               <div className="form-group">
                 <label htmlFor="returnDate">Desired Return Date</label>
-                <input
-                  type="date"
-                  id="returnDate"
-                  value={returnDate}
-                  onChange={(e) => setReturnDate(e.target.value)}
-                  required
-                />
+                <div className={`search-input-wrapper ${returnDate ? 'has-value' : ''}`}>
+                  <Calendar className="search-icon" size={20} />
+                  <input
+                    type="date"
+                    id="returnDate"
+                    value={returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    required
+                    className="search-box-input"
+                  />
+                </div>
                 <small>We'll show return flights on or near this date</small>
               </div>
             </div>
@@ -241,13 +359,17 @@ function SearchForm({ onSearch, loading }) {
               <label htmlFor="departureDate">
                 {tripType === 'day-trip' ? 'Travel Date' : 'Departure Date'}
               </label>
-              <input
-                type="date"
-                id="departureDate"
-                value={departureDate}
-                onChange={(e) => setDepartureDate(e.target.value)}
-                required
-              />
+              <div className={`search-input-wrapper ${departureDate ? 'has-value' : ''}`}>
+                <Calendar className="search-icon" size={20} />
+                <input
+                  type="date"
+                  id="departureDate"
+                  value={departureDate}
+                  onChange={(e) => setDepartureDate(e.target.value)}
+                  required
+                  className="search-box-input"
+                />
+              </div>
             </div>
 
             {tripType !== 'one-way' && (
@@ -255,14 +377,18 @@ function SearchForm({ onSearch, loading }) {
                 <label htmlFor="returnDate">
                   {tripType === 'day-trip' ? 'Return Date (same day)' : 'Return Date'}
                 </label>
-                <input
-                  type="date"
-                  id="returnDate"
-                  value={tripType === 'day-trip' ? departureDate : returnDate}
-                  onChange={(e) => setReturnDate(e.target.value)}
-                  required
-                  disabled={tripType === 'day-trip'}
-                />
+                <div className={`search-input-wrapper ${tripType === 'day-trip' ? 'disabled' : ''} ${tripType !== 'day-trip' && returnDate ? 'has-value' : ''}`}>
+                  <Calendar className="search-icon" size={20} />
+                  <input
+                    type="date"
+                    id="returnDate"
+                    value={tripType === 'day-trip' ? departureDate : returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    required
+                    disabled={tripType === 'day-trip'}
+                    className="search-box-input"
+                  />
+                </div>
                 {tripType === 'day-trip' && (
                   <small>Automatically set to same day as departure</small>
                 )}
@@ -275,13 +401,17 @@ function SearchForm({ onSearch, loading }) {
           <>
             <div className="form-group">
               <label htmlFor="departureDate">Earliest Departure Date</label>
-              <input
-                type="date"
-                id="departureDate"
-                value={departureDate}
-                onChange={(e) => setDepartureDate(e.target.value)}
-                required
-              />
+              <div className={`search-input-wrapper ${departureDate ? 'has-value' : ''}`}>
+                <Calendar className="search-icon" size={20} />
+                <input
+                  type="date"
+                  id="departureDate"
+                  value={departureDate}
+                  onChange={(e) => setDepartureDate(e.target.value)}
+                  required
+                  className="search-box-input"
+                />
+              </div>
               <small>We'll find flights on or after this date</small>
             </div>
 
