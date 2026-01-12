@@ -1,4 +1,12 @@
 import React, { useState } from 'react';
+import { 
+  Package, 
+  Wrench, 
+  ArrowRight, 
+  Repeat, 
+  Sun, 
+  CalendarRange 
+} from 'lucide-react';
 import './SearchForm.css';
 
 function SearchForm({ onSearch, loading }) {
@@ -27,17 +35,15 @@ function SearchForm({ onSearch, loading }) {
       searchMode,
       origins: originAirports,
       destinations: destinationAirports,
-      tripType: searchMode === 'build-your-own' ? 'one-way' : tripType, // Always one-way for build-your-own
+      tripType: searchMode === 'build-your-own' ? 'one-way' : tripType,
       departureDate,
       returnDate: tripType === 'one-way' || searchMode === 'build-your-own' ? null : returnDate,
     };
 
-    // Add build-your-own specific parameters
     if (searchMode === 'build-your-own' && returnDate) {
       searchParams.desiredReturnDate = returnDate;
     }
 
-    // Add trip planner specific parameters
     if (tripType === 'trip-planner') {
       searchParams.tripLength = tripLength;
       searchParams.tripLengthUnit = tripLengthUnit;
@@ -55,6 +61,8 @@ function SearchForm({ onSearch, loading }) {
     <div className="search-form-container">
       <h2>Search Flights</h2>
       <form onSubmit={handleSubmit} className="search-form">
+        
+        {/* Search Mode Toggle */}
         <div className="form-group">
           <label htmlFor="searchMode">Search Mode</label>
           <div className="trip-type-selector">
@@ -66,6 +74,7 @@ function SearchForm({ onSearch, loading }) {
                 checked={searchMode === 'package'}
                 onChange={(e) => setSearchMode(e.target.value)}
               />
+              <Package size={18} className="option-icon" />
               <span>Package Trip</span>
             </label>
             <label className={`trip-type-option ${searchMode === 'build-your-own' ? 'active' : ''}`}>
@@ -76,6 +85,7 @@ function SearchForm({ onSearch, loading }) {
                 checked={searchMode === 'build-your-own'}
                 onChange={(e) => setSearchMode(e.target.value)}
               />
+              <Wrench size={18} className="option-icon" />
               <span>Build Your Own</span>
             </label>
           </div>
@@ -86,6 +96,7 @@ function SearchForm({ onSearch, loading }) {
           </small>
         </div>
 
+        {/* Trip Type Toggle */}
         {searchMode === 'package' && (
           <div className="form-group">
             <label htmlFor="tripType">Trip Type</label>
@@ -98,6 +109,7 @@ function SearchForm({ onSearch, loading }) {
                   checked={tripType === 'one-way'}
                   onChange={(e) => setTripType(e.target.value)}
                 />
+                <ArrowRight size={18} className="option-icon" />
                 <span>One Way</span>
               </label>
               <label className={`trip-type-option ${tripType === 'round-trip' ? 'active' : ''}`}>
@@ -108,6 +120,7 @@ function SearchForm({ onSearch, loading }) {
                   checked={tripType === 'round-trip'}
                   onChange={(e) => setTripType(e.target.value)}
                 />
+                <Repeat size={18} className="option-icon" />
                 <span>Round Trip</span>
               </label>
               <label className={`trip-type-option ${tripType === 'day-trip' ? 'active' : ''}`}>
@@ -118,6 +131,7 @@ function SearchForm({ onSearch, loading }) {
                   checked={tripType === 'day-trip'}
                   onChange={(e) => setTripType(e.target.value)}
                 />
+                <Sun size={18} className="option-icon" />
                 <span>Day Trip</span>
               </label>
               <label className={`trip-type-option ${tripType === 'trip-planner' ? 'active' : ''}`}>
@@ -128,6 +142,7 @@ function SearchForm({ onSearch, loading }) {
                   checked={tripType === 'trip-planner'}
                   onChange={(e) => setTripType(e.target.value)}
                 />
+                <CalendarRange size={18} className="option-icon" />
                 <span>Trip Planner</span>
               </label>
             </div>

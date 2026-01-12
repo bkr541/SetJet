@@ -88,11 +88,15 @@
   box-shadow: none;
 }
 
-/* TRIP TYPE SELECTORS */
+/* TRIP TYPE & MODE SELECTORS (TOGGLE / PILL STYLE) */
 .trip-type-selector {
   display: flex;
-  gap: 0.5rem;
+  gap: 4px; /* Small gap between pills */
   margin-top: 0.5rem;
+  background-color: #f2f4f6; /* Track background */
+  padding: 5px;
+  border-radius: 50px; /* Fully rounded track */
+  border: 1px solid #e0e0e0;
 }
 
 .trip-type-option {
@@ -100,24 +104,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 50px; /* Fully rounded pills */
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
-  background: #ffffff;
-  color: #161616;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: #525252;
+  position: relative;
+  overflow: hidden;
 }
 
 .trip-type-option:hover {
-  border-color: #0096a6;
-  background: #f2f9fa;
+  background: rgba(0, 0, 0, 0.03);
+  color: #161616;
 }
 
 .trip-type-option.active {
-  border-color: #004e5a;
   background: #004e5a;
   color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
 }
 
 .trip-type-option input[type="radio"] {
@@ -125,8 +132,15 @@
 }
 
 .trip-type-option span {
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Icon Styling inside Toggle */
+.option-icon {
+  margin-right: 8px;
+  stroke-width: 2.5px;
+  flex-shrink: 0;
 }
 
 /* CHECKBOXES */
@@ -204,5 +218,13 @@
 
   .trip-type-selector {
     flex-direction: column;
+    border-radius: 16px; /* Less rounded on mobile stack for better stacking look */
+    gap: 0;
+  }
+  
+  .trip-type-option {
+    border-radius: 12px;
+    justify-content: flex-start;
+    margin-bottom: 2px;
   }
 }
