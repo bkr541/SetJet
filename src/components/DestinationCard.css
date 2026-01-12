@@ -7,8 +7,9 @@
 }
 
 .destination-card:hover {
-  border-color: #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  /* Primary Green (Bright) */
+  border-color: #0096a6;
+  box-shadow: 0 4px 12px rgba(0, 150, 166, 0.15);
 }
 
 .destination-summary {
@@ -41,7 +42,8 @@
 }
 
 .destination-arrow {
-  color: #667eea;
+  /* Primary Green */
+  color: #0096a6;
   font-size: 1.5rem;
 }
 
@@ -55,7 +57,8 @@
   display: inline-block;
   margin-left: 0.75rem;
   padding: 0.25rem 0.75rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Green Gradient */
+  background: linear-gradient(135deg, #0096a6 0%, #004e5a 100%);
   color: white;
   border-radius: 20px;
   font-size: 0.85rem;
@@ -79,7 +82,8 @@
 .price-amount {
   font-size: 2rem;
   font-weight: bold;
-  color: #667eea;
+  /* Primary Green */
+  color: #0096a6;
 }
 
 .gowild-price-amount {
@@ -113,7 +117,6 @@
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 0.75rem 1rem;
-  /* Slight shadow to match the look of independent cards */
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
@@ -160,10 +163,11 @@
   justify-content: center;
   gap: 0.5rem;
   padding-top: 0.5rem;
-  color: #667eea;
+  /* Primary Green */
+  color: #0096a6;
   font-weight: 600;
   font-size: 0.9rem;
-  border-top: 1px solid #f0f4f8; /* Added subtle separator */
+  border-top: 1px solid #f0f4f8;
   margin-top: 0.5rem; 
 }
 
@@ -207,7 +211,7 @@
 
 @media (max-width: 768px) {
   .destination-stats-container {
-    grid-template-columns: 1fr 1fr; /* 2 cols on mobile */
+    grid-template-columns: 1fr 1fr;
   }
 
   .destination-route {
