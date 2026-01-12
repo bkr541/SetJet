@@ -88,7 +88,7 @@
   box-shadow: none;
 }
 
-/* TRIP TYPE SELECTORS (Legacy/Fallback) */
+/* TRIP TYPE SELECTORS */
 .trip-type-selector {
   display: flex;
   gap: 0.5rem;
@@ -117,7 +117,7 @@
 .trip-type-option.active {
   border-color: #004e5a;
   background: #004e5a;
-  color: #004e5a;
+  color: #ffffff;
 }
 
 .trip-type-option input[type="radio"] {
@@ -168,7 +168,7 @@
   background-color: rgba(0, 150, 166, 0.14);
   border-radius: 6px;
   display: block;
-  /* Removed top margin so it fits snugly */
+  margin-top: 0.5rem;
 }
 
 /* DISABLED INPUTS */
@@ -215,21 +215,20 @@
 .sj-toggle-group {
   display: flex;
   gap: 0.25rem;
-  background: var(--bg-app, #f4f4f4);
+  background: var(--bg-app);
   padding: 0.25rem;
-  border-radius: 100px; /* Fully round container */
-  border: 1px solid var(--border-default, #e0e0e0);
+  border-radius: 10px;
+  border: 1px solid var(--border-default);
   width: 100%;
-  position: relative;
 }
 
 .sj-toggle {
   flex: 1;
   padding: 0.65rem 1rem;
-  border-radius: 100px; /* Fully round buttons */
+  border-radius: 8px;
   border: 1px solid transparent;
   background: transparent;
-  color: #6f6f6f;
+  color: var(--text-secondary);
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
@@ -243,42 +242,23 @@
   user-select: none;
   line-height: 1;
 
-  transition: all 0.2s ease; /* Slightly slower transition for smoothness */
-  position: relative; /* Needed for z-index layering */
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-/* Hover state for inactive toggles */
 .sj-toggle:hover {
   background: rgba(0, 0, 0, 0.04);
-  color: #161616;
 }
 
 .sj-toggle:focus-visible {
-  outline: 2px solid #0096a6;
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
-/* ACTIVE STATE (Green bg, White text, Strong Shadow) */
 .sj-toggle.active {
-  background: #004e5a;
-  color: #ffffff;
-  border-color: #004e5a;
-  
-  /* UPDATED SHADOW: Two layers for depth + colored glow */
-  box-shadow: 
-    0 4px 12px rgba(0, 78, 90, 0.35),  /* Deep colored shadow */
-    0 2px 4px rgba(0, 0, 0, 0.1);      /* Sharp definition shadow */
-    
-  z-index: 1; /* Ensures the active button sits ON TOP of neighbors */
-}
-
-.sj-toggle.active:hover {
-  background: #006b78;
-  color: #ffffff;
-  /* Lift it slightly more on hover */
-  box-shadow: 
-    0 6px 14px rgba(0, 78, 90, 0.4), 
-    0 3px 6px rgba(0, 0, 0, 0.12);
+  background: var(--bg-surface);
+  color: var(--sj-primary);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
 }
 
 .sj-toggle-icon {
@@ -290,13 +270,13 @@
 /* Trip Type has 4 options: allow wrap on smaller widths */
 .sj-toggle-group--wrap {
   flex-wrap: wrap;
-  border-radius: 24px; /* Less round when wrapping */
 }
 
 .sj-toggle-group--wrap .sj-toggle {
   min-width: 160px;
 }
 
+/* Optional: tighten on mobile */
 @media (max-width: 768px) {
   .sj-toggle {
     justify-content: flex-start;
