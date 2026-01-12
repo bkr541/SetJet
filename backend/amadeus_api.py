@@ -20,6 +20,53 @@ class AmadeusFlightSearch:
             client_secret=self.api_secret
         )
 
+    def search_locations(self, keyword):
+        """
+        Search for airports and cities by keyword for autocomplete dropdowns.
+        
+        Args:
+            keyword: The search term (e.g., 'New Y', 'Londo', 'ATL')
+            
+        Returns:
+            List of dictionaries containing airport/city details formatted for UI
+        """
+        if not keyword or len(keyword) < 2:
+            return []
+
+        try:
+            # Query the Airport & City Search API
+            response = self.amadeus.reference_data.locations.get(
+                keyword=keyword,
+                subType='AIRPORT,CITY'
+            )
+
+            results = []
+            for location in response.data:
+                # Extract and format data for the dropdown
+                name = location.get('name', '').title()
+                code = location.get('iataCode', '')
+                city = location.get('address', {}).get('cityName', '').title()
+                country = location.get('address', {}).get('countryName', '').title()
+                
+                # Distinguish between City (generic) and Airport (specific)
+                loc_type = "City" if location.get('subType') == 'CITY' else "Airport"
+
+                results.append({
+                    'label': f"{city} ({code}) - {name}",  # Display: "Atlanta (ATL) - Hartsfield..."
+                    'value': code,                          # Value used for search: "ATL"
+                    'type': loc_type,
+                    'city': city,
+                    'country': country
+                })
+            
+            return results
+
+        except ResponseError as error:
+            print(f"Error fetching locations: {error}")
+            return []
+
+            
+
     def search_flights(self, origins, destinations, departure_date, return_date=None, adults=1, callback=None):
         """
         Search for flights using Amadeus API
