@@ -143,54 +143,59 @@ function SearchForm({ onSearch, loading }) {
           </div>
         )}
 
-        <div className="form-group">
-          <label htmlFor="origins">Origin Airports (comma-separated)</label>
-          <input
-            type="text"
-            id="origins"
-            value={origins}
-            onChange={(e) => setOrigins(e.target.value)}
-            placeholder="e.g., DEN, LAX, SFO"
-            required
-          />
-          <small>Enter multiple origin airports separated by commas</small>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="destinations">Destination Airports</label>
-          <div className="checkbox-group">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={anyDestination}
-                onChange={(e) => {
-                  setAnyDestination(e.target.checked);
-                  if (e.target.checked) {
-                    setDestinations('');
-                  }
-                }}
-              />
-              <span>Any Airport</span>
-            </label>
+        {/* ORIGINS AND DESTINATIONS SIDE-BY-SIDE */}
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="origins">Origin Airports (comma-separated)</label>
+            <input
+              type="text"
+              id="origins"
+              value={origins}
+              onChange={(e) => setOrigins(e.target.value)}
+              placeholder="e.g., DEN, LAX, SFO"
+              required
+            />
+            <small>Enter multiple origin airports separated by commas</small>
           </div>
-          {!anyDestination && (
-            <>
-              <input
-                type="text"
-                id="destinations"
-                value={destinations}
-                onChange={(e) => setDestinations(e.target.value)}
-                placeholder="e.g., MCO, MIA, LAS"
-                required={!anyDestination}
-              />
-              <small>Enter multiple destination airports separated by commas</small>
-            </>
-          )}
-          {anyDestination && (
-            <small className="any-destination-note">
-              Will search all available destinations from your origin airports
-            </small>
-          )}
+
+          <div className="form-group">
+            <label htmlFor="destinations">Destination Airports</label>
+            
+            {!anyDestination ? (
+              <>
+                <input
+                  type="text"
+                  id="destinations"
+                  value={destinations}
+                  onChange={(e) => setDestinations(e.target.value)}
+                  placeholder="e.g., MCO, MIA, LAS"
+                  required={!anyDestination}
+                />
+                <small>Enter multiple destination airports separated by commas</small>
+              </>
+            ) : (
+              <small className="any-destination-note">
+                Will search all available destinations
+              </small>
+            )}
+
+            {/* Checkbox moved to bottom */}
+            <div className="checkbox-group" style={{ marginTop: '0.25rem' }}>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={anyDestination}
+                  onChange={(e) => {
+                    setAnyDestination(e.target.checked);
+                    if (e.target.checked) {
+                      setDestinations('');
+                    }
+                  }}
+                />
+                <span>Any Airport</span>
+              </label>
+            </div>
+          </div>
         </div>
 
         {searchMode === 'build-your-own' && (
