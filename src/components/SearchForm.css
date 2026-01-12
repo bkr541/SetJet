@@ -29,50 +29,6 @@
   font-size: 0.95rem;
 }
 
-/* ============================= */
-/* AIRPORT SEARCH INPUTS (NEW) */
-/* ============================= */
-.airport-input {
-  width: 100%;
-  height: 46px;
-  padding: 0 16px;
-
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 14px;
-
-  font-size: 1rem;
-  font-weight: 400;
-
-  background: #ffffff;
-  color: #161616;
-
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.airport-input::placeholder {
-  color: #9aa0a6;
-}
-
-.airport-input:hover {
-  border-color: rgba(0, 0, 0, 0.14);
-}
-
-.airport-input:focus {
-  outline: none;
-  border-color: #0096a6;
-  box-shadow: 0 0 0 3px rgba(0, 150, 166, 0.12);
-}
-
-.airport-input:disabled {
-  background-color: #f4f4f4;
-  color: #8d8d8d;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* ============================= */
-/* DEFAULT INPUTS (unchanged) */
-/* ============================= */
 .form-group input {
   padding: 0.75rem;
   border: 1px solid #e0e0e0;
@@ -102,7 +58,7 @@
 
 /* PRIMARY ACTION BUTTON */
 .search-button {
-  background: #004e5a;
+  background: #004e5a; /* greener blue-green */
   color: #ffffff;
   border: none;
   padding: 1rem 2rem;
@@ -213,6 +169,14 @@
   border-radius: 6px;
   display: block;
   margin-top: 0.5rem;
+}
+
+/* DISABLED INPUTS */
+.form-group input[type="text"]:disabled,
+.form-group input[type="date"]:disabled {
+  background-color: #f4f4f4;
+  color: #8d8d8d;
+  cursor: not-allowed;
 }
 
 /* SELECT */
