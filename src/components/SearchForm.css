@@ -145,7 +145,12 @@
 
 /* CHECKBOXES */
 .checkbox-group {
-  margin-bottom: 0.5rem;
+  margin-top: 0.25rem;
+  display: flex;
+}
+
+.checkbox-group.right-align {
+  justify-content: flex-end;
 }
 
 .checkbox-label {
@@ -226,5 +231,9 @@
     border-radius: 12px;
     justify-content: flex-start;
     margin-bottom: 2px;
+  }
+  
+  .checkbox-group.right-align {
+    justify-content: flex-start; /* Reset to left align on mobile for better flow */
   }
 }
