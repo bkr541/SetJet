@@ -62,7 +62,6 @@
   margin-right: 0.25rem;
 }
 
-/* Notice styling aligned to SetJet palette */
 .trip-planner-notice {
   margin-top: 0.75rem;
   padding: 0.75rem 1rem;
@@ -72,59 +71,6 @@
   color: #004e5a;
   font-size: 0.9rem;
   font-weight: 500;
-}
-
-/* Stats Overview Section */
-.stats-overview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  flex: 1 1 180px;
-  display: flex;
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-}
-
-.stat-icon-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f2f9fa;
-  border-radius: 8px;
-  padding: 0.75rem;
-  margin-right: 1rem;
-}
-
-.stat-icon {
-  color: #0096a6;
-}
-
-.stat-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  color: #6f6f6f;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.25rem;
-}
-
-.stat-value {
-  font-size: 1.25rem;
-  color: #161616;
-  font-weight: 700;
 }
 
 .no-results {
@@ -189,7 +135,10 @@
   display: flex;
   gap: 4px;
   background-color: #e0e0e0;
+  
+  /* MATCHING SEARCHFORM PADDING */
   padding: 5px; 
+  
   border-radius: 50px;
   border: 1px solid #d0d0d0;
 }
@@ -199,15 +148,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  
+  /* MATCHING SEARCHFORM PADDING */
   padding: 0.65rem 1rem;
   
-  /* CRITICAL: Resets to prevent looking like a button */
   border: none;
-  background: transparent;
-  
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.2s ease;
+  background: transparent;
   color: #525252;
   font-size: 0.9rem;
   font-weight: 500;

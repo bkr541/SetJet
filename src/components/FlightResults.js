@@ -1,36 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import {
-  Layers,
-  MapPin,
-  Plane,
-  Clock,
-  CalendarDays,
-  CircleDollarSign,
-  Sunrise,
-  Hourglass,
-  Ticket,
-  Filter
+import { 
+  CircleDollarSign, 
+  Plane, 
+  Sunrise, 
+  Hourglass, 
+  Ticket 
 } from 'lucide-react';
 import './FlightResults.css';
 import DestinationCard from './DestinationCard';
 
-// New StatCard component
-function StatCard({ icon: Icon, label, value }) {
-  return (
-    <div className="stat-card">
-      <div className="stat-icon-container">
-        <Icon size={24} className="stat-icon" />
-      </div>
-      <div className="stat-content">
-        <span className="stat-label">{label}</span>
-        <span className="stat-value">{value}</span>
-      </div>
-    </div>
-  );
-}
-
 function FlightResults({
-  flights = [], 
+  flights = [], // Default to empty array to prevent crash
   searchParams,
   fromCache,
   tripPlannerInfo,
@@ -41,14 +21,16 @@ function FlightResults({
   onSelectReturn,
   onResetBuildYourOwn
 }) {
-  const [sortBy, setSortBy] = useState('price'); 
+  const [sortBy, setSortBy] = useState('price'); // 'price', 'nonstop', 'earliest'
   const [nonstopOnly, setNonstopOnly] = useState(false);
   const [gowildOnly, setGowildOnly] = useState(false);
 
   // Group flights by destination and sort
   const groupedFlights = useMemo(() => {
+    // Safety check: if flights is null or undefined, return empty array
     if (!flights) return [];
 
+    // Filter flights if nonstop-only is enabled
     let filteredFlights = flights;
     if (nonstopOnly) {
       filteredFlights = filteredFlights.filter(flight => flight.stops === 0);
@@ -57,6 +39,7 @@ function FlightResults({
       filteredFlights = filteredFlights.filter(flight => flight.gowild_eligible);
     }
 
+    // Group by destination
     const groups = {};
     if (Array.isArray(filteredFlights)) {
       filteredFlights.forEach(flight => {
@@ -68,6 +51,7 @@ function FlightResults({
       });
     }
 
+    // Sort flights within each destination group
     Object.keys(groups).forEach(dest => {
       groups[dest].sort((a, b) => {
         switch (sortBy) {
@@ -82,15 +66,21 @@ function FlightResults({
             return dateA - dateB;
 
           case 'longest-trip':
+            // For round trips: earliest departure + latest return = longest trip
             if (a.is_round_trip && b.is_round_trip) {
               const aDepartTime = new Date(`${a.departure_date} ${a.departure_time}`);
               const bDepartTime = new Date(`${b.departure_date} ${b.departure_time}`);
               const aReturnTime = new Date(`${a.return_flight.arrival_date} ${a.return_flight.arrival_time}`);
               const bReturnTime = new Date(`${b.return_flight.arrival_date} ${b.return_flight.arrival_time}`);
+
+              // Calculate trip duration in milliseconds
               const aDuration = aReturnTime - aDepartTime;
               const bDuration = bReturnTime - bDepartTime;
+
+              // Sort by longest duration first (descending)
               return bDuration - aDuration;
             }
+            // For one-way flights, fall back to price
             return a.price - b.price;
 
           case 'price':
@@ -100,6 +90,7 @@ function FlightResults({
       });
     });
 
+    // Sort destinations by cheapest flight price
     const sortedDestinations = Object.keys(groups).sort((destA, destB) => {
       const minPriceA = Math.min(...groups[destA].map(f => f.price));
       const minPriceB = Math.min(...groups[destB].map(f => f.price));
@@ -131,28 +122,6 @@ function FlightResults({
     ? 'Any Airport'
     : searchParams.destinations.join(', ');
 
-  // --- STATS CALCULATIONS ---
-  const totalOptions = flights ? flights.length : 0;
-  const nonstopFlightsCount = flights ? flights.filter(f => f.stops === 0).length : 0;
-  
-  // Calculate earliest departure from actual flights if tripPlannerInfo isn't available
-  const getEarliestDeparture = () => {
-    if (tripPlannerInfo && tripPlannerInfo.earliest_departure) {
-      return tripPlannerInfo.earliest_departure;
-    }
-    if (flights && flights.length > 0) {
-      // Create a shallow copy and sort by date/time
-      const sortedByTime = [...flights].sort((a, b) => {
-        const dateA = new Date(`${a.departure_date} ${a.departure_time}`);
-        const dateB = new Date(`${b.departure_date} ${b.departure_time}`);
-        return dateA - dateB;
-      });
-      return sortedByTime[0].departure_time;
-    }
-    return 'N/A';
-  };
-  const earliestDeparture = getEarliestDeparture();
-
   return (
     <div className="results-container">
       <div className="results-header">
@@ -177,17 +146,6 @@ function FlightResults({
           )}
         </div>
       </div>
-
-      {/* Stats Overview Section */}
-      {flights && flights.length > 0 && (
-        <div className="stats-overview">
-          <StatCard icon={Layers} label="Total Options" value={totalOptions} />
-          <StatCard icon={MapPin} label="Airports" value="-" />
-          <StatCard icon={Plane} label="Nonstop Flights" value={nonstopFlightsCount} />
-          <StatCard icon={Clock} label="Earliest Departure" value={earliestDeparture} />
-          <StatCard icon={CalendarDays} label="Events" value="-" />
-        </div>
-      )}
 
       {buildYourOwnMode && (
         <div className="build-your-own-status">
@@ -223,7 +181,7 @@ function FlightResults({
         </div>
       )}
 
-      {(!flights || flights.length === 0) ? (
+      {flights.length === 0 ? (
         <div className="no-results">
           <div className="no-results-icon">✈️</div>
           <h3>Ready to search!</h3>
