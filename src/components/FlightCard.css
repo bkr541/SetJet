@@ -7,7 +7,7 @@
   box-shadow: 0 4px 6px -2px rgba(16, 24, 40, 0.03), 0 12px 16px -4px rgba(16, 24, 40, 0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   overflow: hidden;
-  display: flex; /* ADDED: Ensures flex column layout for full height */
+  display: flex;
   flex-direction: column;
 }
 
@@ -25,8 +25,7 @@
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #f2f4f7;
   background-color: #fafafa;
-  /* ADDED: Fix alignment issues between cards with different price text lengths */
-  min-height: 80px; 
+  min-height: 80px;
 }
 
 .airline-info {
@@ -42,7 +41,6 @@
   display: block;
 }
 
-/* UPDATED: Container for text stack */
 .airline-text-container {
   display: flex;
   flex-direction: column;
@@ -56,7 +54,6 @@
   font-size: 1rem;
 }
 
-/* UPDATED: Flight Number Styles */
 .flight-number-text {
   font-size: 0.85rem;
   color: #667085;
@@ -69,8 +66,7 @@
   align-items: flex-end;
   text-align: right;
   gap: 0;
-  /* ADDED: Reserve vertical space so single-line prices match multi-line ones */
-  min-height: 42px; 
+  min-height: 42px;
   justify-content: center;
 }
 
@@ -81,7 +77,7 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
   margin: 0;
-  margin-bottom: 2px; /* Slight gap between label and price */
+  margin-bottom: 2px;
 }
 
 .price-value.gowild {
@@ -113,22 +109,22 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  flex: 1; /* ADDED: Pushes footer to bottom if cards stretch */
+  flex: 1;
 }
 
 .flight-row-grid {
   display: grid;
-  grid-template-columns: 140px 1fr 140px; 
+  grid-template-columns: 140px 1fr 140px;
   row-gap: 0.25rem;
   align-items: center;
 }
 
 .grid-cell.left { text-align: left; }
 .grid-cell.right { text-align: right; }
-.grid-cell.center { 
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
+.grid-cell.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: relative;
 }
 
@@ -217,169 +213,6 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
-}
-
-/* --- FLIGHT DETAILS (STOPS) STYLING --- */
-.details-group {
-  border-top: 1px solid #f2f4f7;
-  background-color: #fafafa;
-}
-
-.stops-count-badge {
-  font-weight: 500;
-  font-size: 0.85rem;
-  color: #667085;
-  background: #f2f4f7;
-  padding: 2px 8px;
-  border-radius: 12px;
-  margin-left: 6px;
-}
-
-.details-content {
-  padding: 1rem 0;
-  animation: slideDown 0.2s ease-out;
-}
-
-/* --- VERTICAL TIMELINE STYLES --- */
-.segments-timeline {
-  display: flex;
-  flex-direction: column;
-  margin-left: 0.5rem;
-}
-
-.segment-group {
-  position: relative;
-}
-
-.timeline-node {
-  display: flex;
-  position: relative;
-  min-height: 24px;
-}
-
-.timeline-line {
-  position: absolute;
-  left: 7px;
-  top: 14px;
-  bottom: -14px;
-  width: 2px;
-  background-color: #e4e7ec;
-  z-index: 1;
-}
-
-.timeline-line-filler {
-  position: absolute;
-  left: 7px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background-color: #e4e7ec;
-  z-index: 1;
-}
-
-.timeline-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background-color: #d0d5dd;
-  z-index: 2;
-  border: 2px solid white;
-  flex-shrink: 0;
-  margin-top: 4px;
-}
-
-.timeline-dot.top, .timeline-dot.bottom {
-  border: 2px solid #d0d5dd;
-  background: white;
-}
-
-.timeline-content {
-  display: flex;
-  align-items: flex-start;
-  margin-left: 1rem;
-  width: 100%;
-  padding-bottom: 0.5rem;
-}
-
-.time-col {
-  width: 80px;
-  flex-shrink: 0;
-  text-align: right;
-  margin-right: 1rem;
-}
-
-.node-time {
-  font-weight: 700;
-  color: #101828;
-  font-size: 1rem;
-  display: block;
-  line-height: 1.2;
-}
-
-.info-col {
-  display: flex;
-  flex-direction: column;
-}
-
-.node-city {
-  font-weight: 600;
-  color: #344054;
-  font-size: 0.95rem;
-}
-
-.node-code {
-  color: #667085;
-  font-weight: 400;
-}
-
-.node-airport {
-  font-size: 0.85rem;
-  color: #667085;
-  margin-top: 2px;
-}
-
-.timeline-duration-row {
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 0 0.75rem 2.5rem;
-  margin-left: 0; 
-}
-
-.duration-pill-box {
-  background-color: #f2f4f7;
-  color: #475467;
-  font-size: 0.85rem;
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-weight: 500;
-  width: 100%;
-  max-width: 400px;
-}
-
-.layover-banner {
-  margin: 1rem 0 1rem 2.5rem;
-  padding: 0.5rem 1rem;
-  background-color: #fff9f0;
-  border: 1px dashed #fedf89;
-  border-radius: 8px;
-  color: #b54708;
-  font-size: 0.85rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: fit-content;
-  position: relative;
-  z-index: 2;
-}
-
-.no-segments-msg {
-  padding: 1rem;
-  text-align: center;
-  color: #667085;
-  font-size: 0.9rem;
-  font-style: italic;
 }
 
 /* --- 3. STATUS GROUP (Collapsible) --- */
@@ -505,20 +338,20 @@
 
 /* Blackout Specifics (Red) */
 .status-alert.blackout {
-  background-color: #fff0f1; 
-  border-color: #ffccd0;    
+  background-color: #fff0f1;
+  border-color: #ffccd0;
 }
 
 .status-alert.blackout .alert-title,
 .status-alert.blackout .alert-message,
 .status-alert.blackout .alert-icon {
-  color: #c0392b; 
+  color: #c0392b;
 }
 
 /* Seats Specifics (Orange) */
 .status-alert.seats {
-  background-color: #fff7ed; 
-  border-color: #ffedd5;    
+  background-color: #fff7ed;
+  border-color: #ffedd5;
 }
 
 .status-alert.seats .alert-title,
@@ -532,7 +365,7 @@
   display: flex;
   justify-content: flex-end;
   padding: 1rem 1.5rem 1.5rem 1.5rem;
-  margin-top: auto; /* ADDED: Pushes footer to bottom if container stretches */
+  margin-top: auto;
 }
 
 .footer-actions {
@@ -563,19 +396,19 @@
     text-align: center;
     row-gap: 0.5rem;
   }
-  
+
   .grid-cell.left, .grid-cell.right { text-align: center; }
   .grid-cell.center { margin: 0.5rem 0; }
-  
+
   .icon-cell::before { display: none; }
-  
+
   .card-top-header {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
-    min-height: auto; /* Allow auto height on mobile */
+    min-height: auto;
   }
-  
+
   .price-display {
     text-align: left;
     width: 100%;
