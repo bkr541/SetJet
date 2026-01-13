@@ -9,8 +9,8 @@ import {
   PlaneTakeoff,
   PlaneLanding,
   Calendar,
-  MapPin,
   Building2,
+  TowerControl, 
   X 
 } from 'lucide-react';
 import './SearchForm.css';
@@ -74,10 +74,7 @@ function SearchForm({ onSearch, loading }) {
   }, [originSearchText]);
 
   const handleSelectOrigin = (code) => {
-    // UPDATED: Split the code string (e.g., "ORD, MDW") into individual codes
     const newCodes = code.split(',').map(c => c.trim());
-    
-    // Filter out duplicates that are already in the state
     const uniqueNewCodes = newCodes.filter(c => !originPills.includes(c));
 
     if (uniqueNewCodes.length > 0) {
@@ -132,10 +129,7 @@ function SearchForm({ onSearch, loading }) {
   }, [destinationSearchText]);
 
   const handleSelectDestination = (code) => {
-    // UPDATED: Split the code string (e.g., "ORD, MDW") into individual codes
     const newCodes = code.split(',').map(c => c.trim());
-    
-    // Filter out duplicates that are already in the state
     const uniqueNewCodes = newCodes.filter(c => !destinationPills.includes(c));
 
     if (uniqueNewCodes.length > 0) {
@@ -306,7 +300,8 @@ function SearchForm({ onSearch, loading }) {
             <label htmlFor="origins">Origin Airports</label>
             
             <div className="relative-input-container">
-              <div className={`search-input-wrapper ${originPills.length > 0 || originSearchText ? 'has-value' : ''}`}>
+              {/* Only has-value when pills exist, ignoring search text */}
+              <div className={`search-input-wrapper ${originPills.length > 0 ? 'has-value' : ''}`}>
                 <PlaneTakeoff className="search-icon" size={24} />
                 
                 <div className="pills-container">
@@ -336,7 +331,7 @@ function SearchForm({ onSearch, loading }) {
                         if (originSearchText.length >= 2) setShowOriginDropdown(true);
                     }}
                     onBlur={() => setTimeout(() => setShowOriginDropdown(false), 200)}
-                    placeholder={originPills.length === 0 ? "e.g., DEN, LAX, SFO" : ""}
+                    placeholder={originPills.length === 0 ? "Search Airport, City, etc." : ""}
                     className="search-box-input"
                     autoComplete="off"
                   />
@@ -365,11 +360,18 @@ function SearchForm({ onSearch, loading }) {
                       onClick={() => handleSelectOrigin(result.value)}
                     >
                       <div className="item-icon">
-                        {result.type === 'Airport' ? <PlaneTakeoff size={16} /> : <Building2 size={16} />}
+                        {result.type === 'Airport' ? <TowerControl size={16} /> : <Building2 size={16} />}
                       </div>
                       <div className="item-info">
-                        <span className="item-label">{result.label}</span>
-                        {!result.indent && <span className="item-sub">{result.country}</span>}
+                        {result.is_header ? (
+                          <span className="item-label">{result.label}</span>
+                        ) : (
+                          <>
+                            <span className="item-code">{result.value}</span>
+                            <span className="item-name">{result.label.replace(/^\([^)]+\)\s*/, '')}</span>
+                            {!result.indent && <span className="item-sub">{result.country}</span>}
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -385,7 +387,8 @@ function SearchForm({ onSearch, loading }) {
             <label htmlFor="destinations">Destination Airports</label>
             
             <div className="relative-input-container">
-              <div className={`search-input-wrapper ${anyDestination ? 'disabled' : ''} ${(destinationPills.length > 0 || destinationSearchText) && !anyDestination ? 'has-value' : ''}`}>
+              {/* Only has-value when pills exist, ignoring search text */}
+              <div className={`search-input-wrapper ${anyDestination ? 'disabled' : ''} ${destinationPills.length > 0 && !anyDestination ? 'has-value' : ''}`}>
                 <PlaneLanding className="search-icon" size={24} />
                 
                 <div className="pills-container">
@@ -415,7 +418,7 @@ function SearchForm({ onSearch, loading }) {
                         if (destinationSearchText.length >= 2 && !anyDestination) setShowDestinationDropdown(true);
                     }}
                     onBlur={() => setTimeout(() => setShowDestinationDropdown(false), 200)}
-                    placeholder={anyDestination ? "Searching all airports..." : (destinationPills.length === 0 ? "e.g., MCO, MIA, LAS" : "")}
+                    placeholder={anyDestination ? "Searching all airports..." : (destinationPills.length === 0 ? "Search Airport, City, etc." : "")}
                     disabled={anyDestination}
                     className={`search-box-input ${anyDestination ? 'input-disabled-placeholder' : ''}`}
                     autoComplete="off"
@@ -446,11 +449,18 @@ function SearchForm({ onSearch, loading }) {
                       onClick={() => handleSelectDestination(result.value)}
                     >
                       <div className="item-icon">
-                        {result.type === 'Airport' ? <PlaneLanding size={16} /> : <Building2 size={16} />}
+                        {result.type === 'Airport' ? <TowerControl size={16} /> : <Building2 size={16} />}
                       </div>
                       <div className="item-info">
-                        <span className="item-label">{result.label}</span>
-                        {!result.indent && <span className="item-sub">{result.country}</span>}
+                        {result.is_header ? (
+                          <span className="item-label">{result.label}</span>
+                        ) : (
+                          <>
+                            <span className="item-code">{result.value}</span>
+                            <span className="item-name">{result.label.replace(/^\([^)]+\)\s*/, '')}</span>
+                            {!result.indent && <span className="item-sub">{result.country}</span>}
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}

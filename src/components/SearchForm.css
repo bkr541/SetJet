@@ -60,7 +60,7 @@
 /* When has value, make icon and text dark teal */
 .search-input-wrapper.has-value .search-icon {
   color: #004e5a;
-  stroke-width: 3px;
+  /* CHANGED: Removed stroke-width: 3px; to keep icon normal weight */
 }
 
 .search-input-wrapper.disabled {
@@ -146,6 +146,8 @@ input[type="date"].search-box-input {
   font-family: inherit;
   color: #161616;
   padding: 0.25rem 0 !important;
+  /* CHANGED: Sets the native calendar selection color to primary green */
+  accent-color: #0096a6;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
@@ -251,6 +253,17 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 500;
   color: #161616;
   font-size: 0.95rem;
+}
+
+.item-code {
+  font-weight: 700;
+  color: #161616;
+  font-size: 1rem;
+}
+
+.item-name {
+  font-size: 0.9rem;
+  color: #4a4a4a;
 }
 
 .item-sub {
