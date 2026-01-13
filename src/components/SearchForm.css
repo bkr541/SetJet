@@ -16,7 +16,7 @@
 .search-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem; /* CHANGED: Reduced from 1.5rem to 1rem for less whitespace */
+  gap: 1rem;
 }
 
 .form-group {
@@ -214,7 +214,6 @@
 .react-datepicker__month {
   display: flex !important;
   flex-direction: column !important;
-  /* CHANGED: Removed bottom margin to reduce whitespace above legend */
   margin: 0.8rem 0.8rem 0 0.8rem !important; 
   gap: 0.2rem !important;
 }
@@ -331,12 +330,12 @@
 
 /* --- CALENDAR LEGEND --- */
 .calendar-legend {
-  padding: 0.4rem; /* Reduced padding */
+  padding: 0.4rem;
   display: flex;
   justify-content: center;
   background-color: transparent;
   border-top: none;
-  margin-top: 0; /* Removed top margin */
+  margin-top: 0;
 }
 
 .legend-chip {
@@ -490,7 +489,6 @@
   border-radius: 50px;
   cursor: pointer;
   transition: background-color 0.15s, box-shadow 0.15s, transform 0.15s;
-  /* CHANGED: Added flex props to center the new icon */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -516,43 +514,65 @@
   box-shadow: none;
 }
 
-/* TRIP TYPE & MODE SELECTORS */
+/* --- SWITCH / TOGGLE SELECTOR STYLES (Fixed "Broken" Layout) --- */
+
+/* 1. Track Container */
 .trip-type-selector {
   display: flex;
-  gap: 4px;
-  margin-top: 0; /* CHANGED: Removed top margin (was 0.5rem) to reduce space */
-  background-color: #f2f4f6;
-  padding: 5px;
+  align-items: stretch; /* Ensure all items stretch to fill height */
+  background-color: #f1f5f9; /* Light grey track background */
+  padding: 4px; /* Padding creates space around the active pill */
   border-radius: 50px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #e2e8f0;
+  width: 100%; /* Force full width so it doesn't collapse */
+  box-sizing: border-box; /* Include padding in width */
+  margin-top: 0;
+  gap: 2px; /* Slight gap between items */
 }
 
+/* 2. Individual Options (Pills) */
 .trip-type-option {
-  flex: 1;
+  flex: 1; /* Distribute space evenly */
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.65rem 1rem;
+  padding: 0.6rem 0.5rem; /* Reduced horizontal padding for smaller screens */
+  
   border: none;
-  border-radius: 50px;
+  border-radius: 40px; 
   cursor: pointer;
-  transition: all 0.2s ease;
-  background: transparent;
-  color: #525252;
+  
+  background: transparent; 
+  
+  /* CHANGED: Gray color for inactive state to look "not selected" */
+  color: #64748b; 
+  
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
-  overflow: hidden;
+  user-select: none;
+  white-space: nowrap; /* Prevent text wrapping */
 }
 
-.trip-type-option:hover {
-  background: rgba(0, 0, 0, 0.03);
-  color: #161616;
+/* Hover Effect for Inactive */
+.trip-type-option:hover:not(.active) {
+  color: #334155; 
+  background-color: rgba(0, 0, 0, 0.03); /* Subtle darken */
 }
 
+/* 3. Active State (Pop Out Pill) */
 .trip-type-option.active {
-  background: #004e5a;
-  color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-weight: 600;
+  background: #004e5a; /* Brand Teal Background */
+  color: #ffffff;      /* White Text */
+  font-weight: 700;    
+  
+  /* Pop-Out Shadow Effect */
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 78, 90, 0.3), 
+    0 2px 4px -1px rgba(0, 78, 90, 0.15);
+    
+  transform: translateY(-1px); /* Slight lift */
+  z-index: 1; /* Sit above siblings */
 }
 
 .trip-type-option input[type="radio"] {
@@ -560,17 +580,27 @@
 }
 
 .trip-type-option span {
-  font-weight: 500;
   font-size: 0.9rem;
 }
 
+/* Icon Styles */
 .option-icon {
   margin-right: 8px;
-  stroke-width: 2.5px;
+  stroke-width: 2px;
   flex-shrink: 0;
+  transition: color 0.2s;
+  color: inherit; /* Inherit gray from parent */
 }
 
-/* TOGGLE SWITCH */
+/* Active Icon Color */
+.trip-type-option.active .option-icon {
+  color: #ffffff; /* White icon when active */
+  stroke-width: 2.5px;
+}
+
+/* ------------------------------------- */
+
+/* UPDATED: TOGGLE SWITCH (Any Airport) */
 .toggle-group {
   margin-top: 0.25rem;
   display: flex;
@@ -595,11 +625,13 @@
   height: 0;
 }
 
+/* The slider track now looks like the inactive "switches" track */
 .toggle-slider {
   position: absolute;
   cursor: pointer;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #ccc;
+  background-color: #f1f5f9; /* Match inactive track */
+  border: 1px solid #e2e8f0; /* Match inactive border */
   transition: .3s;
   border-radius: 34px;
 }
@@ -609,16 +641,19 @@
   content: "";
   height: 18px;
   width: 18px;
-  left: 3px;
-  bottom: 3px;
+  /* Adjusted positioning to center inside the border (24px h - 2px border - 18px knob = 4px gap / 2 = 2px) */
+  left: 2px; 
+  bottom: 2px;
   background-color: white;
   transition: .3s;
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
+/* Checked State */
 input:checked + .toggle-slider {
   background-color: #0096a6;
+  border-color: #0096a6; /* Hide/blend border when active */
 }
 
 input:checked + .toggle-slider:before {
@@ -695,40 +730,42 @@ input:checked + .toggle-slider:before {
   box-shadow: 0 0 0 1px #0096a6;
 }
 
+/* --- NEW: Map Toggle Group Container Style --- */
+.map-toggle-group {
+  margin-top: 1.5rem;         
+  width: 100%;
+  background-color: #fafafa;  
+  border: 1px solid #e0e0e0;  
+  border-radius: 12px;        
+  padding: 1rem;              
+  box-sizing: border-box;     
+  overflow: hidden;           
+}
+
 @media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr;
   }
 
+  /* STACK SELECTORS ON MOBILE */
   .trip-type-selector {
     flex-direction: column;
     border-radius: 16px;
-    gap: 0;
+    gap: 4px;
+    padding: 6px;
+    height: auto; /* Allow auto height for stacking */
   }
   
   .trip-type-option {
     border-radius: 12px;
     justify-content: flex-start;
-    margin-bottom: 2px;
+    padding-left: 1rem; /* Add padding for left alignment */
+    margin-bottom: 0;
+    width: 100%;
   }
   
   .toggle-group.right-align {
-    justify-content: flex-start;
+    justify-content: flex-end; /* CHANGED: Right justify Any Destination toggle */
     margin-top: 1rem;
   }
-
-  /* ... existing styles ... */
-
-/* --- NEW: Map Toggle Group Container Style --- */
-.map-toggle-group {
-  margin-top: 1.5rem;         /* Space from content above */
-  width: 100%;
-  background-color: #fafafa;  /* Light gray background matching image */
-  border: 1px solid #e0e0e0;  /* Thin gray border matching image */
-  border-radius: 12px;        /* Rounded corners matching image */
-  padding: 1rem;              /* Internal spacing */
-  box-sizing: border-box;     /* Ensures padding doesn't affect width */
-  overflow: hidden;           /* Ensures children respect rounded corners */
-}
-
 }

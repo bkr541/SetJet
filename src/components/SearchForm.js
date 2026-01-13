@@ -673,9 +673,6 @@ function SearchForm({ onSearch, loading }) {
                     <CalendarLegend />
                   </DatePicker>
                 )}
-                {tripType === 'day-trip' && (
-                  <small>Automatically set to same day as departure</small>
-                )}
               </div>
             )}
           </div>
