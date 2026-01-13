@@ -142,13 +142,6 @@ function App() {
 
   return (
     <div className="App">
-      <header className="header">
-        <div className="container">
-          <h1>WildPass</h1>
-          <p className="tagline">Find the best flight deals across multiple destinations</p>
-        </div>
-      </header>
-
       <main className="main">
         <div className="container">
           <SearchForm onSearch={handleSearch} loading={loading} />
