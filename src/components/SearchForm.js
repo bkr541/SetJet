@@ -18,6 +18,22 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO } from 'date-fns';
 import './SearchForm.css';
 
+// --- CUSTOM DATE INPUT COMPONENT ---
+// Defined outside the main component to prevent re-rendering/focus issues
+const CustomDateInput = forwardRef(({ value, onClick, placeholder, disabled }, ref) => (
+  <div 
+    className={`search-input-wrapper ${value ? 'has-value' : ''} ${disabled ? 'disabled' : ''} date-picker-trigger`}
+    onClick={onClick}
+    ref={ref}
+  >
+    <CalendarIcon className="search-icon" size={20} />
+    <span className={`date-display-text ${!value ? 'placeholder' : ''}`}>
+      {/* If a date is selected (value), show it. Otherwise show the placeholder passed from DatePicker */}
+      {value || placeholder}
+    </span>
+  </div>
+));
+
 function SearchForm({ onSearch, loading }) {
   const [searchMode, setSearchMode] = useState('package');
   
@@ -49,20 +65,6 @@ function SearchForm({ onSearch, loading }) {
 
   // Generate today's date string for placeholders (e.g. "Jan 13th, 2026")
   const todayPlaceholder = format(new Date(), 'MMM do, yyyy');
-
-  // --- CUSTOM DATE INPUT COMPONENT ---
-  const CustomDateInput = forwardRef(({ value, onClick, placeholder, disabled }, ref) => (
-    <div 
-      className={`search-input-wrapper ${value ? 'has-value' : ''} ${disabled ? 'disabled' : ''} date-picker-trigger`}
-      onClick={onClick}
-      ref={ref}
-    >
-      <CalendarIcon className="search-icon" size={20} />
-      <span className={`date-display-text ${!value ? 'placeholder' : ''}`}>
-        {value || placeholder}
-      </span>
-    </div>
-  ));
 
   // --- ORIGIN SEARCH LOGIC ---
   useEffect(() => {
@@ -506,7 +508,8 @@ function SearchForm({ onSearch, loading }) {
                 <DatePicker
                   selected={departureDate}
                   onChange={(date) => setDepartureDate(date)}
-                  customInput={<CustomDateInput placeholder={todayPlaceholder} />}
+                  customInput={<CustomDateInput />}
+                  placeholderText={todayPlaceholder}
                   dateFormat="PP"
                   minDate={new Date()}
                   fixedHeight
@@ -518,7 +521,8 @@ function SearchForm({ onSearch, loading }) {
                 <DatePicker
                   selected={returnDate}
                   onChange={(date) => setReturnDate(date)}
-                  customInput={<CustomDateInput placeholder={todayPlaceholder} />}
+                  customInput={<CustomDateInput />}
+                  placeholderText={todayPlaceholder}
                   dateFormat="PP"
                   minDate={departureDate || new Date()}
                   fixedHeight
@@ -541,7 +545,8 @@ function SearchForm({ onSearch, loading }) {
                     setReturnDate(null);
                   }
                 }}
-                customInput={<CustomDateInput placeholder={todayPlaceholder} />}
+                customInput={<CustomDateInput />}
+                placeholderText={todayPlaceholder}
                 dateFormat="PP"
                 minDate={new Date()}
                 fixedHeight
@@ -562,7 +567,8 @@ function SearchForm({ onSearch, loading }) {
                   <DatePicker
                     selected={returnDate}
                     onChange={(date) => setReturnDate(date)}
-                    customInput={<CustomDateInput placeholder={todayPlaceholder} />}
+                    customInput={<CustomDateInput />}
+                    placeholderText={todayPlaceholder}
                     dateFormat="PP"
                     minDate={departureDate || new Date()}
                     fixedHeight
@@ -583,7 +589,8 @@ function SearchForm({ onSearch, loading }) {
               <DatePicker
                 selected={departureDate}
                 onChange={(date) => setDepartureDate(date)}
-                customInput={<CustomDateInput placeholder={todayPlaceholder} />}
+                customInput={<CustomDateInput />}
+                placeholderText={todayPlaceholder}
                 dateFormat="PP"
                 minDate={new Date()}
                 fixedHeight
