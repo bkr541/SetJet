@@ -43,7 +43,7 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
       </div>
       <div className="grid-cell center icon-cell">
         <div className="plane-icon-wrapper">
-          {/* Increased by 6px (28 -> 34) */}
+          {/* Increased by 6px */}
           <TicketsPlane size={34} className="plane-icon" />
         </div>
       </div>
@@ -64,9 +64,13 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
       </div>
       <div className="grid-cell center"></div>
       <div className="grid-cell right">
-        {/* Dest City should be destination city's IATA code (from Amadeus-mapped data) */}
+        {/* Destination City NAME from API */}
         <span className="city-name">
-          {segment.destination_city_code || segment.destination_city || segment.destination}
+          {segment.destination_city_name ||
+            segment.destination_city ||
+            segment.destinationCityName ||
+            segment.destinationCity ||
+            segment.destination}
         </span>
       </div>
 
@@ -131,7 +135,7 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
         )}
       </div>
 
-      {/* Alerts group (unchanged) */}
+      {/* Alerts group */}
       {hasAlerts && (
         <div className="flight-status-group">
           <div
