@@ -4,13 +4,17 @@ import {
   Plane, 
   Sunrise, 
   Hourglass, 
-  Ticket 
+  Ticket,
+  ChevronDown,
+  ChevronUp,
+  Map as MapIcon 
 } from 'lucide-react';
 import './FlightResults.css';
 import DestinationCard from './DestinationCard';
+import HubMap from './HubMap'; 
 
 function FlightResults({
-  flights = [], // Default to empty array to prevent crash
+  flights = [], 
   searchParams,
   fromCache,
   tripPlannerInfo,
@@ -21,38 +25,69 @@ function FlightResults({
   onSelectReturn,
   onResetBuildYourOwn
 }) {
-  const [sortBy, setSortBy] = useState('price'); // 'price', 'nonstop', 'earliest'
+  const [sortBy, setSortBy] = useState('price'); 
   const [nonstopOnly, setNonstopOnly] = useState(false);
   const [gowildOnly, setGowildOnly] = useState(false);
+  const [showMap, setShowMap] = useState(false); // State for Map Toggle
+
+  // 1. PREPARE MAP DATA
+  const mapData = useMemo(() => {
+    if (!flights || flights.length === 0) return null;
+    
+    const origin = flights[0].origin;
+    const destMap = {};
+    flights.forEach(f => {
+      if (!destMap[f.destination] || f.price < destMap[f.destination].price) {
+        destMap[f.destination] = { iata: f.destination, price: f.price };
+      }
+    });
+
+    return {
+      origin,
+      destinations: Object.values(destMap)
+    };
+  }, [flights]);
+
+  // 2. HELPER: Get list of unique destinations for "Any Airport" display
+  const availableDestinationsList = useMemo(() => {
+    if (!flights || flights.length === 0) return '';
+    const unique = [...new Set(flights.map(f => f.destination))];
+    return unique.sort().join(', ');
+  }, [flights]);
+
+  // 3. HELPER: Calculate Days Away
+  const getDaysAway = (dateStr) => {
+    if (!dateStr) return null;
+    const target = new Date(`${dateStr}T00:00:00`); 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const diffTime = target - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays > 0) {
+      return `+ ${diffDays} days away`;
+    }
+    return null; 
+  };
 
   // Group flights by Route (Origin + Destination) and sort
   const groupedFlights = useMemo(() => {
-    // Safety check: if flights is null or undefined, return empty array
     if (!flights) return [];
 
-    // Filter flights if nonstop-only is enabled
     let filteredFlights = flights;
-    if (nonstopOnly) {
-      filteredFlights = filteredFlights.filter(flight => flight.stops === 0);
-    }
-    if (gowildOnly) {
-      filteredFlights = filteredFlights.filter(flight => flight.gowild_eligible);
-    }
+    if (nonstopOnly) filteredFlights = filteredFlights.filter(flight => flight.stops === 0);
+    if (gowildOnly) filteredFlights = filteredFlights.filter(flight => flight.gowild_eligible);
 
-    // Group by Route (Origin -> Destination)
-    // This creates separate groups for ORD->LAS and MDW->LAS
     const groups = {};
     if (Array.isArray(filteredFlights)) {
       filteredFlights.forEach(flight => {
         const routeKey = `${flight.origin}-${flight.destination}`;
-        if (!groups[routeKey]) {
-          groups[routeKey] = [];
-        }
+        if (!groups[routeKey]) groups[routeKey] = [];
         groups[routeKey].push(flight);
       });
     }
 
-    // Sort flights within each route group
     Object.keys(groups).forEach(key => {
       groups[key].sort((a, b) => {
         switch (sortBy) {
@@ -60,30 +95,17 @@ function FlightResults({
             if (a.stops === 0 && b.stops !== 0) return -1;
             if (a.stops !== 0 && b.stops === 0) return 1;
             return a.price - b.price;
-
           case 'earliest':
             const dateA = new Date(`${a.departure_date} ${a.departure_time}`);
             const dateB = new Date(`${b.departure_date} ${b.departure_time}`);
             return dateA - dateB;
-
           case 'longest-trip':
-            // For round trips: earliest departure + latest return = longest trip
             if (a.is_round_trip && b.is_round_trip) {
-              const aDepartTime = new Date(`${a.departure_date} ${a.departure_time}`);
-              const bDepartTime = new Date(`${b.departure_date} ${b.departure_time}`);
-              const aReturnTime = new Date(`${a.return_flight.arrival_date} ${a.return_flight.arrival_time}`);
-              const bReturnTime = new Date(`${b.return_flight.arrival_date} ${b.return_flight.arrival_time}`);
-
-              // Calculate trip duration in milliseconds
-              const aDuration = aReturnTime - aDepartTime;
-              const bDuration = bReturnTime - bDepartTime;
-
-              // Sort by longest duration first (descending)
-              return bDuration - aDuration;
+              const durationA = new Date(a.return_flight.arrival_date) - new Date(a.departure_date);
+              const durationB = new Date(b.return_flight.arrival_date) - new Date(b.departure_date);
+              return durationB - durationA;
             }
-            // For one-way flights, fall back to price
             return a.price - b.price;
-
           case 'price':
           default:
             return a.price - b.price;
@@ -91,24 +113,20 @@ function FlightResults({
       });
     });
 
-    // Sort the route groups by the cheapest flight in each group
     const sortedRouteKeys = Object.keys(groups).sort((keyA, keyB) => {
       const minPriceA = Math.min(...groups[keyA].map(f => f.price));
       const minPriceB = Math.min(...groups[keyB].map(f => f.price));
       return minPriceA - minPriceB;
     });
 
-    // Map back to an array of group objects for rendering
     return sortedRouteKeys.map(key => ({
       destination: groups[key][0].destination,
-      origin: groups[key][0].origin, // Correctly grabs the specific origin (e.g. MDW)
+      origin: groups[key][0].origin,
       flights: groups[key]
     }));
   }, [flights, sortBy, nonstopOnly, gowildOnly]);
 
-  if (!searchParams) {
-    return null;
-  }
+  if (!searchParams) return null;
 
   const getTripTypeLabel = (tripType) => {
     const labels = {
@@ -120,33 +138,97 @@ function FlightResults({
     return labels[tripType] || tripType;
   };
 
-  const destinationText = searchParams.destinations.includes('ANY')
+  const isAnyAirportSearch = searchParams.destinations.includes('ANY');
+  const destinationText = isAnyAirportSearch
     ? 'Any Airport'
     : searchParams.destinations.join(', ');
 
+  const daysAwayText = getDaysAway(searchParams.departureDate);
+  const compactLineStyle = { margin: '2px 0', lineHeight: '1.4' };
+
   return (
     <div className="results-container">
+      
+      {/* HEADER SECTION */}
       <div className="results-header">
-        <div className="results-title-row">
-          <h2>Flight Results</h2>
-          {fromCache && <span className="cache-badge">📦 From Cache</span>}
+        
+        {/* Title Row - MERGED INTO ONE SENTENCE */}
+        <div className="results-title-row" style={{ alignItems: 'center', display: 'flex' }}>
+          <h2>
+            <span style={{ color: '#004e5a' }}>{flights.length}</span> Flight Results
+          </h2>
+          
+          {fromCache && <span className="cache-badge" style={{ marginLeft: '12px' }}>📦 From Cache</span>}
         </div>
+        
+        {/* Search Summary Text */}
         <div className="search-summary">
           <span className="summary-badge">{getTripTypeLabel(searchParams.tripType)}</span>
-          <p className="results-info">
+          
+          <p className="results-info" style={compactLineStyle}>
             <strong>From:</strong> {searchParams.origins.join(', ')} → <strong>To:</strong> {destinationText}
           </p>
-          <p className="results-info">
+
+          {isAnyAirportSearch && availableDestinationsList && (
+            <p className="results-info" style={compactLineStyle}>
+              <strong>Available Destinations:</strong> {availableDestinationsList}
+            </p>
+          )}
+
+          <p className="results-info" style={compactLineStyle}>
             <strong>Departure:</strong> {searchParams.departureDate}
+            
+            {daysAwayText && (
+              <span style={{ color: '#16a34a', fontWeight: 'bold', marginLeft: '8px' }}>
+                {daysAwayText}
+              </span>
+            )}
+
             {searchParams.returnDate && ` | `}
             {searchParams.returnDate && <><strong>Return:</strong> {searchParams.returnDate}</>}
           </p>
+
           {tripPlannerInfo && tripPlannerInfo.days_searched > 1 && flights.length > 0 && (
-            <div className="trip-planner-notice">
+            <div className="trip-planner-notice" style={{ marginTop: '4px' }}>
               ℹ️ No matches found for {searchParams.departureDate}. Showing results starting {tripPlannerInfo.earliest_departure} (searched {tripPlannerInfo.days_searched} days)
             </div>
           )}
         </div>
+
+        {/* HUB MAP TOGGLE */}
+        {mapData && (
+          <div style={{ marginTop: '1rem', width: '100%' }}>
+            
+            {/* Clickable Header */}
+            <div 
+              onClick={() => setShowMap(!showMap)}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer',
+                userSelect: 'none',
+                color: '#475569',
+                fontWeight: '600',
+                marginBottom: '0.5rem'
+              }}
+            >
+              <MapIcon size={18} style={{ marginRight: '8px' }} />
+              <span>{showMap ? "Hide" : "Show"} Destinations Map</span>
+              {showMap ? <ChevronUp size={18} style={{ marginLeft: 'auto' }} /> : <ChevronDown size={18} style={{ marginLeft: 'auto' }} />}
+            </div>
+
+            {/* Collapsible Content */}
+            {showMap && (
+              <div style={{ height: '250px', width: '100%' }}>
+                <HubMap 
+                  originIATA={mapData.origin} 
+                  destinations={mapData.destinations} 
+                />
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
 
       {buildYourOwnMode && (
@@ -188,14 +270,10 @@ function FlightResults({
           <div className="no-results-icon">✈️</div>
           <h3>Ready to search!</h3>
           <p>Flight results will appear here after you search.</p>
-          <p className="hint">
-            Each flight will show the origin, destination, price, departure time, and airline details.
-          </p>
         </div>
       ) : (
         <>
           <div className="sort-controls">
-            
             {/* Sort Section */}
             <div className="control-group">
               <span className="control-label">Sort by:</span>

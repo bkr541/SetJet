@@ -16,7 +16,7 @@
 .search-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem; /* CHANGED: Reduced from 1.5rem to 1rem for less whitespace */
 }
 
 .form-group {
@@ -490,6 +490,11 @@
   border-radius: 50px;
   cursor: pointer;
   transition: background-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  /* CHANGED: Added flex props to center the new icon */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .search-button:hover {
@@ -515,7 +520,7 @@
 .trip-type-selector {
   display: flex;
   gap: 4px;
-  margin-top: 0.5rem;
+  margin-top: 0; /* CHANGED: Removed top margin (was 0.5rem) to reduce space */
   background-color: #f2f4f6;
   padding: 5px;
   border-radius: 50px;

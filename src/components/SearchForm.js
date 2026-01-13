@@ -11,7 +11,8 @@ import {
   Calendar as CalendarIcon,
   Building2,
   TowerControl,
-  X 
+  X,
+  Plane // Added Plane Icon
 } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -772,7 +773,13 @@ function SearchForm({ onSearch, loading }) {
         )}
 
         <button type="submit" className="search-button" disabled={loading}>
-          {loading ? 'Searching...' : 'Search Flights'}
+          {loading ? 'Searching...' : (
+            <>
+              {/* Added Plane Icon with spacing */}
+              <Plane size={20} />
+              <span>Search Flights</span>
+            </>
+          )}
         </button>
       </form>
     </div>
