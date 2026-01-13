@@ -91,6 +91,12 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
           </div>
         </div>
 
+        {/* --- MAP SECTION MOVED HERE --- */}
+        {/* We place it inside a div to give it some spacing from the stats/button */}
+        <div style={{ margin: '1rem 0' }} onClick={(e) => e.stopPropagation()}>
+           <RouteMap originIATA={origin} destinationIATA={destination} />
+        </div>
+
         <div className="expand-indicator">
           <span className={`arrow-icon ${isExpanded ? 'expanded' : ''}`}>▼</span>
           <span className="expand-text">
@@ -101,11 +107,8 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
 
       {isExpanded && (
         <div className="destination-flights">
-          {/* MAP IS HERE */}
-          <RouteMap originIATA={origin} destinationIATA={destination} />
+          {/* Map was removed from here */}
           
-          <div style={{ marginBottom: '1.5rem' }}></div> 
-
           <div className="flights-list">
             {flights.map((flight, index) => (
               <FlightCard
