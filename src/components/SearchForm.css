@@ -716,4 +716,19 @@ input:checked + .toggle-slider:before {
     justify-content: flex-start;
     margin-top: 1rem;
   }
+
+  /* ... existing styles ... */
+
+/* --- NEW: Map Toggle Group Container Style --- */
+.map-toggle-group {
+  margin-top: 1.5rem;         /* Space from content above */
+  width: 100%;
+  background-color: #fafafa;  /* Light gray background matching image */
+  border: 1px solid #e0e0e0;  /* Thin gray border matching image */
+  border-radius: 12px;        /* Rounded corners matching image */
+  padding: 1rem;              /* Internal spacing */
+  box-sizing: border-box;     /* Ensures padding doesn't affect width */
+  overflow: hidden;           /* Ensures children respect rounded corners */
+}
+
 }

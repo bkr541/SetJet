@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { TicketsPlane, Circle, ChevronDown, ChevronUp } from 'lucide-react';
+import { TicketsPlane, Circle, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import './FlightCard.css';
 
 function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outbound', onSelectFlight }) {
   const [isAlertsExpanded, setIsAlertsExpanded] = useState(false);
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false); // New state for stops toggle
 
   // Format date helper: "Thursday, Mar 05, 2025"
   const formatDate = (dateStr) => {
@@ -17,16 +18,12 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
     });
   };
 
-// Convert 24h time to 12h: "13:31" -> "01:31 PM"
-  // UPDATED: Handle inputs that might already be 12-hour format
+  // Convert 24h time to 12h: "13:31" -> "01:31 PM"
   const formatTime = (timeStr) => {
     if (!timeStr) return '';
-    
-    // If it already contains AM or PM, return as is (trim to be safe)
     if (timeStr.toUpperCase().includes('AM') || timeStr.toUpperCase().includes('PM')) {
         return timeStr.trim();
     }
-
     const [hours, minutes] = timeStr.split(':');
     const h = parseInt(hours, 10);
     const suffix = h >= 12 ? 'PM' : 'AM';
@@ -38,9 +35,71 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
   const hasBlackout = flight.blackout_dates?.has_blackout && flight.gowild_eligible;
   const hasSeatAlert = flight.seats_remaining && flight.seats_remaining <= 9;
   const hasAlerts = hasBlackout || hasSeatAlert;
-  
-  // Calculate total alerts
   const alertCount = (hasBlackout ? 1 : 0) + (hasSeatAlert ? 1 : 0);
+
+  // Check if flight has stops (to show the new group)
+  const hasStops = flight.stops > 0;
+
+  // Helper to render the vertical timeline for segments
+  const renderSegments = (segments) => {
+    if (!segments || segments.length === 0) return null;
+
+    return (
+      <div className="segments-timeline">
+        {segments.map((seg, i) => (
+          <div key={i} className="segment-group">
+            {/* SEGMENT START */}
+            <div className="timeline-node">
+              <div className="timeline-dot top"></div>
+              <div className="timeline-line"></div>
+              <div className="timeline-content">
+                <div className="time-col">
+                  <span className="node-time">{formatTime(seg.departure_time)}</span>
+                </div>
+                <div className="info-col">
+                  <span className="node-city">{seg.origin_city || seg.origin} <span className="node-code">({seg.origin})</span></span>
+                  <span className="node-airport">{seg.origin_airport_name || 'Airport Name'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* SEGMENT DURATION / IN-FLIGHT INFO */}
+            <div className="timeline-duration-row">
+              <div className="timeline-line-filler"></div>
+              <div className="duration-pill-box">
+                {seg.duration}
+              </div>
+            </div>
+
+            {/* SEGMENT END */}
+            <div className="timeline-node">
+              <div className="timeline-dot bottom"></div>
+              {/* Only continue line if there is a layover next */}
+              {i < segments.length - 1 && <div className="timeline-line"></div>}
+              
+              <div className="timeline-content">
+                <div className="time-col">
+                  <span className="node-time">{formatTime(seg.arrival_time)}</span>
+                </div>
+                <div className="info-col">
+                  <span className="node-city">{seg.destination_city || seg.destination} <span className="node-code">({seg.destination})</span></span>
+                  <span className="node-airport">{seg.destination_airport_name || 'Airport Name'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* LAYOVER INFO (if not last segment) */}
+            {i < segments.length - 1 && (
+               <div className="layover-banner">
+                 <Clock size={14} />
+                 <span>Layover in {seg.destination}: {seg.layover_duration || '2h 15m'}</span>
+               </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   const renderFlightRow = (segment, isReturn = false) => (
     <div className={`flight-row-grid ${isReturn ? 'return-leg' : ''}`}>
@@ -58,7 +117,7 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
 
       <div className="grid-cell left">
         <span className="city-name">
-            {segment.origin === 'ATL' ? 'Atlanta, GA' : segment.origin === 'LAS' ? 'Las Vegas, NV' : segment.origin === 'ORD' ? 'Chicago, IL' : segment.origin === 'MDW' ? 'Chicago, IL' : 'Origin City'}
+            {segment.origin === 'ATL' ? 'Atlanta, GA' : segment.origin === 'LAS' ? 'Las Vegas, NV' : segment.origin === 'ORD' ? 'Chicago, IL' : 'Origin City'}
         </span>
       </div>
       <div className="grid-cell center"></div>
@@ -69,7 +128,7 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
       </div>
 
       <div className="grid-cell left">
-        <span className="flight-time">{formatTime(segment.departure_time || segment.departureTime)}</span>
+        <span className="flight-time">{formatTime(segment.departure_time)}</span>
       </div>
       <div className="grid-cell center duration-cell">
         <div className="duration-pill">
@@ -77,11 +136,11 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
         </div>
       </div>
       <div className="grid-cell right">
-        <span className="flight-time">{formatTime(segment.arrival_time || segment.arrivalTime)}</span>
+        <span className="flight-time">{formatTime(segment.arrival_time)}</span>
       </div>
 
       <div className="grid-cell left">
-        <span className="flight-date">{formatDate(segment.departure_date || segment.departureDate)}</span>
+        <span className="flight-date">{formatDate(segment.departure_date)}</span>
       </div>
       <div className="grid-cell center stops-cell">
         <div className="stops-text">
@@ -89,7 +148,7 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
         </div>
       </div>
       <div className="grid-cell right">
-        <span className="flight-date">{formatDate(segment.arrival_date || segment.arrivalDate)}</span>
+        <span className="flight-date">{formatDate(segment.arrival_date)}</span>
       </div>
     </div>
   );
@@ -99,12 +158,7 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
       
       <div className="card-top-header">
         <div className="airline-info">
-            <img 
-              src="/Logos/Frontier_Logo.svg" 
-              alt="Frontier Airlines" 
-              className="airline-logo"
-            />
-            {/* UPDATED: Vertical container for name and flight number */}
+            <img src="/Logos/Frontier_Logo.svg" alt="Frontier Airlines" className="airline-logo" />
             <div className="airline-text-container">
               <span className="airline-name">Frontier Airlines</span>
               <span className="flight-number-text">{flight.flight_number || flight.flightNumber}</span>
@@ -139,7 +193,36 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
         )}
       </div>
 
-      {/* STATUS GROUP (Collapsible) */}
+      {/* --- NEW: FLIGHT DETAILS (STOPS) --- */}
+      {/* Placed ABOVE the Alerts group */}
+      {hasStops && (
+        <div className="flight-status-group details-group">
+          <div 
+            className={`alerts-toggle-header ${isDetailsExpanded ? 'expanded' : ''}`}
+            onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
+          >
+            <div className="alerts-title-wrapper">
+              <span className="alerts-title">
+                Flight Details
+                <span className="stops-count-badge">{flight.stops} Stop{flight.stops > 1 ? 's' : ''}</span>
+              </span>
+            </div>
+            {isDetailsExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </div>
+
+          {isDetailsExpanded && (
+            <div className="details-content">
+              {/* If segments exist in data, map them. Otherwise show placeholder for demo */}
+              {flight.segments && flight.segments.length > 0 
+                 ? renderSegments(flight.segments) 
+                 : <div className="no-segments-msg">Detailed connection info unavailable</div>
+              }
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* --- ALERTS GROUP --- */}
       {hasAlerts && (
         <div className="flight-status-group">
           <div 
@@ -151,23 +234,16 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
                 Alerts 
                 <span className="alert-count-badge">{alertCount}</span>
               </span>
-              
               <div className="alerts-header-icons">
-                {hasBlackout && (
-                  <Circle size={16} className="summary-icon blackout-icon" aria-label="Blackout" fill="currentColor" />
-                )}
-                {hasSeatAlert && (
-                  <Circle size={16} className="summary-icon seats-icon" aria-label="Limited Seats" fill="currentColor" />
-                )}
+                {hasBlackout && <Circle size={16} className="summary-icon blackout-icon" fill="currentColor" />}
+                {hasSeatAlert && <Circle size={16} className="summary-icon seats-icon" fill="currentColor" />}
               </div>
             </div>
-            
             {isAlertsExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </div>
 
           {isAlertsExpanded && (
             <div className="alerts-content">
-              {/* 1. Blackout Alert */}
               {hasBlackout && (
                   <div className="status-alert blackout">
                     <div className="alert-icon-box">
@@ -181,8 +257,6 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
                     </div>
                   </div>
               )}
-              
-              {/* 2. Seats Alert */}
               {hasSeatAlert && (
                   <div className="status-alert seats">
                       <div className="alert-icon-box">

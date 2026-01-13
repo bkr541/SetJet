@@ -129,10 +129,10 @@ const HubMap = ({ originIATA, destinations = [] }) => {
     }}>
       <Map 
         defaultCenter={[39, -96]} 
-        defaultZoom={2} 
+        defaultZoom={4}     // CHANGED: Zoom level 4 fits the US view perfectly
         provider={cartoProvider}
-        mouseEvents={true}  // CHANGED: Set to true to allow mouse interaction
-        touchEvents={true}  // CHANGED: Set to true to allow touch interaction
+        mouseEvents={true}
+        touchEvents={true}
       >
         <HubLines 
           originCoords={[origin.lat, origin.lng]} 

@@ -152,7 +152,7 @@ function FlightResults({
       {/* HEADER SECTION */}
       <div className="results-header">
         
-        {/* Title Row - MERGED INTO ONE SENTENCE */}
+        {/* Title Row */}
         <div className="results-title-row" style={{ alignItems: 'center', display: 'flex' }}>
           <h2>
             <span style={{ color: '#004e5a' }}>{flights.length}</span> Flight Results
@@ -195,26 +195,29 @@ function FlightResults({
           )}
         </div>
 
-        {/* HUB MAP TOGGLE */}
+        {/* HUB MAP TOGGLE - CENTERED & INLINE */}
         {mapData && (
           <div style={{ marginTop: '1rem', width: '100%' }}>
             
-            {/* Clickable Header */}
+            {/* Clickable Header: Flex Row (Centered) */}
             <div 
               onClick={() => setShowMap(!showMap)}
               style={{ 
                 display: 'flex', 
-                alignItems: 'center', 
+                alignItems: 'center',    // Center items vertically
+                justifyContent: 'center', // Center group horizontally
                 cursor: 'pointer',
                 userSelect: 'none',
                 color: '#475569',
                 fontWeight: '600',
-                marginBottom: '0.5rem'
+                marginBottom: '0.5rem',
+                gap: '8px' // Spacing between icon, text, and arrow
               }}
             >
-              <MapIcon size={18} style={{ marginRight: '8px' }} />
+              <MapIcon size={18} />
               <span>{showMap ? "Hide" : "Show"} Destinations Map</span>
-              {showMap ? <ChevronUp size={18} style={{ marginLeft: 'auto' }} /> : <ChevronDown size={18} style={{ marginLeft: 'auto' }} />}
+              {/* Arrow placed to the right */}
+              {showMap ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </div>
 
             {/* Collapsible Content */}
