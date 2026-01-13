@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import './DestinationCard.css';
 import FlightCard from './FlightCard';
+import RouteMap from './RouteMap'; // <--- Map Import
 
 function DestinationCard({ destination, flights, origin, buildYourOwnMode = false, buildYourOwnStep = 'outbound', onSelectFlight }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -70,7 +71,7 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
             </div>
           </div>
 
-          {/* Airports Card (New) */}
+          {/* Airports Card */}
           <div className="dest-stat-card">
             <div className="dest-stat-icon-box">
               <MapPin size={20} className="dest-stat-icon" />
@@ -110,7 +111,7 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
             </div>
           </div>
 
-          {/* Events Card (New - Placeholder) */}
+          {/* Events Card (Placeholder) */}
           <div className="dest-stat-card">
             <div className="dest-stat-icon-box">
               <CalendarDays size={20} className="dest-stat-icon" />
@@ -133,6 +134,13 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
 
       {isExpanded && (
         <div className="destination-flights">
+          
+          {/* --- MAP SECTION --- */}
+          <RouteMap originIATA={origin} destinationIATA={destination} />
+          
+          {/* Add a little spacing below the map */}
+          <div style={{ marginBottom: '1.5rem' }}></div> 
+
           <div className="flights-list">
             {flights.map((flight, index) => (
               <FlightCard

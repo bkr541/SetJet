@@ -32,25 +32,27 @@
 .destination-route {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
+/* UPDATED: Dark Teal & 30px (18px + 12px) */
 .destination-origin {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #4a5568;
+  font-size: 30px;
+  font-weight: 700;
+  color: #004e5a;
 }
 
 .destination-arrow {
-  /* Primary Green */
+  /* Kept Primary Green as accent, or change to #004e5a if preferred */
   color: #0096a6;
-  font-size: 1.5rem;
+  font-size: 1.5rem; 
 }
 
+/* UPDATED: Dark Teal & 30px (18px + 12px) */
 .destination-name {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #2d3748;
+  font-size: 30px;
+  font-weight: 700;
+  color: #004e5a;
 }
 
 .trip-duration-badge {
@@ -72,22 +74,25 @@
   align-items: flex-end;
 }
 
+/* Decreased font size (from previous request) */
 .price-from {
-  font-size: 0.75rem;
+  font-size: 0.65rem; 
   color: #718096;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
+/* Decreased font size (from previous request) */
 .price-amount {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
   /* Primary Green */
   color: #0096a6;
 }
 
+/* Decreased font size (from previous request) */
 .gowild-price-amount {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: #48bb78;
   background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
   -webkit-background-clip: text;
@@ -105,9 +110,11 @@
 /* --- STATS CARD STYLING --- */
 .destination-stats-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  /* Decreased min-width from 140px to 110px */
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  /* Decreased whitespace below stats */
+  margin-bottom: 0.75rem; 
 }
 
 .dest-stat-card {
@@ -162,13 +169,14 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding-top: 0.5rem;
+  /* Reduced padding and margin to decrease whitespace */
+  padding-top: 0.25rem;
   /* Primary Green */
   color: #0096a6;
   font-weight: 600;
   font-size: 0.9rem;
   border-top: 1px solid #f0f4f8;
-  margin-top: 0.5rem; 
+  margin-top: 0.25rem; 
 }
 
 .arrow-icon {
