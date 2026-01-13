@@ -296,7 +296,16 @@ function SearchForm({ onSearch, loading }) {
 
   return (
     <div className="search-form-container">
-      <h2>Search Flights</h2>
+      {/* Added Logo at top center with fixed path resolution */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+        <img 
+          src={process.env.PUBLIC_URL + '/Logos/SetJet_Normal.png'} 
+          alt="SetJet Logo" 
+          style={{ height: '120px', width: 'auto' }} 
+        />
+      </div>
+
+      <h2 style={{ textAlign: 'center' }}>Explore Flights</h2>
       <form onSubmit={handleSubmit} className="search-form">
         
         {/* Search Mode Toggle */}
