@@ -305,7 +305,7 @@ function SearchForm({ onSearch, loading }) {
       {/* Reduced whitespace around logo */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
         <img 
-          src={process.env.PUBLIC_URL + '/Logos/SetJet_Normal.png'} 
+          src={process.env.PUBLIC_URL + '/Logos/setjet_planelogo2.png'} 
           alt="SetJet Logo" 
           style={{ height: '100px', width: 'auto' }} 
         />
