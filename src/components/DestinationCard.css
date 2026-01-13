@@ -7,7 +7,6 @@
 }
 
 .destination-card:hover {
-  /* Primary Green (Bright) */
   border-color: #0096a6;
   box-shadow: 0 4px 12px rgba(0, 150, 166, 0.15);
 }
@@ -35,7 +34,7 @@
   gap: 0.5rem;
 }
 
-/* UPDATED: Dark Teal & 30px (18px + 12px) */
+/* UPDATED: Dark Teal #004e5a and 30px */
 .destination-origin {
   font-size: 30px;
   font-weight: 700;
@@ -43,12 +42,11 @@
 }
 
 .destination-arrow {
-  /* Kept Primary Green as accent, or change to #004e5a if preferred */
   color: #0096a6;
-  font-size: 1.5rem; 
+  font-size: 1.5rem;
 }
 
-/* UPDATED: Dark Teal & 30px (18px + 12px) */
+/* UPDATED: Dark Teal #004e5a and 30px */
 .destination-name {
   font-size: 30px;
   font-weight: 700;
@@ -59,7 +57,6 @@
   display: inline-block;
   margin-left: 0.75rem;
   padding: 0.25rem 0.75rem;
-  /* Green Gradient */
   background: linear-gradient(135deg, #0096a6 0%, #004e5a 100%);
   color: white;
   border-radius: 20px;
@@ -74,7 +71,6 @@
   align-items: flex-end;
 }
 
-/* Decreased font size (from previous request) */
 .price-from {
   font-size: 0.65rem; 
   color: #718096;
@@ -82,15 +78,12 @@
   letter-spacing: 0.05em;
 }
 
-/* Decreased font size (from previous request) */
 .price-amount {
   font-size: 1.5rem;
   font-weight: bold;
-  /* Primary Green */
   color: #0096a6;
 }
 
-/* Decreased font size (from previous request) */
 .gowild-price-amount {
   font-size: 1.25rem;
   color: #48bb78;
@@ -110,10 +103,8 @@
 /* --- STATS CARD STYLING --- */
 .destination-stats-container {
   display: grid;
-  /* Decreased min-width from 140px to 110px */
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 1rem;
-  /* Decreased whitespace below stats */
   margin-bottom: 0.75rem; 
 }
 
@@ -163,15 +154,12 @@
   line-height: 1.2;
 }
 
-/* EXPAND INDICATOR */
 .expand-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  /* Reduced padding and margin to decrease whitespace */
   padding-top: 0.25rem;
-  /* Primary Green */
   color: #0096a6;
   font-weight: 600;
   font-size: 0.9rem;
@@ -192,7 +180,6 @@
   user-select: none;
 }
 
-/* FLIGHTS DROPDOWN */
 .destination-flights {
   border-top: 2px solid #e2e8f0;
   padding: 1.5rem;
@@ -221,17 +208,14 @@
   .destination-stats-container {
     grid-template-columns: 1fr 1fr;
   }
-
   .destination-route {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
   }
-
   .destination-arrow {
     display: none;
   }
-
   .flights-list {
     grid-template-columns: 1fr;
   }

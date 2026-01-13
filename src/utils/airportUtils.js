@@ -1,6 +1,6 @@
-// UPDATED: Correct filename (Info vs Information)
 import airportData from '../data/FrontierDestinationInfo_numeric.json';
 
+// Create lookup object
 export const airportLookup = airportData.reduce((acc, airport) => {
   if (airport["IATA Code"]) {
     acc[airport["IATA Code"]] = {
@@ -14,5 +14,8 @@ export const airportLookup = airportData.reduce((acc, airport) => {
 }, {});
 
 export const getAirportCoordinates = (iataCode) => {
-  return airportLookup[iataCode] || null;
+  if (!iataCode) return null;
+  // CLEAN THE INPUT: Force uppercase and remove spaces to ensure a match
+  const code = iataCode.trim().toUpperCase();
+  return airportLookup[code] || null;
 };

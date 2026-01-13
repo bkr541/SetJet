@@ -14,6 +14,20 @@
     "Nonstop": false
   },
   {
+    "IATA Code": "ATL",
+    "Airport Name": "Hartsfield-Jackson Atlanta International Airport",
+    "City": "Atlanta",
+    "State": "Georgia",
+    "Airport Address": "6000 N Terminal Pkwy, Atlanta, GA 30320",
+    "Latitude": 33.6407,
+    "Longitude": -84.4277,
+    "Region": "South",
+    "Country": "United States",
+    "ICAO Code": "KATL",
+    "Flight Type": "Domestic",
+    "Nonstop": true
+  },
+  {
     "IATA Code": "AUA",
     "Airport Name": "Queen Beatrix International Airport",
     "City": "Oranjestad",
