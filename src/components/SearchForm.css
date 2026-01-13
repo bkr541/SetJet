@@ -38,13 +38,13 @@
 .search-input-wrapper {
   display: flex;
   align-items: center;
-  padding: 0.5rem 1rem; /* Slightly reduced vertical padding to accommodate pills */
+  padding: 0.5rem 1rem;
   border: 1px solid #e0e0e0;
   border-radius: 50px;
   background: #ffffff;
   transition: all 0.2s ease;
   position: relative;
-  min-height: 50px; /* Ensure consistency */
+  min-height: 50px;
 }
 
 .search-input-wrapper:focus-within {
@@ -73,8 +73,7 @@
   margin-right: 0.75rem;
   flex-shrink: 0;
   transition: all 0.2s ease;
-  align-self: flex-start; /* Keeps icon at top if input grows */
-  margin-top: 0.35rem;     /* Optical alignment with first pill */
+  align-self: center;
 }
 
 /* --- PILLS CONTAINER & STYLES --- */
@@ -86,29 +85,32 @@
   align-items: center;
 }
 
-.origin-pill {
+/* Renamed to generic .airport-pill */
+.airport-pill {
   display: flex;
   align-items: center;
-  background-color: #ffffff; /* White pill on light green bg */
+  background-color: #ffffff;
   border: 1px solid #bce3e8;
   color: #004e5a;
-  padding: 2px 8px 2px 12px;
-  border-radius: 20px;
-  font-size: 0.9rem;
+  font-size: 1.4rem;
+  padding: 4px 10px 4px 14px;
+  border-radius: 30px;
   font-weight: 600;
   white-space: nowrap;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .pill-remove-icon {
-  margin-left: 4px;
+  margin-left: 6px;
   cursor: pointer;
   color: #7abcc4;
   transition: color 0.2s;
+  width: 22px; 
+  height: 22px;
 }
 
 .pill-remove-icon:hover {
-  color: #d15656; /* Red on hover for delete action */
+  color: #d15656;
 }
 
 /* -------------------------------- */
@@ -119,8 +121,7 @@
   margin-left: 8px;
   flex-shrink: 0;
   transition: opacity 0.2s;
-  align-self: flex-start;
-  margin-top: 0.35rem;
+  align-self: center;
 }
 
 .clear-icon:hover {
@@ -129,14 +130,14 @@
 
 .search-box-input {
   border: none !important;
-  padding: 0 !important; /* Remove padding to fit in flow */
+  padding: 0 !important;
   font-size: 1rem;
   color: #161616;
   flex: 1;
-  min-width: 100px; /* Ensure space to type */
+  min-width: 100px;
   background: transparent !important;
   outline: none;
-  height: 28px; /* Match pill height roughly */
+  height: 28px;
 }
 
 /* --- MODERN DATE PICKER STYLES --- */
@@ -144,7 +145,7 @@ input[type="date"].search-box-input {
   font-size: 1.05rem;
   font-family: inherit;
   color: #161616;
-  padding: 0.25rem 0 !important; /* Restore padding for Date inputs */
+  padding: 0.25rem 0 !important;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
@@ -166,6 +167,19 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .search-box-input:focus {
   box-shadow: none !important;
   border-color: transparent !important;
+}
+
+/* --- BROWSER AUTOFILL FIX --- */
+.search-box-input:-webkit-autofill,
+.search-box-input:-webkit-autofill:hover, 
+.search-box-input:-webkit-autofill:focus, 
+.search-box-input:-webkit-autofill:active {
+  -webkit-text-fill-color: #161616 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.search-input-wrapper.has-value .search-box-input:-webkit-autofill {
+  -webkit-text-fill-color: #004e5a !important;
 }
 
 /* --- DROPDOWN AUTOCOMPLETE STYLES --- */

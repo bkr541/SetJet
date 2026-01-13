@@ -19,13 +19,17 @@ function SearchForm({ onSearch, loading }) {
   const [searchMode, setSearchMode] = useState('package');
   
   // --- ORIGIN SEARCH STATE ---
-  // Store selected airports as an array of strings (e.g. ['ATL', 'MCO'])
   const [originPills, setOriginPills] = useState([]);
-  // Store the current text being typed for search
   const [originSearchText, setOriginSearchText] = useState('');
-  
   const [originResults, setOriginResults] = useState([]);
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
+  // ---------------------------
+
+  // --- DESTINATION SEARCH STATE ---
+  const [destinationPills, setDestinationPills] = useState([]);
+  const [destinationSearchText, setDestinationSearchText] = useState('');
+  const [destinationResults, setDestinationResults] = useState([]);
+  const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
   // ---------------------------
 
   const [destinations, setDestinations] = useState('');
@@ -39,10 +43,9 @@ function SearchForm({ onSearch, loading }) {
   const [maxTripDurationUnit, setMaxTripDurationUnit] = useState('days');
   const [nonstopPreferred, setNonstopPreferred] = useState(false);
 
-  // Search API Logic
+  // --- ORIGIN SEARCH LOGIC ---
   useEffect(() => {
     const searchLocations = async () => {
-      // Use the current typing text for search
       if (originSearchText.length < 2) {
         setOriginResults([]);
         setShowOriginDropdown(false);
@@ -57,7 +60,7 @@ function SearchForm({ onSearch, loading }) {
           setShowOriginDropdown(true);
         }
       } catch (error) {
-        console.error("Error searching locations:", error);
+        console.error("Error searching origin locations:", error);
       }
     };
 
@@ -70,25 +73,26 @@ function SearchForm({ onSearch, loading }) {
     return () => clearTimeout(timeoutId);
   }, [originSearchText]);
 
-  // Add a selected code to the pill list
   const handleSelectOrigin = (code) => {
-    // Prevent duplicates
-    if (!originPills.includes(code)) {
-      setOriginPills([...originPills, code]);
+    // UPDATED: Split the code string (e.g., "ORD, MDW") into individual codes
+    const newCodes = code.split(',').map(c => c.trim());
+    
+    // Filter out duplicates that are already in the state
+    const uniqueNewCodes = newCodes.filter(c => !originPills.includes(c));
+
+    if (uniqueNewCodes.length > 0) {
+      setOriginPills([...originPills, ...uniqueNewCodes]);
     }
     
-    // Clear search text and close dropdown
     setOriginSearchText('');
     setShowOriginDropdown(false);
     setOriginResults([]);
   };
 
-  // Remove a specific pill
   const handleRemoveOrigin = (codeToRemove) => {
     setOriginPills(originPills.filter(code => code !== codeToRemove));
   };
 
-  // Handle Backspace to remove last pill if input is empty
   const handleOriginKeyDown = (e) => {
     if (e.key === 'Backspace' && originSearchText === '' && originPills.length > 0) {
       const newPills = [...originPills];
@@ -97,22 +101,84 @@ function SearchForm({ onSearch, loading }) {
     }
   };
 
+  // --- DESTINATION SEARCH LOGIC ---
+  useEffect(() => {
+    const searchLocations = async () => {
+      if (destinationSearchText.length < 2) {
+        setDestinationResults([]);
+        setShowDestinationDropdown(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:5001/api/locations?keyword=${destinationSearchText}`);
+        if (response.ok) {
+          const data = await response.json();
+          setDestinationResults(data);
+          setShowDestinationDropdown(true);
+        }
+      } catch (error) {
+        console.error("Error searching destination locations:", error);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      if (destinationSearchText.length >= 2) { 
+        searchLocations();
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [destinationSearchText]);
+
+  const handleSelectDestination = (code) => {
+    // UPDATED: Split the code string (e.g., "ORD, MDW") into individual codes
+    const newCodes = code.split(',').map(c => c.trim());
+    
+    // Filter out duplicates that are already in the state
+    const uniqueNewCodes = newCodes.filter(c => !destinationPills.includes(c));
+
+    if (uniqueNewCodes.length > 0) {
+      setDestinationPills([...destinationPills, ...uniqueNewCodes]);
+    }
+
+    setDestinationSearchText('');
+    setShowDestinationDropdown(false);
+    setDestinationResults([]);
+  };
+
+  const handleRemoveDestination = (codeToRemove) => {
+    setDestinationPills(destinationPills.filter(code => code !== codeToRemove));
+  };
+
+  const handleDestinationKeyDown = (e) => {
+    if (e.key === 'Backspace' && destinationSearchText === '' && destinationPills.length > 0) {
+      const newPills = [...destinationPills];
+      newPills.pop();
+      setDestinationPills(newPills);
+    }
+  };
+
+  // --- SUBMIT LOGIC ---
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Use the pills array directly
+    // ORIGIN PREP
     const originAirports = [...originPills];
-    
-    // If user typed something valid but didn't select it, optionally add it?
-    // For now, let's rely on explicit selections or the pills. 
-    // If pills are empty, maybe try to parse the text.
     if (originAirports.length === 0 && originSearchText.length === 3) {
         originAirports.push(originSearchText.toUpperCase());
     }
 
-    const destinationAirports = anyDestination
-      ? ['ANY']
-      : destinations.split(',').map(s => s.trim()).filter(s => s);
+    // DESTINATION PREP
+    let destinationAirports = [];
+    if (anyDestination) {
+      destinationAirports = ['ANY'];
+    } else {
+      destinationAirports = [...destinationPills];
+      if (destinationAirports.length === 0 && destinationSearchText.length === 3) {
+        destinationAirports.push(destinationSearchText.toUpperCase());
+      }
+    }
 
     const searchParams = {
       searchMode,
@@ -234,32 +300,29 @@ function SearchForm({ onSearch, loading }) {
 
         {/* Origin and Destination Row */}
         <div className="form-row">
-          {/* Origin Column */}
+          
+          {/* --- ORIGIN COLUMN --- */}
           <div className="form-group"> 
             <label htmlFor="origins">Origin Airports</label>
             
             <div className="relative-input-container">
-              {/* Added 'has-pills' class if pills exist to help styling if needed */}
-              <div className={`search-input-wrapper ${originPills.length > 0 ? 'has-value' : ''}`}>
-                <PlaneTakeoff className="search-icon" size={20} />
+              <div className={`search-input-wrapper ${originPills.length > 0 || originSearchText ? 'has-value' : ''}`}>
+                <PlaneTakeoff className="search-icon" size={24} />
                 
-                {/* RENDER PILLS */}
                 <div className="pills-container">
                   {originPills.map((code) => (
-                    <div key={code} className="origin-pill">
+                    <div key={code} className="airport-pill">
                       <span>{code}</span>
                       <X 
-                        size={14} 
                         className="pill-remove-icon" 
                         onClick={(e) => {
-                          e.stopPropagation(); // Stop clicking pill from focusing input unnecessarily
+                          e.stopPropagation(); 
                           handleRemoveOrigin(code);
                         }}
                       />
                     </div>
                   ))}
                   
-                  {/* INPUT FIELD - now sits inline with pills */}
                   <input
                     type="text"
                     id="origins"
@@ -279,11 +342,10 @@ function SearchForm({ onSearch, loading }) {
                   />
                 </div>
 
-                {/* Clear All Button - Only show if we have pills or text */}
                 {(originPills.length > 0 || originSearchText) && (
                   <X 
                     className="clear-icon" 
-                    size={18} 
+                    size={24} 
                     onClick={(e) => {
                         e.stopPropagation();
                         setOriginPills([]);
@@ -293,7 +355,7 @@ function SearchForm({ onSearch, loading }) {
                 )}
               </div>
 
-              {/* FLOATING DROPDOWN GROUP */}
+              {/* ORIGIN DROPDOWN */}
               {showOriginDropdown && originResults.length > 0 && (
                 <div className="autocomplete-dropdown">
                   {originResults.map((result, index) => (
@@ -318,28 +380,88 @@ function SearchForm({ onSearch, loading }) {
             <small>Search and select multiple airports</small>
           </div>
 
-          {/* Destination Column */}
+          {/* --- DESTINATION COLUMN --- */}
           <div className="form-group">
             <label htmlFor="destinations">Destination Airports</label>
             
-            <div className={`search-input-wrapper ${anyDestination ? 'disabled' : ''} ${!anyDestination && destinations ? 'has-value' : ''}`}>
-              <PlaneLanding className="search-icon" size={20} />
-              <input
-                type="text"
-                id="destinations"
-                value={anyDestination ? '' : destinations}
-                onChange={(e) => setDestinations(e.target.value)}
-                placeholder={anyDestination ? "Searching all airports..." : "e.g., MCO, MIA, LAS"}
-                disabled={anyDestination}
-                required={!anyDestination}
-                className={`search-box-input ${anyDestination ? 'input-disabled-placeholder' : ''}`}
-              />
+            <div className="relative-input-container">
+              <div className={`search-input-wrapper ${anyDestination ? 'disabled' : ''} ${(destinationPills.length > 0 || destinationSearchText) && !anyDestination ? 'has-value' : ''}`}>
+                <PlaneLanding className="search-icon" size={24} />
+                
+                <div className="pills-container">
+                  {destinationPills.map((code) => (
+                    <div key={code} className="airport-pill">
+                      <span>{code}</span>
+                      <X 
+                        className="pill-remove-icon" 
+                        onClick={(e) => {
+                          e.stopPropagation(); 
+                          handleRemoveDestination(code);
+                        }}
+                      />
+                    </div>
+                  ))}
+
+                  <input
+                    type="text"
+                    id="destinations"
+                    value={anyDestination ? '' : destinationSearchText}
+                    onChange={(e) => {
+                        setDestinationSearchText(e.target.value);
+                        if (e.target.value.length >= 2) setShowDestinationDropdown(true);
+                    }}
+                    onKeyDown={handleDestinationKeyDown}
+                    onFocus={() => {
+                        if (destinationSearchText.length >= 2 && !anyDestination) setShowDestinationDropdown(true);
+                    }}
+                    onBlur={() => setTimeout(() => setShowDestinationDropdown(false), 200)}
+                    placeholder={anyDestination ? "Searching all airports..." : (destinationPills.length === 0 ? "e.g., MCO, MIA, LAS" : "")}
+                    disabled={anyDestination}
+                    className={`search-box-input ${anyDestination ? 'input-disabled-placeholder' : ''}`}
+                    autoComplete="off"
+                  />
+                </div>
+
+                {/* Clear Destination Button */}
+                {!anyDestination && (destinationPills.length > 0 || destinationSearchText) && (
+                  <X 
+                    className="clear-icon" 
+                    size={24} 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setDestinationPills([]);
+                        setDestinationSearchText('');
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* DESTINATION DROPDOWN */}
+              {showDestinationDropdown && destinationResults.length > 0 && !anyDestination && (
+                <div className="autocomplete-dropdown">
+                  {destinationResults.map((result, index) => (
+                    <div 
+                      key={`${result.value}-${index}`}
+                      className={`autocomplete-item ${result.indent ? 'indented' : ''} ${result.is_header ? 'is-header' : ''}`}
+                      onClick={() => handleSelectDestination(result.value)}
+                    >
+                      <div className="item-icon">
+                        {result.type === 'Airport' ? <PlaneLanding size={16} /> : <Building2 size={16} />}
+                      </div>
+                      <div className="item-info">
+                        <span className="item-label">{result.label}</span>
+                        {!result.indent && <span className="item-sub">{result.country}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <small>
               {anyDestination 
                 ? "We'll search every available route from your origin." 
-                : "Comma-separated (e.g., MCO, MIA)"}
+                : "Search and select multiple airports"}
             </small>
 
             {/* Right-aligned Toggle */}
@@ -351,7 +473,8 @@ function SearchForm({ onSearch, loading }) {
                   onChange={(e) => {
                     setAnyDestination(e.target.checked);
                     if (e.target.checked) {
-                      setDestinations('');
+                      setDestinationPills([]);
+                      setDestinationSearchText('');
                     }
                   }}
                 />
