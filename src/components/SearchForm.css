@@ -57,15 +57,14 @@
   border-color: #0096a6;
 }
 
-/* When has value, make icon and text dark teal */
 .search-input-wrapper.has-value .search-icon {
   color: #004e5a;
-  /* CHANGED: Removed stroke-width: 3px; to keep icon normal weight */
 }
 
 .search-input-wrapper.disabled {
   background-color: #f4f4f4;
   border-color: #e0e0e0;
+  pointer-events: none;
 }
 
 .search-icon {
@@ -85,7 +84,6 @@
   align-items: center;
 }
 
-/* Renamed to generic .airport-pill */
 .airport-pill {
   display: flex;
   align-items: center;
@@ -140,49 +138,146 @@
   height: 28px;
 }
 
-/* --- MODERN DATE PICKER STYLES --- */
-input[type="date"].search-box-input {
-  font-size: 1.05rem;
-  font-family: inherit;
-  color: #161616;
-  padding: 0.25rem 0 !important;
-  /* CHANGED: Sets the native calendar selection color to primary green */
-  accent-color: #0096a6;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator {
+/* --- REACT DATEPICKER OVERRIDES (FLUID & WIDE) --- */
+.date-picker-trigger {
   cursor: pointer;
-  width: 24px;   
-  height: 24px;  
-  opacity: 0.5;
-  transition: opacity 0.2s, transform 0.2s;
-  background-size: contain;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
-  transform: scale(1.1);
-  background-color: rgba(0, 150, 166, 0.1);
-  border-radius: 50%;
+.date-display-text {
+  font-size: 1rem;
+  color: #161616;
+  user-select: none;
 }
 
-.search-box-input:focus {
-  box-shadow: none !important;
-  border-color: transparent !important;
+.date-display-text.placeholder {
+  color: #8d8d8d;
 }
 
-/* --- BROWSER AUTOFILL FIX --- */
-.search-box-input:-webkit-autofill,
-.search-box-input:-webkit-autofill:hover, 
-.search-box-input:-webkit-autofill:focus, 
-.search-box-input:-webkit-autofill:active {
-  -webkit-text-fill-color: #161616 !important;
-  transition: background-color 5000s ease-in-out 0s;
+/* 1. Main Container: Fixed width matching inputs */
+.react-datepicker {
+  font-family: inherit !important;
+  font-size: 1.1rem !important; 
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+  width: 26rem !important; 
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-.search-input-wrapper.has-value .search-box-input:-webkit-autofill {
-  -webkit-text-fill-color: #004e5a !important;
+.react-datepicker__month-container {
+  width: 100% !important;
 }
+
+/* 2. Header Styling */
+.react-datepicker__header {
+  background-color: #f2f9fa !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+  padding-top: 1rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.react-datepicker__current-month {
+  font-size: 1.3rem !important;
+  font-weight: 700 !important;
+  color: #004e5a !important;
+  margin-bottom: 0.8rem !important;
+}
+
+/* 3. Day Names Row (Flexbox to spread evenly) */
+.react-datepicker__day-names {
+  display: flex !important;
+  justify-content: space-between !important;
+  padding: 0 0.8rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.react-datepicker__day-name {
+  flex: 1 !important;
+  text-align: center !important;
+  margin: 0 !important;
+  color: #6f6f6f !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+}
+
+/* 4. Month Grid (Flexbox Column) */
+.react-datepicker__month {
+  display: flex !important;
+  flex-direction: column !important;
+  margin: 0.8rem !important;
+  gap: 0.2rem !important;
+}
+
+/* 5. Week Row (Flexbox to fill width) */
+.react-datepicker__week {
+  display: flex !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+/* 6. Individual Day (Flex grow to fill space) */
+.react-datepicker__day {
+  flex: 1 !important;
+  width: auto !important; /* Override fixed width */
+  aspect-ratio: 1 / 1;    /* Keeps them square-ish/circular */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 2px !important;
+  font-size: 1.1rem !important;
+  border-radius: 50% !important;
+}
+
+/* Selected Day Circle */
+.react-datepicker__day--selected, 
+.react-datepicker__day--keyboard-selected {
+  background-color: #0096a6 !important;
+  color: white !important;
+}
+
+.react-datepicker__day--selected:hover {
+  background-color: #007d8a !important;
+}
+
+/* Day Hover Effect */
+.react-datepicker__day:hover {
+  background-color: #e0f5f7 !important;
+  color: #004e5a !important;
+}
+
+/* Current Day Outline */
+.react-datepicker__day--today {
+  font-weight: bold;
+  color: #004e5a;
+  border: 2px solid #0096a6;
+  background-color: transparent;
+}
+
+/* Arrows */
+.react-datepicker__navigation {
+  top: 18px !important; 
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: #004e5a !important;
+  border-width: 3px 3px 0 0 !important; 
+  height: 10px !important;
+  width: 10px !important;
+}
+
+/* Disabled days */
+.react-datepicker__day--disabled {
+  color: #ccc !important;
+  pointer-events: none;
+}
+
+.react-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+/* -------------------------------- */
 
 /* --- DROPDOWN AUTOCOMPLETE STYLES --- */
 .autocomplete-dropdown {
@@ -213,7 +308,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   background-color: #f2f9fa !important;
 }
 
-/* --- HIERARCHY STYLES --- */
 .autocomplete-item.indented {
   padding-left: 2.5rem;
   padding-top: 0.4rem;
@@ -235,13 +329,14 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 700;
   color: #004e5a;
 }
-/* ---------------------------- */
 
 .item-icon {
   margin-right: 12px;
   color: #8d8d8d;
   display: flex;
   align-items: center;
+  align-self: flex-start;
+  margin-top: 2px;
 }
 
 .item-info {

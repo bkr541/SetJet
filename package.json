@@ -9,8 +9,11 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "date-fns": "^2.30.0",
     "lucide-react": "^0.562.0",
     "react": "^17.0.2",
+    "react-datepicker": "^4.25.0",
+    "react-day-picker": "^9.13.0",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3"
   },

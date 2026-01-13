@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef } from 'react';
 import { 
   Package, 
   Wrench, 
@@ -8,11 +8,14 @@ import {
   CalendarRange,
   PlaneTakeoff,
   PlaneLanding,
-  Calendar,
+  Calendar as CalendarIcon,
   Building2,
-  TowerControl, 
+  TowerControl,
   X 
 } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { format, parseISO } from 'date-fns';
 import './SearchForm.css';
 
 function SearchForm({ onSearch, loading }) {
@@ -23,25 +26,43 @@ function SearchForm({ onSearch, loading }) {
   const [originSearchText, setOriginSearchText] = useState('');
   const [originResults, setOriginResults] = useState([]);
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
-  // ---------------------------
-
+  
   // --- DESTINATION SEARCH STATE ---
   const [destinationPills, setDestinationPills] = useState([]);
   const [destinationSearchText, setDestinationSearchText] = useState('');
   const [destinationResults, setDestinationResults] = useState([]);
   const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
-  // ---------------------------
 
   const [destinations, setDestinations] = useState('');
   const [anyDestination, setAnyDestination] = useState(false);
   const [tripType, setTripType] = useState('round-trip');
-  const [departureDate, setDepartureDate] = useState('');
-  const [returnDate, setReturnDate] = useState('');
+  
+  // Dates state
+  const [departureDate, setDepartureDate] = useState(null);
+  const [returnDate, setReturnDate] = useState(null);
+  
   const [tripLength, setTripLength] = useState('');
   const [tripLengthUnit, setTripLengthUnit] = useState('days');
   const [maxTripDuration, setMaxTripDuration] = useState('');
   const [maxTripDurationUnit, setMaxTripDurationUnit] = useState('days');
   const [nonstopPreferred, setNonstopPreferred] = useState(false);
+
+  // Generate today's date string for placeholders (e.g. "Jan 13th, 2026")
+  const todayPlaceholder = format(new Date(), 'MMM do, yyyy');
+
+  // --- CUSTOM DATE INPUT COMPONENT ---
+  const CustomDateInput = forwardRef(({ value, onClick, placeholder, disabled }, ref) => (
+    <div 
+      className={`search-input-wrapper ${value ? 'has-value' : ''} ${disabled ? 'disabled' : ''} date-picker-trigger`}
+      onClick={onClick}
+      ref={ref}
+    >
+      <CalendarIcon className="search-icon" size={20} />
+      <span className={`date-display-text ${!value ? 'placeholder' : ''}`}>
+        {value || placeholder}
+      </span>
+    </div>
+  ));
 
   // --- ORIGIN SEARCH LOGIC ---
   useEffect(() => {
@@ -51,7 +72,6 @@ function SearchForm({ onSearch, loading }) {
         setShowOriginDropdown(false);
         return;
       }
-
       try {
         const response = await fetch(`http://localhost:5001/api/locations?keyword=${originSearchText}`);
         if (response.ok) {
@@ -63,24 +83,18 @@ function SearchForm({ onSearch, loading }) {
         console.error("Error searching origin locations:", error);
       }
     };
-
     const timeoutId = setTimeout(() => {
-      if (originSearchText.length >= 2) { 
-        searchLocations();
-      }
+      if (originSearchText.length >= 2) searchLocations();
     }, 300);
-
     return () => clearTimeout(timeoutId);
   }, [originSearchText]);
 
   const handleSelectOrigin = (code) => {
     const newCodes = code.split(',').map(c => c.trim());
     const uniqueNewCodes = newCodes.filter(c => !originPills.includes(c));
-
     if (uniqueNewCodes.length > 0) {
       setOriginPills([...originPills, ...uniqueNewCodes]);
     }
-    
     setOriginSearchText('');
     setShowOriginDropdown(false);
     setOriginResults([]);
@@ -106,7 +120,6 @@ function SearchForm({ onSearch, loading }) {
         setShowDestinationDropdown(false);
         return;
       }
-
       try {
         const response = await fetch(`http://localhost:5001/api/locations?keyword=${destinationSearchText}`);
         if (response.ok) {
@@ -118,24 +131,18 @@ function SearchForm({ onSearch, loading }) {
         console.error("Error searching destination locations:", error);
       }
     };
-
     const timeoutId = setTimeout(() => {
-      if (destinationSearchText.length >= 2) { 
-        searchLocations();
-      }
+      if (destinationSearchText.length >= 2) searchLocations();
     }, 300);
-
     return () => clearTimeout(timeoutId);
   }, [destinationSearchText]);
 
   const handleSelectDestination = (code) => {
     const newCodes = code.split(',').map(c => c.trim());
     const uniqueNewCodes = newCodes.filter(c => !destinationPills.includes(c));
-
     if (uniqueNewCodes.length > 0) {
       setDestinationPills([...destinationPills, ...uniqueNewCodes]);
     }
-
     setDestinationSearchText('');
     setShowDestinationDropdown(false);
     setDestinationResults([]);
@@ -157,13 +164,11 @@ function SearchForm({ onSearch, loading }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // ORIGIN PREP
     const originAirports = [...originPills];
     if (originAirports.length === 0 && originSearchText.length === 3) {
         originAirports.push(originSearchText.toUpperCase());
     }
 
-    // DESTINATION PREP
     let destinationAirports = [];
     if (anyDestination) {
       destinationAirports = ['ANY'];
@@ -179,12 +184,12 @@ function SearchForm({ onSearch, loading }) {
       origins: originAirports,
       destinations: destinationAirports,
       tripType: searchMode === 'build-your-own' ? 'one-way' : tripType,
-      departureDate,
-      returnDate: tripType === 'one-way' || searchMode === 'build-your-own' ? null : returnDate,
+      departureDate: departureDate ? format(departureDate, 'yyyy-MM-dd') : '',
+      returnDate: (tripType === 'one-way' || searchMode === 'build-your-own') ? null : (returnDate ? format(returnDate, 'yyyy-MM-dd') : ''),
     };
 
     if (searchMode === 'build-your-own' && returnDate) {
-      searchParams.desiredReturnDate = returnDate;
+      searchParams.desiredReturnDate = format(returnDate, 'yyyy-MM-dd');
     }
 
     if (tripType === 'trip-planner') {
@@ -300,7 +305,6 @@ function SearchForm({ onSearch, loading }) {
             <label htmlFor="origins">Origin Airports</label>
             
             <div className="relative-input-container">
-              {/* Only has-value when pills exist, ignoring search text */}
               <div className={`search-input-wrapper ${originPills.length > 0 ? 'has-value' : ''}`}>
                 <PlaneTakeoff className="search-icon" size={24} />
                 
@@ -387,7 +391,6 @@ function SearchForm({ onSearch, loading }) {
             <label htmlFor="destinations">Destination Airports</label>
             
             <div className="relative-input-container">
-              {/* Only has-value when pills exist, ignoring search text */}
               <div className={`search-input-wrapper ${anyDestination ? 'disabled' : ''} ${destinationPills.length > 0 && !anyDestination ? 'has-value' : ''}`}>
                 <PlaneLanding className="search-icon" size={24} />
                 
@@ -474,7 +477,6 @@ function SearchForm({ onSearch, loading }) {
                 : "Search and select multiple airports"}
             </small>
 
-            {/* Right-aligned Toggle */}
             <div className="toggle-group right-align">
               <label className="toggle-switch">
                 <input
@@ -495,37 +497,32 @@ function SearchForm({ onSearch, loading }) {
           </div>
         </div>
 
+        {/* --- DATE INPUTS REPLACED WITH REACT-DATEPICKER --- */}
         {searchMode === 'build-your-own' && (
           <>
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="departureDate">Outbound Departure Date</label>
-                <div className={`search-input-wrapper ${departureDate ? 'has-value' : ''}`}>
-                  <Calendar className="search-icon" size={20} />
-                  <input
-                    type="date"
-                    id="departureDate"
-                    value={departureDate}
-                    onChange={(e) => setDepartureDate(e.target.value)}
-                    required
-                    className="search-box-input"
-                  />
-                </div>
+                <label>Outbound Departure Date</label>
+                <DatePicker
+                  selected={departureDate}
+                  onChange={(date) => setDepartureDate(date)}
+                  customInput={<CustomDateInput placeholder={todayPlaceholder} />}
+                  dateFormat="PP"
+                  minDate={new Date()}
+                  fixedHeight
+                />
               </div>
 
               <div className="form-group">
-                <label htmlFor="returnDate">Desired Return Date</label>
-                <div className={`search-input-wrapper ${returnDate ? 'has-value' : ''}`}>
-                  <Calendar className="search-icon" size={20} />
-                  <input
-                    type="date"
-                    id="returnDate"
-                    value={returnDate}
-                    onChange={(e) => setReturnDate(e.target.value)}
-                    required
-                    className="search-box-input"
-                  />
-                </div>
+                <label>Desired Return Date</label>
+                <DatePicker
+                  selected={returnDate}
+                  onChange={(date) => setReturnDate(date)}
+                  customInput={<CustomDateInput placeholder={todayPlaceholder} />}
+                  dateFormat="PP"
+                  minDate={departureDate || new Date()}
+                  fixedHeight
+                />
                 <small>We'll show return flights on or near this date</small>
               </div>
             </div>
@@ -535,39 +532,42 @@ function SearchForm({ onSearch, loading }) {
         {searchMode === 'package' && tripType !== 'trip-planner' && (
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="departureDate">
-                {tripType === 'day-trip' ? 'Travel Date' : 'Departure Date'}
-              </label>
-              <div className={`search-input-wrapper ${departureDate ? 'has-value' : ''}`}>
-                <Calendar className="search-icon" size={20} />
-                <input
-                  type="date"
-                  id="departureDate"
-                  value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  required
-                  className="search-box-input"
-                />
-              </div>
+              <label>{tripType === 'day-trip' ? 'Travel Date' : 'Departure Date'}</label>
+              <DatePicker
+                selected={departureDate}
+                onChange={(date) => {
+                  setDepartureDate(date);
+                  if (returnDate && date > returnDate && tripType !== 'day-trip') {
+                    setReturnDate(null);
+                  }
+                }}
+                customInput={<CustomDateInput placeholder={todayPlaceholder} />}
+                dateFormat="PP"
+                minDate={new Date()}
+                fixedHeight
+              />
             </div>
 
             {tripType !== 'one-way' && (
               <div className="form-group">
-                <label htmlFor="returnDate">
-                  {tripType === 'day-trip' ? 'Return Date (same day)' : 'Return Date'}
-                </label>
-                <div className={`search-input-wrapper ${tripType === 'day-trip' ? 'disabled' : ''} ${tripType !== 'day-trip' && returnDate ? 'has-value' : ''}`}>
-                  <Calendar className="search-icon" size={20} />
-                  <input
-                    type="date"
-                    id="returnDate"
-                    value={tripType === 'day-trip' ? departureDate : returnDate}
-                    onChange={(e) => setReturnDate(e.target.value)}
-                    required
-                    disabled={tripType === 'day-trip'}
-                    className="search-box-input"
+                <label>{tripType === 'day-trip' ? 'Return Date (same day)' : 'Return Date'}</label>
+                {tripType === 'day-trip' ? (
+                  <div className="search-input-wrapper disabled has-value">
+                    <CalendarIcon className="search-icon" size={20} />
+                    <span className="date-display-text">
+                      {departureDate ? format(departureDate, 'PP') : 'Same as departure'}
+                    </span>
+                  </div>
+                ) : (
+                  <DatePicker
+                    selected={returnDate}
+                    onChange={(date) => setReturnDate(date)}
+                    customInput={<CustomDateInput placeholder={todayPlaceholder} />}
+                    dateFormat="PP"
+                    minDate={departureDate || new Date()}
+                    fixedHeight
                   />
-                </div>
+                )}
                 {tripType === 'day-trip' && (
                   <small>Automatically set to same day as departure</small>
                 )}
@@ -579,18 +579,15 @@ function SearchForm({ onSearch, loading }) {
         {tripType === 'trip-planner' && (
           <>
             <div className="form-group">
-              <label htmlFor="departureDate">Earliest Departure Date</label>
-              <div className={`search-input-wrapper ${departureDate ? 'has-value' : ''}`}>
-                <Calendar className="search-icon" size={20} />
-                <input
-                  type="date"
-                  id="departureDate"
-                  value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  required
-                  className="search-box-input"
-                />
-              </div>
+              <label>Earliest Departure Date</label>
+              <DatePicker
+                selected={departureDate}
+                onChange={(date) => setDepartureDate(date)}
+                customInput={<CustomDateInput placeholder={todayPlaceholder} />}
+                dateFormat="PP"
+                minDate={new Date()}
+                fixedHeight
+              />
               <small>We'll find flights on or after this date</small>
             </div>
 
