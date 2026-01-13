@@ -25,7 +25,7 @@ function FlightResults({
   const [nonstopOnly, setNonstopOnly] = useState(false);
   const [gowildOnly, setGowildOnly] = useState(false);
 
-  // Group flights by destination and sort
+  // Group flights by Route (Origin + Destination) and sort
   const groupedFlights = useMemo(() => {
     // Safety check: if flights is null or undefined, return empty array
     if (!flights) return [];
@@ -39,21 +39,22 @@ function FlightResults({
       filteredFlights = filteredFlights.filter(flight => flight.gowild_eligible);
     }
 
-    // Group by destination
+    // Group by Route (Origin -> Destination)
+    // This creates separate groups for ORD->LAS and MDW->LAS
     const groups = {};
     if (Array.isArray(filteredFlights)) {
       filteredFlights.forEach(flight => {
-        const dest = flight.destination;
-        if (!groups[dest]) {
-          groups[dest] = [];
+        const routeKey = `${flight.origin}-${flight.destination}`;
+        if (!groups[routeKey]) {
+          groups[routeKey] = [];
         }
-        groups[dest].push(flight);
+        groups[routeKey].push(flight);
       });
     }
 
-    // Sort flights within each destination group
-    Object.keys(groups).forEach(dest => {
-      groups[dest].sort((a, b) => {
+    // Sort flights within each route group
+    Object.keys(groups).forEach(key => {
+      groups[key].sort((a, b) => {
         switch (sortBy) {
           case 'nonstop':
             if (a.stops === 0 && b.stops !== 0) return -1;
@@ -90,17 +91,18 @@ function FlightResults({
       });
     });
 
-    // Sort destinations by cheapest flight price
-    const sortedDestinations = Object.keys(groups).sort((destA, destB) => {
-      const minPriceA = Math.min(...groups[destA].map(f => f.price));
-      const minPriceB = Math.min(...groups[destB].map(f => f.price));
+    // Sort the route groups by the cheapest flight in each group
+    const sortedRouteKeys = Object.keys(groups).sort((keyA, keyB) => {
+      const minPriceA = Math.min(...groups[keyA].map(f => f.price));
+      const minPriceB = Math.min(...groups[keyB].map(f => f.price));
       return minPriceA - minPriceB;
     });
 
-    return sortedDestinations.map(dest => ({
-      destination: dest,
-      flights: groups[dest],
-      origin: groups[dest][0].origin
+    // Map back to an array of group objects for rendering
+    return sortedRouteKeys.map(key => ({
+      destination: groups[key][0].destination,
+      origin: groups[key][0].origin, // Correctly grabs the specific origin (e.g. MDW)
+      flights: groups[key]
     }));
   }, [flights, sortBy, nonstopOnly, gowildOnly]);
 
@@ -185,7 +187,7 @@ function FlightResults({
         <div className="no-results">
           <div className="no-results-icon">✈️</div>
           <h3>Ready to search!</h3>
-          <p>When you implement the scraping functionality, flight results will appear here.</p>
+          <p>Flight results will appear here after you search.</p>
           <p className="hint">
             Each flight will show the origin, destination, price, departure time, and airline details.
           </p>
