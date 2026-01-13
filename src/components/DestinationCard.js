@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   Layers, 
-  MapPin, 
   Plane, 
   Clock, 
   CalendarDays 
@@ -18,7 +17,7 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
   , flights[0]);
 
   const nonstopCount = flights.filter(f => f.stops === 0).length;
-  const uniqueOrigins = [...new Set(flights.map(f => f.origin))].length;
+  // const uniqueOrigins = [...new Set(flights.map(f => f.origin))].length; // Removed
   const isTripPlanner = cheapestFlight.trip_duration_display !== undefined;
 
   return (
@@ -51,7 +50,17 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
           </div>
         </div>
 
-        <div className="destination-stats-container">
+        {/* --- STATS SECTION (4x1 Row) --- */}
+        <div 
+          className="destination-stats-container" 
+          style={{ 
+            display: 'grid',                      // Using Grid layout
+            gridTemplateColumns: 'repeat(4, 1fr)', // 4 Equal Columns (4x1)
+            gap: '10px', 
+            marginTop: '1rem'
+          }}
+        >
+          {/* 1. Options */}
           <div className="dest-stat-card">
             <div className="dest-stat-icon-box"><Layers size={20} className="dest-stat-icon" /></div>
             <div className="dest-stat-info">
@@ -59,13 +68,8 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
               <span className="dest-stat-value">{flights.length}</span>
             </div>
           </div>
-          <div className="dest-stat-card">
-            <div className="dest-stat-icon-box"><MapPin size={20} className="dest-stat-icon" /></div>
-            <div className="dest-stat-info">
-              <span className="dest-stat-label">Airports</span>
-              <span className="dest-stat-value">{uniqueOrigins}</span>
-            </div>
-          </div>
+
+          {/* 2. Nonstop */}
           <div className="dest-stat-card">
             <div className="dest-stat-icon-box"><Plane size={20} className="dest-stat-icon" /></div>
             <div className="dest-stat-info">
@@ -73,6 +77,8 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
               <span className="dest-stat-value">{nonstopCount}</span>
             </div>
           </div>
+
+          {/* 3. Time */}
           <div className="dest-stat-card">
             <div className="dest-stat-icon-box"><Clock size={20} className="dest-stat-icon" /></div>
             <div className="dest-stat-info">
@@ -82,6 +88,8 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
               </span>
             </div>
           </div>
+
+          {/* 4. Events */}
           <div className="dest-stat-card">
             <div className="dest-stat-icon-box"><CalendarDays size={20} className="dest-stat-icon" /></div>
             <div className="dest-stat-info">
@@ -91,9 +99,14 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
           </div>
         </div>
 
-        {/* --- MAP SECTION MOVED HERE --- */}
-        {/* We place it inside a div to give it some spacing from the stats/button */}
-        <div style={{ margin: '1rem 0' }} onClick={(e) => e.stopPropagation()}>
+        {/* --- MAP SECTION (Below Stats) --- */}
+        <div 
+          style={{ 
+            marginTop: '1rem', 
+            width: '100%'      
+          }} 
+          onClick={(e) => e.stopPropagation()}
+        >
            <RouteMap originIATA={origin} destinationIATA={destination} />
         </div>
 
@@ -107,8 +120,6 @@ function DestinationCard({ destination, flights, origin, buildYourOwnMode = fals
 
       {isExpanded && (
         <div className="destination-flights">
-          {/* Map was removed from here */}
-          
           <div className="flights-list">
             {flights.map((flight, index) => (
               <FlightCard
