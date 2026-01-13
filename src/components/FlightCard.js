@@ -17,9 +17,16 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
     });
   };
 
-  // Convert 24h time to 12h: "13:31" -> "01:31 PM"
+// Convert 24h time to 12h: "13:31" -> "01:31 PM"
+  // UPDATED: Handle inputs that might already be 12-hour format
   const formatTime = (timeStr) => {
     if (!timeStr) return '';
+    
+    // If it already contains AM or PM, return as is (trim to be safe)
+    if (timeStr.toUpperCase().includes('AM') || timeStr.toUpperCase().includes('PM')) {
+        return timeStr.trim();
+    }
+
     const [hours, minutes] = timeStr.split(':');
     const h = parseInt(hours, 10);
     const suffix = h >= 12 ? 'PM' : 'AM';
@@ -92,8 +99,16 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
       
       <div className="card-top-header">
         <div className="airline-info">
-            <div className="airline-logo-placeholder">F</div> 
-            <span className="airline-name">Frontier Airlines ({flight.flight_number || flight.flightNumber})</span>
+            <img 
+              src="/Logos/Frontier_Logo.svg" 
+              alt="Frontier Airlines" 
+              className="airline-logo"
+            />
+            {/* UPDATED: Vertical container for name and flight number */}
+            <div className="airline-text-container">
+              <span className="airline-name">Frontier Airlines</span>
+              <span className="flight-number-text">{flight.flight_number || flight.flightNumber}</span>
+            </div>
         </div>
         
         <div className="price-display">
@@ -139,11 +154,9 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
               
               <div className="alerts-header-icons">
                 {hasBlackout && (
-                  /* UPDATED: Circle icon filled with color */
                   <Circle size={16} className="summary-icon blackout-icon" aria-label="Blackout" fill="currentColor" />
                 )}
                 {hasSeatAlert && (
-                  /* UPDATED: Circle icon filled with color */
                   <Circle size={16} className="summary-icon seats-icon" aria-label="Limited Seats" fill="currentColor" />
                 )}
               </div>
@@ -158,7 +171,6 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
               {hasBlackout && (
                   <div className="status-alert blackout">
                     <div className="alert-icon-box">
-                      {/* UPDATED: Circle icon filled with color */}
                       <Circle size={20} className="alert-icon" fill="currentColor" />
                     </div>
                     <div className="alert-content">
@@ -174,7 +186,6 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
               {hasSeatAlert && (
                   <div className="status-alert seats">
                       <div className="alert-icon-box">
-                          {/* UPDATED: Circle icon filled with color */}
                           <Circle size={20} className="alert-icon" fill="currentColor" />
                       </div>
                       <div className="alert-content">
