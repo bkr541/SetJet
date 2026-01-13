@@ -1,13 +1,36 @@
 import React from 'react';
-import { Map } from 'pigeon-maps'; // Removed standard 'Marker' since we made a custom one
+import { Map } from 'pigeon-maps'; 
 import { getAirportCoordinates } from '../utils/airportUtils';
 
-// 1. THEME: Use CartoDB Light tiles for that clean gray look
+// --- HELPER FUNCTIONS ---
+
+// 1. THEME: Use CartoDB Light tiles
 const cartoProvider = (x, y, z, dpr) => {
   return `https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/${z}/${x}/${y}${dpr >= 2 ? '@2x' : ''}.png`;
 };
 
-// 2. MARKER: Custom "Luggage Tag" style marker
+// 2. MATH: Calculate distance in miles between two coordinates (Haversine formula)
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 3958.8; // Radius of Earth in miles
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+// 3. ZOOM LOGIC: Determine best zoom based on distance
+const getSmartZoom = (miles) => {
+  if (miles < 400) return 6;  // Close neighbors (e.g. ATL -> CLT)
+  if (miles < 1000) return 5; // Regional (e.g. ATL -> MIA)
+  if (miles < 2200) return 4; // Mid-Long (e.g. ATL -> LAS)
+  return 3;                   // Cross Country (e.g. MIA -> SEA)
+};
+
+// --- COMPONENTS ---
+
 const TagMarker = ({ left, top, style, code, city }) => {
   return (
     <div
@@ -18,16 +41,13 @@ const TagMarker = ({ left, top, style, code, city }) => {
         ...style,
       }}
     >
-      {/* The visible tag container */}
       <div style={{
-        transform: 'translate(-50%, -100%)', // Centers the bottom of the tag on the coordinate
-        paddingBottom: '12px', // Space for the arrow/dot
+        transform: 'translate(-50%, -100%)', 
+        paddingBottom: '12px', 
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center'
       }}>
-        
-        {/* The Black Box */}
         <div style={{
           backgroundColor: '#1a1a1a',
           color: 'white',
@@ -40,10 +60,7 @@ const TagMarker = ({ left, top, style, code, city }) => {
           zIndex: 2
         }}>
           <div style={{ fontWeight: 'bold', fontSize: '14px', lineHeight: '1.2' }}>{code}</div>
-          {/* If city data isn't available, we hide this line or repeat code */}
           <div style={{ fontSize: '10px', opacity: 0.8, lineHeight: '1.2' }}>{city || code}</div>
-
-           {/* The little arrow pointing down */}
           <div style={{
             position: 'absolute',
             bottom: '-6px',
@@ -56,13 +73,11 @@ const TagMarker = ({ left, top, style, code, city }) => {
             borderTop: '6px solid #1a1a1a',
           }} />
         </div>
-
-        {/* The White/Orange Dot */}
         <div style={{
           width: '10px',
           height: '10px',
           backgroundColor: 'white',
-          border: '2px solid #ea580c', // Orange border
+          border: '2px solid #ea580c',
           borderRadius: '50%',
           marginTop: '2px',
           zIndex: 1
@@ -72,7 +87,6 @@ const TagMarker = ({ left, top, style, code, city }) => {
   );
 };
 
-// 3. LINE: Updated to be Orange and Dotted
 const RouteLine = ({ mapState, latLngToPixel, coords }) => {
   if (coords.length < 2) return null;
   const { width, height } = mapState;
@@ -85,9 +99,9 @@ const RouteLine = ({ mapState, latLngToPixel, coords }) => {
         y1={start[1]}
         x2={end[0]}
         y2={end[1]}
-        stroke="#ea580c"       /* Changed to Burnt Orange */
+        stroke="#ea580c"
         strokeWidth={3}
-        strokeDasharray="10, 10" /* Looser dash for the 'flight path' look */
+        strokeDasharray="10, 10"
         strokeLinecap="round"
         opacity={0.8}
       />
@@ -95,11 +109,12 @@ const RouteLine = ({ mapState, latLngToPixel, coords }) => {
   );
 };
 
+// --- MAIN COMPONENT ---
+
 const RouteMap = ({ originIATA, destinationIATA }) => {
   const origin = getAirportCoordinates(originIATA);
   const dest = getAirportCoordinates(destinationIATA);
 
-  // DIAGNOSTIC CHECK
   if (!origin || !dest) {
     return (
       <div style={{ 
@@ -111,19 +126,22 @@ const RouteMap = ({ originIATA, destinationIATA }) => {
         marginTop: '1rem',
         textAlign: 'center'
       }}>
-        <strong>Map Unavailable:</strong> Missing coordinates for 
-        {!origin ? ` Origin (${originIATA})` : ''} 
-        {!dest ? ` Destination (${destinationIATA})` : ''}
+        <strong>Map Unavailable:</strong> Missing coordinates.
       </div>
     );
   }
 
+  // Calculate Center
   const centerLat = (origin.lat + dest.lat) / 2;
   const centerLng = (origin.lng + dest.lng) / 2;
 
+  // Calculate Distance & Zoom
+  const distanceMiles = calculateDistance(origin.lat, origin.lng, dest.lat, dest.lng);
+  const smartZoom = getSmartZoom(distanceMiles);
+
   return (
     <div style={{ 
-      height: '350px', // Increased height slightly for better visibility
+      height: '180px', 
       width: '100%', 
       borderRadius: '12px', 
       overflow: 'hidden', 
@@ -131,18 +149,16 @@ const RouteMap = ({ originIATA, destinationIATA }) => {
       marginTop: '1rem' 
     }}>
       <Map 
-        height={350} 
+        key={`${originIATA}-${destinationIATA}`} // Forces re-render when route changes to apply new zoom
+        height={180} 
         defaultCenter={[centerLat, centerLng]} 
-        defaultZoom={4} // Zoomed out slightly to ensure tags fit
-        provider={cartoProvider} // Applying the new theme
+        defaultZoom={smartZoom} // Using our dynamic zoom
+        provider={cartoProvider} 
         mouseEvents={false} 
         touchEvents={false}
       >
         <RouteLine coords={[[origin.lat, origin.lng], [dest.lat, dest.lng]]} />
         
-        {/* Replaced standard Markers with TagMarkers */}
-        {/* Note: I added a check for origin.city in case your utility returns it. 
-            If not, it defaults to showing the IATA code twice. */}
         <TagMarker 
           anchor={[origin.lat, origin.lng]} 
           code={originIATA} 
