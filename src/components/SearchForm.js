@@ -136,7 +136,6 @@ function SearchForm({ onSearch, loading }) {
   const [destinationResults, setDestinationResults] = useState([]);
   const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
 
-  const [destinations, setDestinations] = useState('');
   const [anyDestination, setAnyDestination] = useState(false);
   const [tripType, setTripType] = useState('round-trip');
   
@@ -152,6 +151,13 @@ function SearchForm({ onSearch, loading }) {
 
   // Generate today's date string for placeholders
   const todayPlaceholder = format(new Date(), 'MMM do, yyyy');
+
+  // If someone switches to Build Your Own, tripType should effectively behave like one-way
+  useEffect(() => {
+    if (searchMode === 'build-your-own' && tripType !== 'one-way') {
+      setTripType('one-way');
+    }
+  }, [searchMode]); // eslint-disable-line
 
   // --- ORIGIN SEARCH LOGIC ---
   useEffect(() => {
@@ -255,7 +261,7 @@ function SearchForm({ onSearch, loading }) {
 
     const originAirports = [...originPills];
     if (originAirports.length === 0 && originSearchText.length === 3) {
-        originAirports.push(originSearchText.toUpperCase());
+      originAirports.push(originSearchText.toUpperCase());
     }
 
     let destinationAirports = [];
@@ -296,21 +302,22 @@ function SearchForm({ onSearch, loading }) {
 
   return (
     <div className="search-form-container">
-      {/* Added Logo at top center with fixed path resolution */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+      {/* Reduced whitespace around logo */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
         <img 
           src={process.env.PUBLIC_URL + '/Logos/SetJet_Normal.png'} 
           alt="SetJet Logo" 
-          style={{ height: '120px', width: 'auto' }} 
+          style={{ height: '100px', width: 'auto' }} 
         />
       </div>
 
-      <h2 style={{ textAlign: 'center' }}>Explore Flights</h2>
+      <h2>Explore Flights</h2>
+      
       <form onSubmit={handleSubmit} className="search-form">
         
         {/* Search Mode Toggle */}
         <div className="form-group">
-          <label htmlFor="searchMode">Search Mode</label>
+          <label>Search Mode</label>
           <div className="trip-type-selector">
             <label className={`trip-type-option ${searchMode === 'package' ? 'active' : ''}`}>
               <input
@@ -335,17 +342,12 @@ function SearchForm({ onSearch, loading }) {
               <span>Build Your Own</span>
             </label>
           </div>
-          <small>
-            {searchMode === 'package'
-              ? 'Search for complete round-trip packages'
-              : 'Select outbound flight first, then choose your return flight'}
-          </small>
         </div>
 
         {/* Trip Type Toggle */}
         {searchMode === 'package' && (
           <div className="form-group">
-            <label htmlFor="tripType">Trip Type</label>
+            <label>Trip Type</label>
             <div className="trip-type-selector">
               <label className={`trip-type-option ${tripType === 'one-way' ? 'active' : ''}`}>
                 <input
@@ -358,6 +360,7 @@ function SearchForm({ onSearch, loading }) {
                 <ArrowRight size={18} className="option-icon" />
                 <span>One Way</span>
               </label>
+
               <label className={`trip-type-option ${tripType === 'round-trip' ? 'active' : ''}`}>
                 <input
                   type="radio"
@@ -369,6 +372,7 @@ function SearchForm({ onSearch, loading }) {
                 <Repeat size={18} className="option-icon" />
                 <span>Round Trip</span>
               </label>
+
               <label className={`trip-type-option ${tripType === 'day-trip' ? 'active' : ''}`}>
                 <input
                   type="radio"
@@ -380,6 +384,7 @@ function SearchForm({ onSearch, loading }) {
                 <Sun size={18} className="option-icon" />
                 <span>Day Trip</span>
               </label>
+
               <label className={`trip-type-option ${tripType === 'trip-planner' ? 'active' : ''}`}>
                 <input
                   type="radio"
@@ -399,7 +404,7 @@ function SearchForm({ onSearch, loading }) {
         <div className="form-row">
           
           {/* --- ORIGIN COLUMN --- */}
-          <div className="form-group"> 
+          <div className="form-group">
             <label htmlFor="origins">Origin Airports</label>
             
             <div className="relative-input-container">
@@ -425,12 +430,12 @@ function SearchForm({ onSearch, loading }) {
                     id="origins"
                     value={originSearchText}
                     onChange={(e) => {
-                        setOriginSearchText(e.target.value);
-                        if (e.target.value.length >= 2) setShowOriginDropdown(true);
+                      setOriginSearchText(e.target.value);
+                      if (e.target.value.length >= 2) setShowOriginDropdown(true);
                     }}
                     onKeyDown={handleOriginKeyDown}
                     onFocus={() => {
-                        if (originSearchText.length >= 2) setShowOriginDropdown(true);
+                      if (originSearchText.length >= 2) setShowOriginDropdown(true);
                     }}
                     onBlur={() => setTimeout(() => setShowOriginDropdown(false), 200)}
                     placeholder={originPills.length === 0 ? "Search Airport, City, etc." : ""}
@@ -444,9 +449,9 @@ function SearchForm({ onSearch, loading }) {
                     className="clear-icon" 
                     size={24} 
                     onClick={(e) => {
-                        e.stopPropagation();
-                        setOriginPills([]);
-                        setOriginSearchText('');
+                      e.stopPropagation();
+                      setOriginPills([]);
+                      setOriginSearchText('');
                     }}
                   />
                 )}
@@ -480,8 +485,6 @@ function SearchForm({ onSearch, loading }) {
                 </div>
               )}
             </div>
-            
-            <small>Search and select multiple airports</small>
           </div>
 
           {/* --- DESTINATION COLUMN --- */}
@@ -511,12 +514,12 @@ function SearchForm({ onSearch, loading }) {
                     id="destinations"
                     value={anyDestination ? '' : destinationSearchText}
                     onChange={(e) => {
-                        setDestinationSearchText(e.target.value);
-                        if (e.target.value.length >= 2) setShowDestinationDropdown(true);
+                      setDestinationSearchText(e.target.value);
+                      if (e.target.value.length >= 2) setShowDestinationDropdown(true);
                     }}
                     onKeyDown={handleDestinationKeyDown}
                     onFocus={() => {
-                        if (destinationSearchText.length >= 2 && !anyDestination) setShowDestinationDropdown(true);
+                      if (destinationSearchText.length >= 2 && !anyDestination) setShowDestinationDropdown(true);
                     }}
                     onBlur={() => setTimeout(() => setShowDestinationDropdown(false), 200)}
                     placeholder={anyDestination ? "Searching all airports..." : (destinationPills.length === 0 ? "Search Airport, City, etc." : "")}
@@ -532,9 +535,9 @@ function SearchForm({ onSearch, loading }) {
                     className="clear-icon" 
                     size={24} 
                     onClick={(e) => {
-                        e.stopPropagation();
-                        setDestinationPills([]);
-                        setDestinationSearchText('');
+                      e.stopPropagation();
+                      setDestinationPills([]);
+                      setDestinationSearchText('');
                     }}
                   />
                 )}
@@ -570,9 +573,7 @@ function SearchForm({ onSearch, loading }) {
             </div>
 
             <small>
-              {anyDestination 
-                ? "We'll search every available route from your origin." 
-                : "Search and select multiple airports"}
+              {anyDestination ? "We'll search every available route from your origin." : ""}
             </small>
 
             <div className="toggle-group right-align">
@@ -629,7 +630,6 @@ function SearchForm({ onSearch, loading }) {
                 >
                   <CalendarLegend />
                 </DatePicker>
-                <small>We'll show return flights on or near this date</small>
               </div>
             </div>
           </>
@@ -781,7 +781,6 @@ function SearchForm({ onSearch, loading }) {
         <button type="submit" className="search-button" disabled={loading}>
           {loading ? 'Searching...' : (
             <>
-              {/* Added Plane Icon with spacing */}
               <Plane size={20} />
               <span>Search Flights</span>
             </>

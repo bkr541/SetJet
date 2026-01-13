@@ -3,15 +3,12 @@
 .search-form-container {
   background: #ffffff;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.25rem 2rem 2rem; /* reduced top padding only */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
 }
 
-.search-form-container h2 {
-  margin-bottom: 1.5rem;
-  color: #161616;
-}
+/* --- the rest of your CSS stays the same below --- */
 
 .search-form {
   display: flex;
@@ -519,60 +516,50 @@
 /* 1. Track Container */
 .trip-type-selector {
   display: flex;
-  align-items: stretch; /* Ensure all items stretch to fill height */
-  background-color: #f1f5f9; /* Light grey track background */
-  padding: 4px; /* Padding creates space around the active pill */
+  align-items: stretch;
+  background-color: #f1f5f9;
+  padding: 4px;
   border-radius: 50px;
   border: 1px solid #e2e8f0;
-  width: 100%; /* Force full width so it doesn't collapse */
-  box-sizing: border-box; /* Include padding in width */
+  width: 100%;
+  box-sizing: border-box;
   margin-top: 0;
-  gap: 2px; /* Slight gap between items */
+  gap: 2px;
 }
 
 /* 2. Individual Options (Pills) */
 .trip-type-option {
-  flex: 1; /* Distribute space evenly */
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.6rem 0.5rem; /* Reduced horizontal padding for smaller screens */
-  
+  padding: 0.6rem 0.5rem;
   border: none;
-  border-radius: 40px; 
+  border-radius: 40px;
   cursor: pointer;
-  
-  background: transparent; 
-  
-  /* CHANGED: Gray color for inactive state to look "not selected" */
-  color: #64748b; 
-  
+  background: transparent;
+  color: #64748b;
   font-weight: 500;
   transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   user-select: none;
-  white-space: nowrap; /* Prevent text wrapping */
+  white-space: nowrap;
 }
 
-/* Hover Effect for Inactive */
 .trip-type-option:hover:not(.active) {
-  color: #334155; 
-  background-color: rgba(0, 0, 0, 0.03); /* Subtle darken */
+  color: #334155;
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
-/* 3. Active State (Pop Out Pill) */
 .trip-type-option.active {
-  background: #004e5a; /* Brand Teal Background */
-  color: #ffffff;      /* White Text */
-  font-weight: 700;    
-  
-  /* Pop-Out Shadow Effect */
+  background: #004e5a;
+  color: #ffffff;
+  font-weight: 700;
   box-shadow: 
     0 4px 6px -1px rgba(0, 78, 90, 0.3), 
     0 2px 4px -1px rgba(0, 78, 90, 0.15);
-    
-  transform: translateY(-1px); /* Slight lift */
-  z-index: 1; /* Sit above siblings */
+  transform: translateY(-1px);
+  z-index: 1;
 }
 
 .trip-type-option input[type="radio"] {
@@ -589,18 +576,16 @@
   stroke-width: 2px;
   flex-shrink: 0;
   transition: color 0.2s;
-  color: inherit; /* Inherit gray from parent */
+  color: inherit;
 }
 
-/* Active Icon Color */
 .trip-type-option.active .option-icon {
-  color: #ffffff; /* White icon when active */
+  color: #ffffff;
   stroke-width: 2.5px;
 }
 
 /* ------------------------------------- */
 
-/* UPDATED: TOGGLE SWITCH (Any Airport) */
 .toggle-group {
   margin-top: 0.25rem;
   display: flex;
@@ -625,13 +610,12 @@
   height: 0;
 }
 
-/* The slider track now looks like the inactive "switches" track */
 .toggle-slider {
   position: absolute;
   cursor: pointer;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #f1f5f9; /* Match inactive track */
-  border: 1px solid #e2e8f0; /* Match inactive border */
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
   transition: .3s;
   border-radius: 34px;
 }
@@ -641,8 +625,7 @@
   content: "";
   height: 18px;
   width: 18px;
-  /* Adjusted positioning to center inside the border (24px h - 2px border - 18px knob = 4px gap / 2 = 2px) */
-  left: 2px; 
+  left: 2px;
   bottom: 2px;
   background-color: white;
   transition: .3s;
@@ -650,10 +633,9 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Checked State */
 input:checked + .toggle-slider {
   background-color: #0096a6;
-  border-color: #0096a6; /* Hide/blend border when active */
+  border-color: #0096a6;
 }
 
 input:checked + .toggle-slider:before {
@@ -667,7 +649,6 @@ input:checked + .toggle-slider:before {
   user-select: none;
 }
 
-/* CHECKBOXES */
 .checkbox-group {
   margin-bottom: 0.5rem;
 }
@@ -698,7 +679,6 @@ input:checked + .toggle-slider:before {
   color: #161616;
 }
 
-/* DISABLED INPUTS */
 .form-group input[type="text"]:disabled,
 .form-group input[type="date"]:disabled {
   background-color: #f4f4f4;
@@ -712,7 +692,6 @@ input:checked + .toggle-slider:before {
   opacity: 0.8;
 }
 
-/* SELECT */
 .unit-select {
   padding: 0.75rem;
   border: 1px solid #e0e0e0;
@@ -730,16 +709,15 @@ input:checked + .toggle-slider:before {
   box-shadow: 0 0 0 1px #0096a6;
 }
 
-/* --- NEW: Map Toggle Group Container Style --- */
 .map-toggle-group {
-  margin-top: 1.5rem;         
+  margin-top: 1.5rem;
   width: 100%;
-  background-color: #fafafa;  
-  border: 1px solid #e0e0e0;  
-  border-radius: 12px;        
-  padding: 1rem;              
-  box-sizing: border-box;     
-  overflow: hidden;           
+  background-color: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {
@@ -747,25 +725,24 @@ input:checked + .toggle-slider:before {
     grid-template-columns: 1fr;
   }
 
-  /* STACK SELECTORS ON MOBILE */
   .trip-type-selector {
     flex-direction: column;
     border-radius: 16px;
     gap: 4px;
     padding: 6px;
-    height: auto; /* Allow auto height for stacking */
+    height: auto;
   }
   
   .trip-type-option {
     border-radius: 12px;
     justify-content: flex-start;
-    padding-left: 1rem; /* Add padding for left alignment */
+    padding-left: 1rem;
     margin-bottom: 0;
     width: 100%;
   }
   
   .toggle-group.right-align {
-    justify-content: flex-end; /* CHANGED: Right justify Any Destination toggle */
+    justify-content: flex-end;
     margin-top: 1rem;
   }
 }
