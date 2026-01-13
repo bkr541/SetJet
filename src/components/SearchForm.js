@@ -15,11 +15,88 @@ import {
 } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isWithinInterval, startOfDay } from 'date-fns';
 import './SearchForm.css';
 
-// --- CUSTOM DATE INPUT COMPONENT ---
-// Defined outside the main component to prevent re-rendering/focus issues
+// --- BLACKOUT DATES CONFIGURATION ---
+const BLACKOUT_RANGES = [
+  // 2025
+  { start: "2025-01-01", end: "2025-01-01" },
+  { start: "2025-01-04", end: "2025-01-05" },
+  { start: "2025-01-16", end: "2025-01-17" },
+  { start: "2025-01-20", end: "2025-01-20" },
+  { start: "2025-02-13", end: "2025-02-14" },
+  { start: "2025-02-17", end: "2025-02-17" },
+  { start: "2025-03-14", end: "2025-03-16" },
+  { start: "2025-03-21", end: "2025-03-23" },
+  { start: "2025-03-28", end: "2025-03-30" },
+  { start: "2025-04-04", end: "2025-04-06" },
+  { start: "2025-04-11", end: "2025-04-13" },
+  { start: "2025-04-18", end: "2025-04-21" },
+  { start: "2025-05-22", end: "2025-05-23" },
+  { start: "2025-05-26", end: "2025-05-26" },
+  { start: "2025-06-22", end: "2025-06-22" },
+  { start: "2025-06-26", end: "2025-06-29" },
+  { start: "2025-07-03", end: "2025-07-07" },
+  { start: "2025-08-28", end: "2025-08-29" },
+  { start: "2025-09-01", end: "2025-09-01" },
+  { start: "2025-10-09", end: "2025-10-10" },
+  { start: "2025-10-12", end: "2025-10-13" },
+  { start: "2025-11-25", end: "2025-11-26" },
+  { start: "2025-11-29", end: "2025-11-30" },
+  { start: "2025-12-01", end: "2025-12-01" },
+  { start: "2025-12-20", end: "2025-12-23" },
+  { start: "2025-12-26", end: "2025-12-31" },
+  // 2026
+  { start: "2026-01-01", end: "2026-01-01" },
+  { start: "2026-01-03", end: "2026-01-04" },
+  { start: "2026-01-15", end: "2026-01-16" },
+  { start: "2026-01-19", end: "2026-01-19" },
+  { start: "2026-02-12", end: "2026-02-13" },
+  { start: "2026-02-16", end: "2026-02-16" },
+  { start: "2026-03-13", end: "2026-03-15" },
+  { start: "2026-03-20", end: "2026-03-22" },
+  { start: "2026-03-27", end: "2026-03-29" },
+  { start: "2026-04-03", end: "2026-04-06" },
+  { start: "2026-04-10", end: "2026-04-12" },
+  { start: "2026-05-21", end: "2026-05-22" },
+  { start: "2026-05-25", end: "2026-05-25" },
+  { start: "2026-06-25", end: "2026-06-28" },
+  { start: "2026-07-02", end: "2026-07-06" },
+  { start: "2026-09-03", end: "2026-09-04" },
+  { start: "2026-09-07", end: "2026-09-07" },
+  { start: "2026-10-08", end: "2026-10-09" },
+  { start: "2026-10-11", end: "2026-10-12" },
+  { start: "2026-11-24", end: "2026-11-25" },
+  { start: "2026-11-28", end: "2026-11-30" },
+  { start: "2026-12-19", end: "2026-12-24" },
+  { start: "2026-12-26", end: "2026-12-31" },
+  // 2027
+  { start: "2027-01-01", end: "2027-01-03" },
+  { start: "2027-01-14", end: "2027-01-15" },
+  { start: "2027-01-18", end: "2027-01-18" },
+  { start: "2027-02-11", end: "2027-02-12" },
+  { start: "2027-02-15", end: "2027-02-15" },
+  { start: "2027-03-12", end: "2027-03-14" },
+  { start: "2027-03-19", end: "2027-03-21" },
+  { start: "2027-03-26", end: "2027-03-29" },
+  { start: "2027-04-02", end: "2027-04-04" },
+];
+
+// Helper to check if a date is a blackout date
+const isBlackoutDate = (date) => {
+  const checkDate = startOfDay(date);
+  return BLACKOUT_RANGES.some(({ start, end }) =>
+    isWithinInterval(checkDate, {
+      start: parseISO(start),
+      end: parseISO(end)
+    })
+  );
+};
+
+// --- HELPER COMPONENTS ---
+
+// 1. Custom Date Input (Headless Trigger)
 const CustomDateInput = forwardRef(({ value, onClick, placeholder, disabled }, ref) => (
   <div 
     className={`search-input-wrapper ${value ? 'has-value' : ''} ${disabled ? 'disabled' : ''} date-picker-trigger`}
@@ -28,11 +105,20 @@ const CustomDateInput = forwardRef(({ value, onClick, placeholder, disabled }, r
   >
     <CalendarIcon className="search-icon" size={20} />
     <span className={`date-display-text ${!value ? 'placeholder' : ''}`}>
-      {/* If a date is selected (value), show it. Otherwise show the placeholder passed from DatePicker */}
       {value || placeholder}
     </span>
   </div>
 ));
+
+// 2. Calendar Legend (Appears at bottom of calendar)
+const CalendarLegend = () => (
+  <div className="calendar-legend">
+    <span className="legend-chip">
+      <span className="legend-dot"></span>
+      <span className="legend-text">Blackout Date</span>
+    </span>
+  </div>
+);
 
 function SearchForm({ onSearch, loading }) {
   const [searchMode, setSearchMode] = useState('package');
@@ -63,7 +149,7 @@ function SearchForm({ onSearch, loading }) {
   const [maxTripDurationUnit, setMaxTripDurationUnit] = useState('days');
   const [nonstopPreferred, setNonstopPreferred] = useState(false);
 
-  // Generate today's date string for placeholders (e.g. "Jan 13th, 2026")
+  // Generate today's date string for placeholders
   const todayPlaceholder = format(new Date(), 'MMM do, yyyy');
 
   // --- ORIGIN SEARCH LOGIC ---
@@ -307,7 +393,7 @@ function SearchForm({ onSearch, loading }) {
             <label htmlFor="origins">Origin Airports</label>
             
             <div className="relative-input-container">
-              <div className={`search-input-wrapper ${originPills.length > 0 ? 'has-value' : ''}`}>
+              <div className={`search-input-wrapper ${originPills.length > 0 || originSearchText ? 'has-value' : ''}`}>
                 <PlaneTakeoff className="search-icon" size={24} />
                 
                 <div className="pills-container">
@@ -393,7 +479,7 @@ function SearchForm({ onSearch, loading }) {
             <label htmlFor="destinations">Destination Airports</label>
             
             <div className="relative-input-container">
-              <div className={`search-input-wrapper ${anyDestination ? 'disabled' : ''} ${destinationPills.length > 0 && !anyDestination ? 'has-value' : ''}`}>
+              <div className={`search-input-wrapper ${anyDestination ? 'disabled' : ''} ${(destinationPills.length > 0 || destinationSearchText) && !anyDestination ? 'has-value' : ''}`}>
                 <PlaneLanding className="search-icon" size={24} />
                 
                 <div className="pills-container">
@@ -513,7 +599,10 @@ function SearchForm({ onSearch, loading }) {
                   dateFormat="PP"
                   minDate={new Date()}
                   fixedHeight
-                />
+                  dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
+                >
+                  <CalendarLegend />
+                </DatePicker>
               </div>
 
               <div className="form-group">
@@ -526,7 +615,10 @@ function SearchForm({ onSearch, loading }) {
                   dateFormat="PP"
                   minDate={departureDate || new Date()}
                   fixedHeight
-                />
+                  dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
+                >
+                  <CalendarLegend />
+                </DatePicker>
                 <small>We'll show return flights on or near this date</small>
               </div>
             </div>
@@ -550,7 +642,10 @@ function SearchForm({ onSearch, loading }) {
                 dateFormat="PP"
                 minDate={new Date()}
                 fixedHeight
-              />
+                dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
+              >
+                <CalendarLegend />
+              </DatePicker>
             </div>
 
             {tripType !== 'one-way' && (
@@ -572,7 +667,10 @@ function SearchForm({ onSearch, loading }) {
                     dateFormat="PP"
                     minDate={departureDate || new Date()}
                     fixedHeight
-                  />
+                    dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
+                  >
+                    <CalendarLegend />
+                  </DatePicker>
                 )}
                 {tripType === 'day-trip' && (
                   <small>Automatically set to same day as departure</small>
@@ -594,7 +692,10 @@ function SearchForm({ onSearch, loading }) {
                 dateFormat="PP"
                 minDate={new Date()}
                 fixedHeight
-              />
+                dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
+              >
+                <CalendarLegend />
+              </DatePicker>
               <small>We'll find flights on or after this date</small>
             </div>
 
