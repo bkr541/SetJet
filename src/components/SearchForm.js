@@ -105,9 +105,12 @@ const CustomDateInput = forwardRef(({ value, onClick, placeholder, disabled }, r
     ref={ref}
   >
     <CalendarIcon className="search-icon" size={20} />
-    <span className={`date-display-text ${!value ? 'placeholder' : ''}`}>
-      {value || placeholder}
-    </span>
+    {/* CHANGED: wrap text in inner shell */}
+    <div className="search-input-inner">
+      <span className={`date-display-text ${!value ? 'placeholder' : ''}`}>
+        {value || placeholder}
+      </span>
+    </div>
   </div>
 ));
 
@@ -411,37 +414,40 @@ function SearchForm({ onSearch, loading }) {
               <div className={`search-input-wrapper ${originPills.length > 0 || originSearchText ? 'has-value' : ''}`}>
                 <PlaneTakeoff className="search-icon" size={24} />
                 
-                <div className="pills-container">
-                  {originPills.map((code) => (
-                    <div key={code} className="airport-pill">
-                      <span>{code}</span>
-                      <X 
-                        className="pill-remove-icon" 
-                        onClick={(e) => {
-                          e.stopPropagation(); 
-                          handleRemoveOrigin(code);
-                        }}
-                      />
-                    </div>
-                  ))}
-                  
-                  <input
-                    type="text"
-                    id="origins"
-                    value={originSearchText}
-                    onChange={(e) => {
-                      setOriginSearchText(e.target.value);
-                      if (e.target.value.length >= 2) setShowOriginDropdown(true);
-                    }}
-                    onKeyDown={handleOriginKeyDown}
-                    onFocus={() => {
-                      if (originSearchText.length >= 2) setShowOriginDropdown(true);
-                    }}
-                    onBlur={() => setTimeout(() => setShowOriginDropdown(false), 200)}
-                    placeholder={originPills.length === 0 ? "Search Airport, City, etc." : ""}
-                    className="search-box-input"
-                    autoComplete="off"
-                  />
+                {/* CHANGED: wrap pills-container in inner shell */}
+                <div className="search-input-inner">
+                  <div className="pills-container">
+                    {originPills.map((code) => (
+                      <div key={code} className="airport-pill">
+                        <span>{code}</span>
+                        <X 
+                          className="pill-remove-icon" 
+                          onClick={(e) => {
+                            e.stopPropagation(); 
+                            handleRemoveOrigin(code);
+                          }}
+                        />
+                      </div>
+                    ))}
+                    
+                    <input
+                      type="text"
+                      id="origins"
+                      value={originSearchText}
+                      onChange={(e) => {
+                        setOriginSearchText(e.target.value);
+                        if (e.target.value.length >= 2) setShowOriginDropdown(true);
+                      }}
+                      onKeyDown={handleOriginKeyDown}
+                      onFocus={() => {
+                        if (originSearchText.length >= 2) setShowOriginDropdown(true);
+                      }}
+                      onBlur={() => setTimeout(() => setShowOriginDropdown(false), 200)}
+                      placeholder={originPills.length === 0 ? "Search Airport, City, etc." : ""}
+                      className="search-box-input"
+                      autoComplete="off"
+                    />
+                  </div>
                 </div>
 
                 {(originPills.length > 0 || originSearchText) && (
@@ -495,38 +501,41 @@ function SearchForm({ onSearch, loading }) {
               <div className={`search-input-wrapper ${anyDestination ? 'disabled' : ''} ${(destinationPills.length > 0 || destinationSearchText) && !anyDestination ? 'has-value' : ''}`}>
                 <PlaneLanding className="search-icon" size={24} />
                 
-                <div className="pills-container">
-                  {destinationPills.map((code) => (
-                    <div key={code} className="airport-pill">
-                      <span>{code}</span>
-                      <X 
-                        className="pill-remove-icon" 
-                        onClick={(e) => {
-                          e.stopPropagation(); 
-                          handleRemoveDestination(code);
-                        }}
-                      />
-                    </div>
-                  ))}
+                {/* CHANGED: wrap pills-container in inner shell */}
+                <div className="search-input-inner">
+                  <div className="pills-container">
+                    {destinationPills.map((code) => (
+                      <div key={code} className="airport-pill">
+                        <span>{code}</span>
+                        <X 
+                          className="pill-remove-icon" 
+                          onClick={(e) => {
+                            e.stopPropagation(); 
+                            handleRemoveDestination(code);
+                          }}
+                        />
+                      </div>
+                    ))}
 
-                  <input
-                    type="text"
-                    id="destinations"
-                    value={anyDestination ? '' : destinationSearchText}
-                    onChange={(e) => {
-                      setDestinationSearchText(e.target.value);
-                      if (e.target.value.length >= 2) setShowDestinationDropdown(true);
-                    }}
-                    onKeyDown={handleDestinationKeyDown}
-                    onFocus={() => {
-                      if (destinationSearchText.length >= 2 && !anyDestination) setShowDestinationDropdown(true);
-                    }}
-                    onBlur={() => setTimeout(() => setShowDestinationDropdown(false), 200)}
-                    placeholder={anyDestination ? "Searching all airports..." : (destinationPills.length === 0 ? "Search Airport, City, etc." : "")}
-                    disabled={anyDestination}
-                    className={`search-box-input ${anyDestination ? 'input-disabled-placeholder' : ''}`}
-                    autoComplete="off"
-                  />
+                    <input
+                      type="text"
+                      id="destinations"
+                      value={anyDestination ? '' : destinationSearchText}
+                      onChange={(e) => {
+                        setDestinationSearchText(e.target.value);
+                        if (e.target.value.length >= 2) setShowDestinationDropdown(true);
+                      }}
+                      onKeyDown={handleDestinationKeyDown}
+                      onFocus={() => {
+                        if (destinationSearchText.length >= 2 && !anyDestination) setShowDestinationDropdown(true);
+                      }}
+                      onBlur={() => setTimeout(() => setShowDestinationDropdown(false), 200)}
+                      placeholder={anyDestination ? "Searching all airports..." : (destinationPills.length === 0 ? "Search Airport, City, etc." : "")}
+                      disabled={anyDestination}
+                      className={`search-box-input ${anyDestination ? 'input-disabled-placeholder' : ''}`}
+                      autoComplete="off"
+                    />
+                  </div>
                 </div>
 
                 {/* Clear Destination Button */}
@@ -666,9 +675,12 @@ function SearchForm({ onSearch, loading }) {
                   {tripType === 'day-trip' ? (
                     <div className="search-input-wrapper disabled has-value">
                       <CalendarIcon className="search-icon" size={20} />
-                      <span className="date-display-text">
-                        {departureDate ? format(departureDate, 'PP') : 'Same as departure'}
-                      </span>
+                      {/* CHANGED: wrap text in inner shell */}
+                      <div className="search-input-inner">
+                        <span className="date-display-text">
+                          {departureDate ? format(departureDate, 'PP') : 'Same as departure'}
+                        </span>
+                      </div>
                     </div>
                   ) : (
                     <DatePicker

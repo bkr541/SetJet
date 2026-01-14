@@ -157,14 +157,15 @@ function FlightResults({
           <h2>
             <span style={{ color: '#004e5a' }}>{flights.length}</span> Flight Results
           </h2>
+
+          {/* ✅ moved trip type pill to the title row */}
+          <span className="trip-type-pill">{getTripTypeLabel(searchParams.tripType)}</span>
           
           {fromCache && <span className="cache-badge" style={{ marginLeft: '12px' }}>📦 From Cache</span>}
         </div>
         
         {/* Search Summary Text */}
         <div className="search-summary">
-          <span className="summary-badge">{getTripTypeLabel(searchParams.tripType)}</span>
-          
           <p className="results-info" style={compactLineStyle}>
             <strong>From:</strong> {searchParams.origins.join(', ')} → <strong>To:</strong> {destinationText}
           </p>
@@ -179,7 +180,7 @@ function FlightResults({
             <strong>Departure:</strong> {searchParams.departureDate}
             
             {daysAwayText && (
-              <span style={{ color: '#16a34a', fontWeight: 'bold', marginLeft: '8px' }}>
+              <span style={{ color: '#16a34a', fontWeight: 'inherit', marginLeft: '8px' }}>
                 {daysAwayText}
               </span>
             )}
@@ -204,19 +205,18 @@ function FlightResults({
               onClick={() => setShowMap(!showMap)}
               style={{ 
                 display: 'flex', 
-                alignItems: 'center',    // Center items vertically
-                justifyContent: 'center', // Center group horizontally
+                alignItems: 'center',
+                justifyContent: 'center',
                 cursor: 'pointer',
                 userSelect: 'none',
                 color: '#475569',
                 fontWeight: '600',
                 marginBottom: '0.5rem',
-                gap: '8px' // Spacing between icon, text, and arrow
+                gap: '8px'
               }}
             >
               <MapIcon size={18} />
               <span>{showMap ? "Hide" : "Show"} Destinations Map</span>
-              {/* Arrow placed to the right */}
               {showMap ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </div>
 
@@ -277,66 +277,68 @@ function FlightResults({
       ) : (
         <>
           <div className="sort-controls">
-            {/* Sort Section */}
-            <div className="control-group">
-              <span className="control-label">Sort by:</span>
-              <div className="control-track">
-                <button
-                  className={`control-option ${sortBy === 'price' ? 'active' : ''}`}
-                  onClick={() => setSortBy('price')}
-                >
-                  <CircleDollarSign size={16} className="option-icon" />
-                  Lowest Price
-                </button>
-                <button
-                  className={`control-option ${sortBy === 'nonstop' ? 'active' : ''}`}
-                  onClick={() => setSortBy('nonstop')}
-                >
-                  <Plane size={16} className="option-icon" />
-                  Non-Stop
-                </button>
-                <button
-                  className={`control-option ${sortBy === 'earliest' ? 'active' : ''}`}
-                  onClick={() => setSortBy('earliest')}
-                >
-                  <Sunrise size={16} className="option-icon" />
-                  Earliest
-                </button>
-                {(searchParams.tripType === 'round-trip' || searchParams.tripType === 'day-trip') && (
+            {/* ✅ Sort + Filter now share the same row */}
+            <div className="controls-row">
+              {/* Sort Section */}
+              <div className="control-group">
+                <span className="control-label">Sort by:</span>
+                <div className="control-track">
                   <button
-                    className={`control-option ${sortBy === 'longest-trip' ? 'active' : ''}`}
-                    onClick={() => setSortBy('longest-trip')}
+                    className={`control-option ${sortBy === 'price' ? 'active' : ''}`}
+                    onClick={() => setSortBy('price')}
                   >
-                    <Hourglass size={16} className="option-icon" />
-                    Longest Trip
+                    <CircleDollarSign size={16} className="option-icon" />
+                    Lowest Price
                   </button>
-                )}
+                  <button
+                    className={`control-option ${sortBy === 'nonstop' ? 'active' : ''}`}
+                    onClick={() => setSortBy('nonstop')}
+                  >
+                    <Plane size={16} className="option-icon" />
+                    Non-Stop
+                  </button>
+                  <button
+                    className={`control-option ${sortBy === 'earliest' ? 'active' : ''}`}
+                    onClick={() => setSortBy('earliest')}
+                  >
+                    <Sunrise size={16} className="option-icon" />
+                    Earliest
+                  </button>
+                  {(searchParams.tripType === 'round-trip' || searchParams.tripType === 'day-trip') && (
+                    <button
+                      className={`control-option ${sortBy === 'longest-trip' ? 'active' : ''}`}
+                      onClick={() => setSortBy('longest-trip')}
+                    >
+                      <Hourglass size={16} className="option-icon" />
+                      Longest Trip
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Filter Section */}
+              <div className="control-group">
+                <span className="control-label filter-label">
+                  Filter By:
+                </span>
+                <div className="control-track">
+                  <button
+                    className={`control-option ${nonstopOnly ? 'active' : ''}`}
+                    onClick={() => setNonstopOnly(!nonstopOnly)}
+                  >
+                    <Plane size={16} className="option-icon" />
+                    Non-Stop Only
+                  </button>
+                  <button
+                    className={`control-option ${gowildOnly ? 'active' : ''}`}
+                    onClick={() => setGowildOnly(!gowildOnly)}
+                  >
+                    <Ticket size={16} className="option-icon" />
+                    GoWild Only
+                  </button>
+                </div>
               </div>
             </div>
-
-            {/* Filter Section */}
-            <div className="control-group">
-              <span className="control-label filter-label">
-                Filter By:
-              </span>
-              <div className="control-track">
-                <button
-                  className={`control-option ${nonstopOnly ? 'active' : ''}`}
-                  onClick={() => setNonstopOnly(!nonstopOnly)}
-                >
-                  <Plane size={16} className="option-icon" />
-                  Non-Stop Only
-                </button>
-                <button
-                  className={`control-option ${gowildOnly ? 'active' : ''}`}
-                  onClick={() => setGowildOnly(!gowildOnly)}
-                >
-                  <Ticket size={16} className="option-icon" />
-                  GoWild Only
-                </button>
-              </div>
-            </div>
-
           </div>
 
           <div className="destinations-grid">

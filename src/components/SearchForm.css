@@ -29,29 +29,57 @@
   font-size: 0.95rem;
 }
 
-/* --- SEARCH INPUT STYLES --- */
+/* --- SEARCH INPUT STYLES (MATCH LoginSignup) --- */
 .search-input-wrapper {
   display: flex;
   align-items: center;
-  padding: 0.5rem 1rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 50px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
   background: #ffffff;
-  transition: all 0.2s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   position: relative;
-  min-height: 50px;
+  min-height: 56px;
   box-sizing: border-box;
   max-width: 100%;
+
+  /* ✅ lock height so it NEVER changes based on pills */
+  height: 56px;
+  max-height: 56px;
+  overflow: hidden;
+}
+
+/* Inner inset shell */
+.search-input-inner {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 0.6rem 0.9rem;
+  min-height: 40px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  min-width: 0; /* prevent overflow */
 }
 
 .search-input-wrapper:focus-within {
   border-color: #0096a6;
-  box-shadow: 0 0 0 2px rgba(0, 150, 166, 0.1);
+  box-shadow: 0 0 0 1px rgba(0, 150, 166, 0.4);
 }
 
-.search-input-wrapper.has-value {
-  background-color: #e0f5f7;
+.search-input-wrapper:focus-within .search-input-inner {
   border-color: #0096a6;
+}
+
+/* Keep has-value behavior, don’t tint outer pill */
+.search-input-wrapper.has-value {
+  border-color: #0096a6;
+}
+
+.search-input-wrapper.has-value .search-input-inner {
+  background-color: #ffffff;
 }
 
 .search-input-wrapper.has-value .search-icon {
@@ -60,7 +88,7 @@
 
 .search-input-wrapper.disabled {
   background-color: #f4f4f4;
-  border-color: #e0e0e0;
+  border-color: #e5e7eb;
   pointer-events: none;
 }
 
@@ -68,45 +96,72 @@
   color: #8d8d8d;
   margin-right: 0.75rem;
   flex: 0 0 auto;
-  transition: all 0.2s ease;
+  transition: color 0.15s ease;
   align-self: center;
 }
 
 /* --- PILLS CONTAINER & STYLES --- */
 .pills-container {
   display: flex;
-  flex-wrap: wrap;
+
+  /* ✅ prevent wrapping so height never grows */
+  flex-wrap: nowrap;
+
+  /* ✅ horizontal scroll when too many selections */
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+
+  /* ✅ requested spacing between values */
   gap: 6px;
+
   flex: 1 1 auto;
   align-items: center;
-  min-width: 0; /* critical: allow flex child to shrink */
-}
-
-.airport-pill {
-  display: flex;
-  align-items: center;
-  background-color: #ffffff;
-  border: 1px solid #bce3e8;
-  color: #004e5a;
-  font-size: 1.4rem;
-  padding: 4px 10px 4px 14px;
-  border-radius: 30px;
-  font-weight: 500;
+  min-width: 0;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
+/* Hide scrollbar (still scrollable) */
+.pills-container::-webkit-scrollbar {
+  display: none;
+}
+.pills-container {
+  scrollbar-width: none;
+}
+
+/* ✅ FORCE selected airport values to look like normal text (NOT chips) */
+.airport-pill {
+  display: inline-flex;
+  align-items: center;
+
+  /* hard-disable chip look */
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+
+  /* match standard UI text */
+  color: #111827 !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+
+  white-space: nowrap;
+}
+
+/* Remove icon should be subtle like normal UI */
 .pill-remove-icon {
-  margin-left: 6px;
+  margin-left: 8px;
   cursor: pointer;
-  color: #7abcc4;
+  color: #9ca3af !important;
   transition: color 0.2s;
   width: 18px;
   height: 18px;
 }
 
 .pill-remove-icon:hover {
-  color: #d15656;
+  color: #111827 !important;
 }
 
 .clear-icon {
@@ -126,27 +181,31 @@
   border: none !important;
   padding: 0 !important;
   font-size: 1rem;
-  color: #161616;
+  color: #111827;
   flex: 1 1 auto;
-  min-width: 0; /* allow shrinking inside flex row */
+  min-width: 0;
   background: transparent !important;
   outline: none;
   height: 28px;
 }
 
-/* --- REACT DATEPICKER OVERRIDES (FLUID & WIDE) --- */
+.search-box-input::placeholder {
+  color: #9ca3af;
+}
+
+/* --- REACT DATEPICKER OVERRIDES --- */
 .date-picker-trigger {
   cursor: pointer;
 }
 
 .date-display-text {
   font-size: 1rem;
-  color: #161616;
+  color: #111827;
   user-select: none;
 }
 
 .date-display-text.placeholder {
-  color: #8d8d8d;
+  color: #9ca3af;
 }
 
 /* Main container */
@@ -685,14 +744,12 @@ input:checked + .toggle-slider:before {
    MOBILE UPDATES (REQUESTED)
    =========================== */
 @media (max-width: 768px) {
-  /* White surface edge-to-edge */
   .search-form-container {
-    padding: 0;            /* remove outer padding so background hits edges */
+    padding: 0;
     border-radius: 0;
     margin-bottom: 0;
   }
 
-  /* Keep inner spacing for content (surface still touches edges) */
   .search-form-container h2 {
     padding: 0 1rem;
     margin-top: 1.25rem;
@@ -706,7 +763,6 @@ input:checked + .toggle-slider:before {
     grid-template-columns: 1fr;
   }
 
-  /* Switch elements compact + horizontal */
   .trip-type-selector {
     flex-direction: row;
     flex-wrap: nowrap;
@@ -716,8 +772,8 @@ input:checked + .toggle-slider:before {
   }
 
   .trip-type-option {
-    min-width: 0;              /* allow shrinking */
-    padding: 0.55rem 0.35rem;  /* tighter so 4 fit */
+    min-width: 0;
+    padding: 0.55rem 0.35rem;
     justify-content: center;
   }
 
@@ -729,32 +785,36 @@ input:checked + .toggle-slider:before {
     margin-right: 6px;
   }
 
-  /* Airport inputs: KEEP HEIGHT FIXED on mobile + prevent overflow */
   .search-input-wrapper {
     width: 100%;
     max-width: 100%;
-    height: 56px;          /* lock height */
-    min-height: 56px;      /* lock height */
-    overflow: hidden;      /* prevent stretching beyond viewport */
+    height: 56px;
+    min-height: 56px;
+    overflow: hidden;
     border-radius: 18px;
-    padding: 0.65rem 1rem;
+    padding: 0.65rem 0.75rem;
     align-items: center;
     box-sizing: border-box;
   }
 
-  /* Keep chips on one line and scroll horizontally (no wrapping = no height jump) */
+  .search-input-inner {
+    min-height: 40px;
+    padding: 0.55rem 0.8rem;
+    border-radius: 14px;
+    min-width: 0;
+  }
+
   .pills-container {
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    gap: 8px;
+    gap: 6px; /* ✅ 6px spacing between values */
     align-items: center;
     flex: 1 1 auto;
-    min-width: 0; /* critical: allow shrink so wrapper doesn't expand */
+    min-width: 0;
   }
 
-  /* Hide scrollbar (still scrollable) */
   .pills-container::-webkit-scrollbar {
     display: none;
   }
@@ -762,27 +822,31 @@ input:checked + .toggle-slider:before {
     scrollbar-width: none;
   }
 
+  /* ✅ keep airport codes as normal text even on mobile */
   .airport-pill {
-    font-size: 1.05rem;
-    padding: 3px 10px 3px 12px;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: #111827 !important;
   }
 
-  /* Do NOT force the input to a new line on mobile */
   .search-box-input {
     flex-basis: auto;
-    min-width: 0; /* allow shrink */
+    min-width: 0;
     margin-top: 0;
     height: 28px;
     flex: 1 1 auto;
   }
 
-  /* Keep icons from forcing width */
   .search-icon,
   .clear-icon {
     flex: 0 0 auto;
   }
 
-  /* Datepicker smaller on mobile */
   .react-datepicker {
     width: calc(100vw - 32px) !important;
     max-width: 22rem !important;
