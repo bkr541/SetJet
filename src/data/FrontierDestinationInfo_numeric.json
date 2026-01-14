@@ -1,7 +1,7 @@
 [
   {
     "IATA Code": "AGU",
-    "Airport Name": "Lic. Jes\u00fas Ter\u00e1n Peredo Int'l Airport",
+    "Airport Name": "Lic. Jesús Terán Peredo Int'l Airport",
     "City": "Aguascalientes",
     "State": "Aguascalientes",
     "Airport Address": "Carretera Panamericana KM 22, Aguascalientes, AGS, MX",
@@ -11,7 +11,8 @@
     "Country": "Mexico",
     "ICAO Code": "MMAS",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "ATL",
@@ -25,7 +26,8 @@
     "Country": "United States",
     "ICAO Code": "KATL",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "GA"
   },
   {
     "IATA Code": "AUA",
@@ -39,11 +41,12 @@
     "Country": "Aruba",
     "ICAO Code": "TNCA",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "AUS",
-    "Airport Name": "Austin\u2013Bergstrom International Airport",
+    "Airport Name": "Austin–Bergstrom International Airport",
     "City": "Austin",
     "State": "Texas",
     "Airport Address": "3600 Presidential Blvd, Austin, TX 78719",
@@ -53,7 +56,8 @@
     "Country": "United States",
     "ICAO Code": "KAUS",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "TX"
   },
   {
     "IATA Code": "BDL",
@@ -67,21 +71,23 @@
     "Country": "United States",
     "ICAO Code": "KBDL",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "CT"
   },
   {
     "IATA Code": "BJX",
     "Airport Name": "Guanajuato International Airport",
-    "City": "Silao (Le\u00f3n/Guanajuato)",
+    "City": "Silao (León/Guanajuato)",
     "State": "Guanajuato",
-    "Airport Address": "Carr. Silao - Le\u00f3n Km 5.5, 36270 Silao, Gto., Mexico",
+    "Airport Address": "Carr. Silao - León Km 5.5, 36270 Silao, Gto., Mexico",
     "Latitude": 20.9934,
     "Longitude": -101.481,
     "Region": null,
     "Country": "Mexico",
     "ICAO Code": "MMSD",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "BNA",
@@ -95,7 +101,8 @@
     "Country": "United States",
     "ICAO Code": "KBNA",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "TN"
   },
   {
     "IATA Code": "BOI",
@@ -109,7 +116,8 @@
     "Country": "United States",
     "ICAO Code": "KBOI",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "ID"
   },
   {
     "IATA Code": "BOS",
@@ -123,11 +131,12 @@
     "Country": "United States",
     "ICAO Code": "KBOS",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "MA"
   },
   {
     "IATA Code": "BQN",
-    "Airport Name": "Rafael Hern\u00e1ndez International Airport",
+    "Airport Name": "Rafael Hernández International Airport",
     "City": "Aguadilla",
     "State": "Puerto Rico",
     "Airport Address": "300 W. Tarmac Rd., Aguadilla, PR 00603",
@@ -137,7 +146,8 @@
     "Country": "United States",
     "ICAO Code": "TJBQ",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "PR"
   },
   {
     "IATA Code": "BTV",
@@ -151,7 +161,8 @@
     "Country": "United States",
     "ICAO Code": "KBTV",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "VT"
   },
   {
     "IATA Code": "BUF",
@@ -165,7 +176,8 @@
     "Country": "United States",
     "ICAO Code": "KBUF",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "NY"
   },
   {
     "IATA Code": "BUR",
@@ -179,7 +191,8 @@
     "Country": "United States",
     "ICAO Code": "KBUR",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "CA"
   },
   {
     "IATA Code": "BWI",
@@ -193,7 +206,8 @@
     "Country": "United States",
     "ICAO Code": "KBWI",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "MD"
   },
   {
     "IATA Code": "CHS",
@@ -207,7 +221,8 @@
     "Country": "United States",
     "ICAO Code": "KCHS",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "SC"
   },
   {
     "IATA Code": "CID",
@@ -221,7 +236,8 @@
     "Country": "United States",
     "ICAO Code": "KCID",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "IA"
   },
   {
     "IATA Code": "CLE",
@@ -235,7 +251,8 @@
     "Country": "United States",
     "ICAO Code": "KCLE",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "OH"
   },
   {
     "IATA Code": "CLT",
@@ -249,7 +266,8 @@
     "Country": "United States",
     "ICAO Code": "KCLT",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "NC"
   },
   {
     "IATA Code": "CMH",
@@ -263,7 +281,8 @@
     "Country": "United States",
     "ICAO Code": "KCMH",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "OH"
   },
   {
     "IATA Code": "CRP",
@@ -277,21 +296,23 @@
     "Country": "United States",
     "ICAO Code": "KCRP",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "TX"
   },
   {
     "IATA Code": "CUN",
-    "Airport Name": "Canc\u00fan International Airport",
-    "City": "Canc\u00fan",
+    "Airport Name": "Cancún International Airport",
+    "City": "Cancún",
     "State": "Quintana Roo",
-    "Airport Address": "Carr. Canc\u00fan - Chetumal Km 22, 77565 Canc\u00fan, Q.R., Mexico",
+    "Airport Address": "Carr. Cancún - Chetumal Km 22, 77565 Cancún, Q.R., Mexico",
     "Latitude": 21.0366,
     "Longitude": -86.877,
     "Region": null,
     "Country": "Mexico",
     "ICAO Code": "MMUN",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "CUU",
@@ -305,7 +326,8 @@
     "Country": "Mexico",
     "ICAO Code": "MMCU",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "CVG",
@@ -319,7 +341,8 @@
     "Country": "United States",
     "ICAO Code": "KCVG",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "KY"
   },
   {
     "IATA Code": "DCA",
@@ -333,21 +356,23 @@
     "Country": "United States",
     "ICAO Code": "KDCA",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "DC"
   },
   {
     "IATA Code": "DEN",
     "Airport Name": "Denver International Airport",
     "City": "Denver",
     "State": "Colorado",
-    "Airport Address": "8500 Pe\u00f1a Blvd, Denver, CO 80249",
+    "Airport Address": "8500 Peña Blvd, Denver, CO 80249",
     "Latitude": 39.8561,
     "Longitude": -104.6737,
     "Region": "West",
     "Country": "United States",
     "ICAO Code": "KDEN",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "CO"
   },
   {
     "IATA Code": "DFW",
@@ -361,7 +386,8 @@
     "Country": "United States",
     "ICAO Code": "KDFW",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "TX"
   },
   {
     "IATA Code": "DGO",
@@ -375,7 +401,8 @@
     "Country": "Mexico",
     "ICAO Code": "MMDO",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "DSM",
@@ -389,7 +416,8 @@
     "Country": "United States",
     "ICAO Code": "KDSM",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "IA"
   },
   {
     "IATA Code": "DTW",
@@ -403,7 +431,8 @@
     "Country": "United States",
     "ICAO Code": "KDTW",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "MI"
   },
   {
     "IATA Code": "ELP",
@@ -417,7 +446,8 @@
     "Country": "United States",
     "ICAO Code": "KELP",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "TX"
   },
   {
     "IATA Code": "EWR",
@@ -431,7 +461,8 @@
     "Country": "United States",
     "ICAO Code": "KEWR",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "NJ"
   },
   {
     "IATA Code": "FAR",
@@ -445,11 +476,12 @@
     "Country": "United States",
     "ICAO Code": "KFAR",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "ND"
   },
   {
     "IATA Code": "FLL",
-    "Airport Name": "Fort Lauderdale\u2013Hollywood Int'l Airport",
+    "Airport Name": "Fort Lauderdale–Hollywood Int'l Airport",
     "City": "Fort Lauderdale",
     "State": "Florida",
     "Airport Address": "100 Terminal Dr, Fort Lauderdale, FL 33315",
@@ -459,7 +491,8 @@
     "Country": "United States",
     "ICAO Code": "KFLL",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "FL"
   },
   {
     "IATA Code": "FSD",
@@ -473,7 +506,8 @@
     "Country": "United States",
     "ICAO Code": "KFSD",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "SD"
   },
   {
     "IATA Code": "GDL",
@@ -487,7 +521,8 @@
     "Country": "Mexico",
     "ICAO Code": "MMGL",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "GEG",
@@ -501,7 +536,8 @@
     "Country": "United States",
     "ICAO Code": "KGEG",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "WA"
   },
   {
     "IATA Code": "GRR",
@@ -515,7 +551,8 @@
     "Country": "United States",
     "ICAO Code": "KGRR",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "MI"
   },
   {
     "IATA Code": "GUA",
@@ -529,21 +566,23 @@
     "Country": "Guatemala",
     "ICAO Code": "MGGT",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "HUX",
-    "Airport Name": "Bah\u00edas de Huatulco International Airport",
+    "Airport Name": "Bahías de Huatulco International Airport",
     "City": "Huatulco",
     "State": "Oaxaca",
-    "Airport Address": "Carretera Costera Km. 20. S/N, Santa Mar\u00eda Huatulco, Oax., Mexico",
+    "Airport Address": "Carretera Costera Km. 20. S/N, Santa María Huatulco, Oax., Mexico",
     "Latitude": 15.7758,
     "Longitude": -96.2625,
     "Region": null,
     "Country": "Mexico",
     "ICAO Code": "MMBT",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "IAD",
@@ -557,7 +596,8 @@
     "Country": "United States",
     "ICAO Code": "KIAD",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "VA"
   },
   {
     "IATA Code": "IAH",
@@ -571,7 +611,8 @@
     "Country": "United States",
     "ICAO Code": "KIAH",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "TX"
   },
   {
     "IATA Code": "IND",
@@ -585,7 +626,8 @@
     "Country": "United States",
     "ICAO Code": "KIND",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "IN"
   },
   {
     "IATA Code": "ISP",
@@ -599,7 +641,8 @@
     "Country": "United States",
     "ICAO Code": "KISP",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "NY"
   },
   {
     "IATA Code": "JAX",
@@ -613,7 +656,8 @@
     "Country": "United States",
     "ICAO Code": "KJAX",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "FL"
   },
   {
     "IATA Code": "JFK",
@@ -627,7 +671,8 @@
     "Country": "United States",
     "ICAO Code": "KJFK",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "NY"
   },
   {
     "IATA Code": "LAS",
@@ -641,7 +686,8 @@
     "Country": "United States",
     "ICAO Code": "KLAS",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "NV"
   },
   {
     "IATA Code": "LAX",
@@ -655,7 +701,8 @@
     "Country": "United States",
     "ICAO Code": "KLAX",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "CA"
   },
   {
     "IATA Code": "LGA",
@@ -669,7 +716,8 @@
     "Country": "United States",
     "ICAO Code": "KLGA",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "NY"
   },
   {
     "IATA Code": "LIT",
@@ -683,7 +731,8 @@
     "Country": "United States",
     "ICAO Code": "KLIT",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "AR"
   },
   {
     "IATA Code": "MBJ",
@@ -697,7 +746,8 @@
     "Country": "Jamaica",
     "ICAO Code": "MKJS",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "MCI",
@@ -711,7 +761,8 @@
     "Country": "United States",
     "ICAO Code": "KMCI",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "MO"
   },
   {
     "IATA Code": "MCO",
@@ -725,7 +776,8 @@
     "Country": "United States",
     "ICAO Code": "KMCO",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "FL"
   },
   {
     "IATA Code": "MDT",
@@ -739,7 +791,8 @@
     "Country": "United States",
     "ICAO Code": "KMDT",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "PA"
   },
   {
     "IATA Code": "MDW",
@@ -753,7 +806,8 @@
     "Country": "United States",
     "ICAO Code": "KMDW",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "IL"
   },
   {
     "IATA Code": "MEM",
@@ -767,21 +821,23 @@
     "Country": "United States",
     "ICAO Code": "KMEM",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "TN"
   },
   {
     "IATA Code": "MEX",
     "Airport Name": "Mexico City International Airport",
     "City": "Mexico City",
     "State": "Mexico City",
-    "Airport Address": "Av. Capit\u00e1n Carlos Le\u00f3n S/N, CDMX, Mexico",
+    "Airport Address": "Av. Capitán Carlos León S/N, CDMX, Mexico",
     "Latitude": 19.4363,
     "Longitude": -99.0721,
     "Region": null,
     "Country": "Mexico",
     "ICAO Code": "MMMX",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "MIA",
@@ -795,7 +851,8 @@
     "Country": "United States",
     "ICAO Code": "KMIA",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "FL"
   },
   {
     "IATA Code": "MKE",
@@ -809,21 +866,23 @@
     "Country": "United States",
     "ICAO Code": "KMKE",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "WI"
   },
   {
     "IATA Code": "MLM",
     "Airport Name": "Gen. Francisco Mujica Int'l Airport",
     "City": "Morelia",
-    "State": "Michoac\u00e1n",
-    "Airport Address": "Carr. Morelia-Zinap\u00e9cuaro Km 27, Mich., Mexico",
+    "State": "Michoacán",
+    "Airport Address": "Carr. Morelia-Zinapécuaro Km 27, Mich., Mexico",
     "Latitude": 19.8398,
     "Longitude": -101.0371,
     "Region": null,
     "Country": "Mexico",
     "ICAO Code": "MMMA",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "MSN",
@@ -837,7 +896,8 @@
     "Country": "United States",
     "ICAO Code": "KMSN",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "WI"
   },
   {
     "IATA Code": "MSO",
@@ -851,11 +911,12 @@
     "Country": "United States",
     "ICAO Code": "KMSO",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "MT"
   },
   {
     "IATA Code": "MSP",
-    "Airport Name": "Minneapolis\u2013Saint Paul Int'l Airport",
+    "Airport Name": "Minneapolis–Saint Paul Int'l Airport",
     "City": "Minneapolis / St. Paul",
     "State": "Minnesota",
     "Airport Address": "4300 Glumack Dr, St Paul, MN 55111",
@@ -865,7 +926,8 @@
     "Country": "United States",
     "ICAO Code": "KMSP",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "MN"
   },
   {
     "IATA Code": "MSY",
@@ -879,21 +941,23 @@
     "Country": "United States",
     "ICAO Code": "KMSY",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "LA"
   },
   {
     "IATA Code": "MTY",
     "Airport Name": "Monterrey International Airport",
     "City": "Monterrey",
-    "State": "Nuevo Le\u00f3n",
-    "Airport Address": "Carr. Miguel Alem\u00e1n Km 24, 66600 Apodaca, N.L., Mexico",
+    "State": "Nuevo León",
+    "Airport Address": "Carr. Miguel Alemán Km 24, 66600 Apodaca, N.L., Mexico",
     "Latitude": 25.7766,
     "Longitude": -100.1866,
     "Region": null,
     "Country": "Mexico",
     "ICAO Code": "MMMY",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "MYR",
@@ -907,7 +971,8 @@
     "Country": "United States",
     "ICAO Code": "KMYR",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "SC"
   },
   {
     "IATA Code": "NAS",
@@ -921,25 +986,27 @@
     "Country": "Bahamas",
     "ICAO Code": "MYNN",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "NLU",
-    "Airport Name": "Felipe \u00c1ngeles International Airport",
+    "Airport Name": "Felipe Ángeles International Airport",
     "City": "Zumpango (Mexico City)",
-    "State": "M\u00e9xico",
-    "Airport Address": "Carretera Federal M\u00e9xico-Pachuca, Santa Luc\u00eda, M\u00e9x., Mexico",
+    "State": "México",
+    "Airport Address": "Carretera Federal México-Pachuca, Santa Lucía, Méx., Mexico",
     "Latitude": 19.7431,
     "Longitude": -99.0069,
     "Region": null,
     "Country": "Mexico",
     "ICAO Code": "MMSM",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "OAX",
-    "Airport Name": "Xoxocotl\u00e1n International Airport",
+    "Airport Name": "Xoxocotlán International Airport",
     "City": "Oaxaca",
     "State": "Oaxaca",
     "Airport Address": "Carr. Federal 175, 71230 Oaxaca, Oax., Mexico",
@@ -949,7 +1016,8 @@
     "Country": "Mexico",
     "ICAO Code": "MMOX",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "OKC",
@@ -963,7 +1031,8 @@
     "Country": "United States",
     "ICAO Code": "KOKC",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "OK"
   },
   {
     "IATA Code": "OMA",
@@ -977,7 +1046,8 @@
     "Country": "United States",
     "ICAO Code": "KOMA",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "NE"
   },
   {
     "IATA Code": "ONT",
@@ -991,7 +1061,8 @@
     "Country": "United States",
     "ICAO Code": "KONT",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "CA"
   },
   {
     "IATA Code": "ORD",
@@ -1005,7 +1076,8 @@
     "Country": "United States",
     "ICAO Code": "KORD",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "IL"
   },
   {
     "IATA Code": "ORF",
@@ -1019,7 +1091,8 @@
     "Country": "United States",
     "ICAO Code": "KORF",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "VA"
   },
   {
     "IATA Code": "PAE",
@@ -1033,7 +1106,8 @@
     "Country": "United States",
     "ICAO Code": "KPAE",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "WA"
   },
   {
     "IATA Code": "PBI",
@@ -1047,7 +1121,8 @@
     "Country": "United States",
     "ICAO Code": "KPBI",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "FL"
   },
   {
     "IATA Code": "PDX",
@@ -1061,7 +1136,8 @@
     "Country": "United States",
     "ICAO Code": "KPDX",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "OR"
   },
   {
     "IATA Code": "PHL",
@@ -1075,7 +1151,8 @@
     "Country": "United States",
     "ICAO Code": "KPHL",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "PA"
   },
   {
     "IATA Code": "PHX",
@@ -1089,7 +1166,8 @@
     "Country": "United States",
     "ICAO Code": "KPHX",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "AZ"
   },
   {
     "IATA Code": "PIT",
@@ -1103,7 +1181,8 @@
     "Country": "United States",
     "ICAO Code": "KPIT",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "PA"
   },
   {
     "IATA Code": "PLS",
@@ -1117,7 +1196,8 @@
     "Country": "United Kingdom",
     "ICAO Code": "MBPV",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "PNS",
@@ -1131,7 +1211,8 @@
     "Country": "United States",
     "ICAO Code": "KPNS",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "FL"
   },
   {
     "IATA Code": "PSE",
@@ -1145,7 +1226,8 @@
     "Country": "United States",
     "ICAO Code": "TJPS",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "PR"
   },
   {
     "IATA Code": "PSP",
@@ -1159,25 +1241,27 @@
     "Country": "United States",
     "ICAO Code": "KPSP",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "CA"
   },
   {
     "IATA Code": "PUJ",
     "Airport Name": "Punta Cana International Airport",
     "City": "Punta Cana",
     "State": "La Altagracia",
-    "Airport Address": "Blvd. Tur\u00edstico del Este km 4.5, Punta Cana 23000, Dominican Republic",
+    "Airport Address": "Blvd. Turístico del Este km 4.5, Punta Cana 23000, Dominican Republic",
     "Latitude": 18.5636,
     "Longitude": -68.3634,
     "Region": null,
     "Country": "Dominican Republic",
     "ICAO Code": "MDPC",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "PVR",
-    "Airport Name": "Lic. Gustavo D\u00edaz Ordaz Int'l Airport",
+    "Airport Name": "Lic. Gustavo Díaz Ordaz Int'l Airport",
     "City": "Puerto Vallarta",
     "State": "Jalisco",
     "Airport Address": "Carr. a Tepic Km 7.5, 48312 Puerto Vallarta, Jal., Mexico",
@@ -1187,25 +1271,27 @@
     "Country": "Mexico",
     "ICAO Code": "MMPR",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "QRO",
-    "Airport Name": "Quer\u00e9taro International Airport",
-    "City": "Santiago de Quer\u00e9taro",
-    "State": "Quer\u00e9taro",
-    "Airport Address": "Carretera Estatal 200, Km 22, 200, Col\u00f3n, Qro., Mexico",
+    "Airport Name": "Querétaro International Airport",
+    "City": "Santiago de Querétaro",
+    "State": "Querétaro",
+    "Airport Address": "Carretera Estatal 200, Km 22, 200, Colón, Qro., Mexico",
     "Latitude": 20.6178,
     "Longitude": -100.1834,
     "Region": null,
     "Country": "Mexico",
     "ICAO Code": "MMQT",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "RDU",
-    "Airport Name": "Raleigh\u2013Durham International Airport",
+    "Airport Name": "Raleigh–Durham International Airport",
     "City": "Raleigh / Durham",
     "State": "North Carolina",
     "Airport Address": "2600 W Terminal Blvd, Morrisville, NC 27560",
@@ -1215,7 +1301,8 @@
     "Country": "United States",
     "ICAO Code": "KRDU",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "NC"
   },
   {
     "IATA Code": "RIC",
@@ -1229,11 +1316,12 @@
     "Country": "United States",
     "ICAO Code": "KRIC",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "VA"
   },
   {
     "IATA Code": "RNO",
-    "Airport Name": "Reno\u2013Tahoe International Airport",
+    "Airport Name": "Reno–Tahoe International Airport",
     "City": "Reno",
     "State": "Nevada",
     "Airport Address": "2001 E Plumb Ln, Reno, NV 89502",
@@ -1243,7 +1331,8 @@
     "Country": "United States",
     "ICAO Code": "KRNO",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "NV"
   },
   {
     "IATA Code": "RSW",
@@ -1257,11 +1346,12 @@
     "Country": "United States",
     "ICAO Code": "KRSW",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "FL"
   },
   {
     "IATA Code": "SAL",
-    "Airport Name": "Monse\u00f1or \u00d3scar Arnulfo Romero Int'l Airport",
+    "Airport Name": "Monseñor Óscar Arnulfo Romero Int'l Airport",
     "City": "San Salvador",
     "State": "La Paz",
     "Airport Address": "Carr. a Comalapa, San Luis Talpa, El Salvador",
@@ -1271,7 +1361,8 @@
     "Country": "El Salvador",
     "ICAO Code": "MSLP",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "SAN",
@@ -1285,13 +1376,14 @@
     "Country": "United States",
     "ICAO Code": "KSAN",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "CA"
   },
   {
     "IATA Code": "SAP",
-    "Airport Name": "Ram\u00f3n Villeda Morales Int'l Airport",
+    "Airport Name": "Ramón Villeda Morales Int'l Airport",
     "City": "San Pedro Sula",
-    "State": "Cort\u00e9s",
+    "State": "Cortés",
     "Airport Address": "Carretera a La Lima, La Lima, Honduras",
     "Latitude": 15.4526,
     "Longitude": -87.9238,
@@ -1299,7 +1391,8 @@
     "Country": "Honduras",
     "ICAO Code": "MHLM",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "SAT",
@@ -1313,25 +1406,27 @@
     "Country": "United States",
     "ICAO Code": "KSAT",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "TX"
   },
   {
     "IATA Code": "SDQ",
-    "Airport Name": "Las Am\u00e9ricas International Airport",
+    "Airport Name": "Las Américas International Airport",
     "City": "Santo Domingo",
     "State": "Santo Domingo",
-    "Airport Address": "Autopista Las Am\u00e9ricas, 11302, Dominican Republic",
+    "Airport Address": "Autopista Las Américas, 11302, Dominican Republic",
     "Latitude": 18.429,
     "Longitude": -69.668,
     "Region": null,
     "Country": "Dominican Republic",
     "ICAO Code": "MDSD",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "SEA",
-    "Airport Name": "Seattle\u2013Tacoma International Airport",
+    "Airport Name": "Seattle–Tacoma International Airport",
     "City": "Seattle / Tacoma",
     "State": "Washington",
     "Airport Address": "17801 International Blvd, Seattle, WA 98158",
@@ -1341,7 +1436,8 @@
     "Country": "United States",
     "ICAO Code": "KSEA",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "WA"
   },
   {
     "IATA Code": "SFO",
@@ -1355,11 +1451,12 @@
     "Country": "United States",
     "ICAO Code": "KSFO",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "CA"
   },
   {
     "IATA Code": "SJC",
-    "Airport Name": "Norman Y. Mineta San Jos\u00e9 Int'l Airport",
+    "Airport Name": "Norman Y. Mineta San José Int'l Airport",
     "City": "San Jose",
     "State": "California",
     "Airport Address": "1701 Airport Blvd, San Jose, CA 95110",
@@ -1369,12 +1466,13 @@
     "Country": "United States",
     "ICAO Code": "KSJC",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "CA"
   },
   {
     "IATA Code": "SJD",
     "Airport Name": "Los Cabos International Airport",
-    "City": "San Jos\u00e9 del Cabo",
+    "City": "San José del Cabo",
     "State": "Baja California Sur",
     "Airport Address": "Carretera Transpeninsular Km 43.5, B.C.S., Mexico",
     "Latitude": 23.1558,
@@ -1383,12 +1481,13 @@
     "Country": "Mexico",
     "ICAO Code": "MMSD",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "SJO",
-    "Airport Name": "Juan Santamar\u00eda International Airport",
-    "City": "Alajuela (San Jos\u00e9)",
+    "Airport Name": "Juan Santamaría International Airport",
+    "City": "Alajuela (San José)",
     "State": "Alajuela",
     "Airport Address": "Alajuela, Provincia de Alajuela, Alajuela, Costa Rica",
     "Latitude": 9.9951,
@@ -1397,11 +1496,12 @@
     "Country": "Costa Rica",
     "ICAO Code": "MROC",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "SJU",
-    "Airport Name": "Luis Mu\u00f1oz Mar\u00edn International Airport",
+    "Airport Name": "Luis Muñoz Marín International Airport",
     "City": "San Juan",
     "State": "Puerto Rico",
     "Airport Address": "10000 Autopista Sur, Carolina, PR 00979",
@@ -1411,7 +1511,8 @@
     "Country": "United States",
     "ICAO Code": "TJSJ",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "PR"
   },
   {
     "IATA Code": "SLC",
@@ -1425,7 +1526,8 @@
     "Country": "United States",
     "ICAO Code": "KSLC",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "UT"
   },
   {
     "IATA Code": "SMF",
@@ -1439,7 +1541,8 @@
     "Country": "United States",
     "ICAO Code": "KSMF",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "CA"
   },
   {
     "IATA Code": "SNA",
@@ -1453,11 +1556,12 @@
     "Country": "United States",
     "ICAO Code": "KSNA",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "CA"
   },
   {
     "IATA Code": "SRQ",
-    "Airport Name": "Sarasota\u2013Bradenton International Airport",
+    "Airport Name": "Sarasota–Bradenton International Airport",
     "City": "Sarasota / Bradenton",
     "State": "Florida",
     "Airport Address": "6000 Airport Cir, Sarasota, FL 34243",
@@ -1467,7 +1571,8 @@
     "Country": "United States",
     "ICAO Code": "KSRQ",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "FL"
   },
   {
     "IATA Code": "STI",
@@ -1481,7 +1586,8 @@
     "Country": "Dominican Republic",
     "ICAO Code": "MDST",
     "Flight Type": "International",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "STL",
@@ -1495,7 +1601,8 @@
     "Country": "United States",
     "ICAO Code": "KSTL",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "MO"
   },
   {
     "IATA Code": "SXM",
@@ -1509,7 +1616,8 @@
     "Country": "Sint Maarten",
     "ICAO Code": "TNCM",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "SYR",
@@ -1523,7 +1631,8 @@
     "Country": "United States",
     "ICAO Code": "KSYR",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "NY"
   },
   {
     "IATA Code": "TIJ",
@@ -1537,27 +1646,29 @@
     "Country": "Mexico",
     "ICAO Code": "MMTJ",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "TLC",
-    "Airport Name": "Lic. Adolfo L\u00f3pez Mateos Int'l Airport",
+    "Airport Name": "Lic. Adolfo López Mateos Int'l Airport",
     "City": "Toluca",
-    "State": "M\u00e9xico",
-    "Airport Address": "Ctra. F\u00e9d. Toluca-Naucalpan Km. 50, Toluca de Lerdo, M\u00e9x., Mexico",
+    "State": "México",
+    "Airport Address": "Ctra. Féd. Toluca-Naucalpan Km. 50, Toluca de Lerdo, Méx., Mexico",
     "Latitude": 19.3364,
     "Longitude": -99.5662,
     "Region": null,
     "Country": "Mexico",
     "ICAO Code": "MMTO",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "UPN",
     "Airport Name": "Uruapan International Airport",
     "City": "Uruapan",
-    "State": "Michoac\u00e1n",
+    "State": "Michoacán",
     "Airport Address": "Carr. Uruapan-Los Reyes Km 8, 60000 Uruapan, Mich., Mexico",
     "Latitude": 19.3953,
     "Longitude": -102.0436,
@@ -1565,7 +1676,8 @@
     "Country": "Mexico",
     "ICAO Code": "MMUP",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   },
   {
     "IATA Code": "TPA",
@@ -1579,11 +1691,12 @@
     "Country": "United States",
     "ICAO Code": "KTPA",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "FL"
   },
   {
     "IATA Code": "TTN",
-    "Airport Name": "Trenton\u2013Mercer Airport",
+    "Airport Name": "Trenton–Mercer Airport",
     "City": "Trenton",
     "State": "New Jersey",
     "Airport Address": "1100 Sam Weinroth Rd #1, Ewing Township, NJ 08628",
@@ -1593,7 +1706,8 @@
     "Country": "United States",
     "ICAO Code": "KTTN",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "NJ"
   },
   {
     "IATA Code": "TUL",
@@ -1607,7 +1721,8 @@
     "Country": "United States",
     "ICAO Code": "KTUL",
     "Flight Type": "Domestic",
-    "Nonstop": true
+    "Nonstop": true,
+    "State Abbreviation": "OK"
   },
   {
     "IATA Code": "TUS",
@@ -1621,7 +1736,8 @@
     "Country": "United States",
     "ICAO Code": "KTUS",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "AZ"
   },
   {
     "IATA Code": "XNA",
@@ -1635,7 +1751,8 @@
     "Country": "United States",
     "ICAO Code": "KXNA",
     "Flight Type": "Domestic",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": "AR"
   },
   {
     "IATA Code": "ZCL",
@@ -1649,6 +1766,7 @@
     "Country": "Mexico",
     "ICAO Code": "MMZC",
     "Flight Type": "International",
-    "Nonstop": false
+    "Nonstop": false,
+    "State Abbreviation": null
   }
 ]
