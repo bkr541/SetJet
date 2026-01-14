@@ -13,12 +13,13 @@
 
 .destination-summary {
   padding: 1.5rem;
-  cursor: pointer;
+  cursor: default; 
   transition: background-color 0.2s;
 }
 
-.destination-summary:hover {
-  background-color: #f7fafc;
+/* Hover effect on clickable areas */
+.destination-header:hover {
+  cursor: pointer;
 }
 
 .destination-header {
@@ -32,9 +33,10 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  /* ✅ UPDATED: Ensure they stay on same line */
+  flex-wrap: nowrap;
 }
 
-/* UPDATED: Dark Teal #004e5a and 30px */
 .destination-origin {
   font-size: 30px;
   font-weight: 700;
@@ -44,9 +46,10 @@
 .destination-arrow {
   color: #0096a6;
   font-size: 1.5rem;
+  /* ✅ UPDATED: Ensure arrow never shrinks/disappears */
+  flex-shrink: 0;
 }
 
-/* UPDATED: Dark Teal #004e5a and 30px */
 .destination-name {
   font-size: 30px;
   font-weight: 700;
@@ -69,6 +72,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  /* ✅ UPDATED: Ensure price doesn't crush route on small screens */
+  flex-shrink: 0;
+  margin-left: 10px;
 }
 
 .price-from {
@@ -93,19 +99,14 @@
   background-clip: text;
 }
 
-.gowild-taxes {
-  font-size: 0.7rem;
-  color: #48bb78;
-  font-weight: 600;
-  margin-top: 0.25rem;
-}
-
 /* --- STATS CARD STYLING --- */
 .destination-stats-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(4, 1fr); /* Default 4 cols */
+  gap: 10px;
+  margin-top: 0.5rem;
   margin-bottom: 0.75rem; 
+  cursor: pointer; 
 }
 
 .dest-stat-card {
@@ -154,26 +155,81 @@
   line-height: 1.2;
 }
 
-.expand-indicator {
+/* --- MAP TOGGLE SECTION --- */
+.map-section-container {
+  margin-top: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.map-toggle-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding-top: 0.25rem;
-  color: #0096a6;
+  /* ✅ UPDATED: Padding reduced slightly to match compact feel */
+  padding: 0.5rem 1rem;
+  background-color: #f8fafc;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.map-toggle-header:hover {
+  background-color: #f1f5f9;
+}
+
+/* Specific override for Map icon box inside toggle header to match stats */
+.map-icon-box {
+  background-color: #f2f9fa;
+  margin-right: 0.75rem;
+}
+
+.map-label-text {
+  /* Inherits .dest-stat-label styles + overrides if needed */
+  font-size: 0.7rem; /* Match header size */
+  margin-bottom: 0;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   font-weight: 600;
-  font-size: 0.9rem;
-  border-top: 1px solid #f0f4f8;
-  margin-top: 0.25rem; 
 }
 
-.arrow-icon {
-  transition: transform 0.3s ease;
-  display: inline-block;
+.map-content-wrapper {
+  padding: 0;
+  height: 250px; 
+  width: 100%;
+  border-top: 1px solid #e2e8f0;
 }
 
-.arrow-icon.expanded {
-  transform: rotate(180deg);
+
+/* --- EXPAND INDICATOR --- */
+.expand-indicator-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.expand-indicator-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px; 
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #004e5a; 
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  user-select: none;
+}
+
+.expand-indicator-chip:hover {
+  background-color: #f2f9fa;
+  border-color: #004e5a;
+  transform: translateY(-1px);
 }
 
 .expand-text {
@@ -204,18 +260,52 @@
   gap: 1rem;
 }
 
+/* ===========================
+   MOBILE ADJUSTMENTS
+   =========================== */
 @media (max-width: 768px) {
-  .destination-stats-container {
-    grid-template-columns: 1fr 1fr;
+  /* ✅ UPDATED: Main group stretches across screen with minimal padding */
+  .destination-card {
+    border-radius: 0; /* Optional: squared edges on full mobile width */
+    border-left: none;
+    border-right: none;
+    margin-left: -1rem; /* Negative margin to pull to edges if parent has padding */
+    margin-right: -1rem;
+    width: calc(100% + 2rem);
   }
+
+  .destination-summary {
+    /* ✅ UPDATED: 12px padding */
+    padding: 12px;
+  }
+
+  /* ✅ UPDATED: Stat cards wrap to next line & smaller padding */
+  .destination-stats-container {
+    grid-template-columns: 1fr 1fr; /* 2 cols */
+    gap: 8px;
+  }
+
+  .dest-stat-card {
+    padding: 0.5rem 0.6rem; /* Reduced padding */
+  }
+
+  /* ✅ UPDATED: IATA codes stay on same row */
   .destination-route {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row; /* Force row */
+    flex-wrap: nowrap;
     gap: 0.25rem;
   }
+
+  /* ✅ UPDATED: Keep arrow present */
   .destination-arrow {
-    display: none;
+    display: block !important;
+    font-size: 1.2rem;
   }
+
+  .destination-origin, .destination-name {
+    font-size: 24px; /* Slightly smaller for mobile safety */
+  }
+
   .flights-list {
     grid-template-columns: 1fr;
   }
