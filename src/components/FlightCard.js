@@ -2,6 +2,128 @@ import React, { useState } from 'react';
 import { TicketsPlane, Circle, ChevronDown, ChevronUp } from 'lucide-react';
 import './FlightCard.css';
 
+// ✅ AIRPORT DATA LOOKUP (Derived from FrontierDestinationInfo_numeric.json)
+const AIRPORT_DB = {
+  "AGU": { city: "Aguascalientes", state: null, country: "Mexico" },
+  "ATL": { city: "Atlanta", state: "GA", country: "United States" },
+  "AUA": { city: "Oranjestad", state: null, country: "Aruba" },
+  "AUS": { city: "Austin", state: "TX", country: "United States" },
+  "BDL": { city: "Hartford / Springfield", state: "CT", country: "United States" },
+  "BJX": { city: "Silao (León/Guanajuato)", state: null, country: "Mexico" },
+  "BNA": { city: "Nashville", state: "TN", country: "United States" },
+  "BOI": { city: "Boise", state: "ID", country: "United States" },
+  "BOS": { city: "Boston", state: "MA", country: "United States" },
+  "BQN": { city: "Aguadilla", state: "PR", country: "United States" },
+  "BTV": { city: "Burlington", state: "VT", country: "United States" },
+  "BUF": { city: "Buffalo", state: "NY", country: "United States" },
+  "BUR": { city: "Burbank", state: "CA", country: "United States" },
+  "BWI": { city: "Baltimore", state: "MD", country: "United States" },
+  "CHS": { city: "Charleston", state: "SC", country: "United States" },
+  "CID": { city: "Cedar Rapids", state: "IA", country: "United States" },
+  "CLE": { city: "Cleveland", state: "OH", country: "United States" },
+  "CLT": { city: "Charlotte", state: "NC", country: "United States" },
+  "CMH": { city: "Columbus", state: "OH", country: "United States" },
+  "CRP": { city: "Corpus Christi", state: "TX", country: "United States" },
+  "CUN": { city: "Cancún", state: null, country: "Mexico" },
+  "CUU": { city: "Chihuahua", state: null, country: "Mexico" },
+  "CVG": { city: "Hebron (Cincinnati)", state: "KY", country: "United States" },
+  "DCA": { city: "Washington", state: "DC", country: "United States" },
+  "DEN": { city: "Denver", state: "CO", country: "United States" },
+  "DFW": { city: "Dallas / Fort Worth", state: "TX", country: "United States" },
+  "DGO": { city: "Durango", state: null, country: "Mexico" },
+  "DSM": { city: "Des Moines", state: "IA", country: "United States" },
+  "DTW": { city: "Detroit", state: "MI", country: "United States" },
+  "ELP": { city: "El Paso", state: "TX", country: "United States" },
+  "EWR": { city: "Newark", state: "NJ", country: "United States" },
+  "FAR": { city: "Fargo", state: "ND", country: "United States" },
+  "FLL": { city: "Fort Lauderdale", state: "FL", country: "United States" },
+  "FSD": { city: "Sioux Falls", state: "SD", country: "United States" },
+  "GDL": { city: "Guadalajara", state: null, country: "Mexico" },
+  "GEG": { city: "Spokane", state: "WA", country: "United States" },
+  "GRR": { city: "Grand Rapids", state: "MI", country: "United States" },
+  "GUA": { city: "Guatemala City", state: null, country: "Guatemala" },
+  "HUX": { city: "Huatulco", state: null, country: "Mexico" },
+  "IAD": { city: "Dulles (Washington, D.C.)", state: "VA", country: "United States" },
+  "IAH": { city: "Houston", state: "TX", country: "United States" },
+  "IND": { city: "Indianapolis", state: "IN", country: "United States" },
+  "ISP": { city: "Islip", state: "NY", country: "United States" },
+  "JAX": { city: "Jacksonville", state: "FL", country: "United States" },
+  "JFK": { city: "New York", state: "NY", country: "United States" },
+  "LAS": { city: "Las Vegas", state: "NV", country: "United States" },
+  "LAX": { city: "Los Angeles", state: "CA", country: "United States" },
+  "LGA": { city: "New York", state: "NY", country: "United States" },
+  "LIT": { city: "Little Rock", state: "AR", country: "United States" },
+  "MBJ": { city: "Montego Bay", state: null, country: "Jamaica" },
+  "MCI": { city: "Kansas City", state: "MO", country: "United States" },
+  "MCO": { city: "Orlando", state: "FL", country: "United States" },
+  "MDT": { city: "Harrisburg", state: "PA", country: "United States" },
+  "MDW": { city: "Chicago", state: "IL", country: "United States" },
+  "MEM": { city: "Memphis", state: "TN", country: "United States" },
+  "MEX": { city: "Mexico City", state: null, country: "Mexico" },
+  "MIA": { city: "Miami", state: "FL", country: "United States" },
+  "MKE": { city: "Milwaukee", state: "WI", country: "United States" },
+  "MLM": { city: "Morelia", state: null, country: "Mexico" },
+  "MSN": { city: "Madison", state: "WI", country: "United States" },
+  "MSO": { city: "Missoula", state: "MT", country: "United States" },
+  "MSP": { city: "Minneapolis / St. Paul", state: "MN", country: "United States" },
+  "MSY": { city: "New Orleans", state: "LA", country: "United States" },
+  "MTY": { city: "Monterrey", state: null, country: "Mexico" },
+  "MYR": { city: "Myrtle Beach", state: "SC", country: "United States" },
+  "NAS": { city: "Nassau", state: null, country: "Bahamas" },
+  "NLU": { city: "Zumpango (Mexico City)", state: null, country: "Mexico" },
+  "OAX": { city: "Oaxaca", state: null, country: "Mexico" },
+  "OKC": { city: "Oklahoma City", state: "OK", country: "United States" },
+  "OMA": { city: "Omaha", state: "NE", country: "United States" },
+  "ONT": { city: "Ontario", state: "CA", country: "United States" },
+  "ORD": { city: "Chicago", state: "IL", country: "United States" },
+  "ORF": { city: "Norfolk", state: "VA", country: "United States" },
+  "PAE": { city: "Everett (Seattle)", state: "WA", country: "United States" },
+  "PBI": { city: "West Palm Beach", state: "FL", country: "United States" },
+  "PDX": { city: "Portland", state: "OR", country: "United States" },
+  "PHL": { city: "Philadelphia", state: "PA", country: "United States" },
+  "PHX": { city: "Phoenix", state: "AZ", country: "United States" },
+  "PIT": { city: "Pittsburgh", state: "PA", country: "United States" },
+  "PLS": { city: "Providenciales", state: null, country: "United Kingdom" },
+  "PNS": { city: "Pensacola", state: "FL", country: "United States" },
+  "PSE": { city: "Ponce", state: "PR", country: "United States" },
+  "PSP": { city: "Palm Springs", state: "CA", country: "United States" },
+  "PUJ": { city: "Punta Cana", state: null, country: "Dominican Republic" },
+  "PVR": { city: "Puerto Vallarta", state: null, country: "Mexico" },
+  "QRO": { city: "Santiago de Querétaro", state: null, country: "Mexico" },
+  "RDU": { city: "Raleigh / Durham", state: "NC", country: "United States" },
+  "RIC": { city: "Richmond", state: "VA", country: "United States" },
+  "RNO": { city: "Reno", state: "NV", country: "United States" },
+  "RSW": { city: "Fort Myers", state: "FL", country: "United States" },
+  "SAL": { city: "San Salvador", state: null, country: "El Salvador" },
+  "SAN": { city: "San Diego", state: "CA", country: "United States" },
+  "SAP": { city: "San Pedro Sula", state: null, country: "Honduras" },
+  "SAT": { city: "San Antonio", state: "TX", country: "United States" },
+  "SDQ": { city: "Santo Domingo", state: null, country: "Dominican Republic" },
+  "SEA": { city: "Seattle / Tacoma", state: "WA", country: "United States" },
+  "SFO": { city: "San Francisco", state: "CA", country: "United States" },
+  "SJC": { city: "San Jose", state: "CA", country: "United States" },
+  "SJD": { city: "San José del Cabo", state: null, country: "Mexico" },
+  "SJO": { city: "Alajuela (San José)", state: null, country: "Costa Rica" },
+  "SJU": { city: "San Juan", state: "PR", country: "United States" },
+  "SLC": { city: "Salt Lake City", state: "UT", country: "United States" },
+  "SMF": { city: "Sacramento", state: "CA", country: "United States" },
+  "SNA": { city: "Santa Ana", state: "CA", country: "United States" },
+  "SRQ": { city: "Sarasota / Bradenton", state: "FL", country: "United States" },
+  "STI": { city: "Santiago de los Caballeros", state: null, country: "Dominican Republic" },
+  "STL": { city: "St. Louis", state: "MO", country: "United States" },
+  "SXM": { city: "Philipsburg", state: null, country: "Sint Maarten" },
+  "SYR": { city: "Syracuse", state: "NY", country: "United States" },
+  "TIJ": { city: "Tijuana", state: null, country: "Mexico" },
+  "TLC": { city: "Toluca", state: null, country: "Mexico" },
+  "UPN": { city: "Uruapan", state: null, country: "Mexico" },
+  "TPA": { city: "Tampa", state: "FL", country: "United States" },
+  "TTN": { city: "Trenton", state: "NJ", country: "United States" },
+  "TUL": { city: "Tulsa", state: "OK", country: "United States" },
+  "TUS": { city: "Tucson", state: "AZ", country: "United States" },
+  "XNA": { city: "Bentonville / Fayetteville", state: "AR", country: "United States" },
+  "ZCL": { city: "Zacatecas", state: null, country: "Mexico" }
+};
+
 function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outbound', onSelectFlight }) {
   const [isAlertsExpanded, setIsAlertsExpanded] = useState(false);
 
@@ -30,6 +152,19 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
     return `${h12.toString().padStart(2, '0')}:${minutes} ${suffix}`;
   };
 
+  // ✅ NEW: Helper to get City, State format based on IATA
+  const getCityState = (iata) => {
+    const info = AIRPORT_DB[iata];
+    if (!info) return iata; // Fallback to code if not found
+    
+    // For domestic (US), show "City, StateAbbr" (e.g., "Atlanta, GA")
+    if (info.country === "United States" && info.state) {
+      return `${info.city}, ${info.state}`;
+    }
+    // For international, show "City, Country"
+    return `${info.city}, ${info.country}`;
+  };
+
   // Determine active alerts
   const hasBlackout = flight.blackout_dates?.has_blackout && flight.gowild_eligible;
   const hasSeatAlert = flight.seats_remaining && flight.seats_remaining <= 9;
@@ -43,7 +178,6 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
       </div>
       <div className="grid-cell center icon-cell">
         <div className="plane-icon-wrapper">
-          {/* Increased by 6px */}
           <TicketsPlane size={42} className="plane-icon" />
         </div>
       </div>
@@ -52,25 +186,16 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
       </div>
 
       <div className="grid-cell left">
+        {/* ✅ UPDATED: Use getCityState helper */}
         <span className="city-name">
-          {segment.origin === 'ATL'
-            ? 'Atlanta, GA'
-            : segment.origin === 'LAS'
-              ? 'Las Vegas, NV'
-              : segment.origin === 'ORD'
-                ? 'Chicago, IL'
-                : 'Origin City'}
+          {getCityState(segment.origin)}
         </span>
       </div>
       <div className="grid-cell center"></div>
       <div className="grid-cell right">
-        {/* Destination City NAME from API */}
+        {/* ✅ UPDATED: Use getCityState helper */}
         <span className="city-name">
-          {segment.destination_city_name ||
-            segment.destination_city ||
-            segment.destinationCityName ||
-            segment.destinationCity ||
-            segment.destination}
+          {getCityState(segment.destination)}
         </span>
       </div>
 
