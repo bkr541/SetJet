@@ -124,6 +124,9 @@ const CalendarLegend = () => (
   </div>
 );
 
+// ✅ NEW CONSTANT FOR DATE FORMAT
+const DATE_FORMAT = 'EEE, MMM do, yyyy';
+
 function SearchForm({ onSearch, loading }) {
   const [searchMode, setSearchMode] = useState('package');
   
@@ -153,7 +156,8 @@ function SearchForm({ onSearch, loading }) {
   const [nonstopPreferred, setNonstopPreferred] = useState(false);
 
   // Generate today's date string for placeholders
-  const todayPlaceholder = format(new Date(), 'MMM do, yyyy');
+  // ✅ UPDATED: Placeholder format
+  const todayPlaceholder = format(new Date(), DATE_FORMAT);
 
   // If someone switches to Build Your Own, tripType should effectively behave like one-way
   useEffect(() => {
@@ -443,7 +447,8 @@ function SearchForm({ onSearch, loading }) {
                         if (originSearchText.length >= 2) setShowOriginDropdown(true);
                       }}
                       onBlur={() => setTimeout(() => setShowOriginDropdown(false), 200)}
-                      placeholder={originPills.length === 0 ? "Search Airport, City, etc." : ""}
+                      /* ✅ UPDATED: Placeholder */
+                      placeholder={originPills.length === 0 ? "Search any City or Airport" : ""}
                       className="search-box-input"
                       autoComplete="off"
                     />
@@ -530,7 +535,8 @@ function SearchForm({ onSearch, loading }) {
                         if (destinationSearchText.length >= 2 && !anyDestination) setShowDestinationDropdown(true);
                       }}
                       onBlur={() => setTimeout(() => setShowDestinationDropdown(false), 200)}
-                      placeholder={anyDestination ? "Searching all airports..." : (destinationPills.length === 0 ? "Search Airport, City, etc." : "")}
+                      /* ✅ UPDATED: Placeholder */
+                      placeholder={anyDestination ? "Searching All Airports..." : (destinationPills.length === 0 ? "Search any City or Airport" : "")}
                       disabled={anyDestination}
                       className={`search-box-input ${anyDestination ? 'input-disabled-placeholder' : ''}`}
                       autoComplete="off"
@@ -617,7 +623,8 @@ function SearchForm({ onSearch, loading }) {
                   onChange={(date) => setDepartureDate(date)}
                   customInput={<CustomDateInput />}
                   placeholderText={todayPlaceholder}
-                  dateFormat="PP"
+                  /* ✅ UPDATED: Date Format */
+                  dateFormat={DATE_FORMAT}
                   minDate={new Date()}
                   fixedHeight
                   dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
@@ -633,7 +640,8 @@ function SearchForm({ onSearch, loading }) {
                   onChange={(date) => setReturnDate(date)}
                   customInput={<CustomDateInput />}
                   placeholderText={todayPlaceholder}
-                  dateFormat="PP"
+                  /* ✅ UPDATED: Date Format */
+                  dateFormat={DATE_FORMAT}
                   minDate={departureDate || new Date()}
                   fixedHeight
                   dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
@@ -660,7 +668,8 @@ function SearchForm({ onSearch, loading }) {
                   }}
                   customInput={<CustomDateInput />}
                   placeholderText={todayPlaceholder}
-                  dateFormat="PP"
+                  /* ✅ UPDATED: Date Format */
+                  dateFormat={DATE_FORMAT}
                   minDate={new Date()}
                   fixedHeight
                   dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
@@ -678,7 +687,7 @@ function SearchForm({ onSearch, loading }) {
                       {/* CHANGED: wrap text in inner shell */}
                       <div className="search-input-inner">
                         <span className="date-display-text">
-                          {departureDate ? format(departureDate, 'PP') : 'Same as departure'}
+                          {departureDate ? format(departureDate, DATE_FORMAT) : 'Same as departure'}
                         </span>
                       </div>
                     </div>
@@ -688,7 +697,8 @@ function SearchForm({ onSearch, loading }) {
                       onChange={(date) => setReturnDate(date)}
                       customInput={<CustomDateInput />}
                       placeholderText={todayPlaceholder}
-                      dateFormat="PP"
+                      /* ✅ UPDATED: Date Format */
+                      dateFormat={DATE_FORMAT}
                       minDate={departureDate || new Date()}
                       fixedHeight
                       dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
@@ -711,7 +721,8 @@ function SearchForm({ onSearch, loading }) {
                 onChange={(date) => setDepartureDate(date)}
                 customInput={<CustomDateInput />}
                 placeholderText={todayPlaceholder}
-                dateFormat="PP"
+                /* ✅ UPDATED: Date Format */
+                dateFormat={DATE_FORMAT}
                 minDate={new Date()}
                 fixedHeight
                 dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}

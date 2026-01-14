@@ -216,7 +216,7 @@ function FlightResults({
             </div>
 
             {showMap && (
-              <div style={{ height: '250px', width: '100%' }}>
+              <div style={{ height: '250px', width: '100%', marginTop: '1rem' }}>
                 <HubMap originIATA={mapData.origin} destinations={mapData.destinations} />
               </div>
             )}
