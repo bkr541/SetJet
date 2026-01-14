@@ -23,32 +23,31 @@
    BADGES (TRIP TYPE + CACHE)
    =========================== */
 
-/* Shared pill base */
+/* Match the typography of Sort/Filter options */
 .trip-type-pill,
 .cache-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px; /* tighter icon/text spacing */
 
   padding: 0.32rem 0.75rem;
   border-radius: 999px;
 
-  background: #ec4899; /* pink */
-  color: #ffffff;
+  background: transparent;
+  color: #64748b;
 
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
 
   white-space: nowrap;
 }
 
-/* Icon inside pills */
 .trip-type-pill svg,
 .cache-badge svg {
   width: 14px;
   height: 14px;
-  stroke-width: 2.5px;
+  stroke-width: 2px;
 }
 
 /* ===========================
@@ -76,7 +75,7 @@
 .days-away {
   margin-left: 6px;
   color: #16a34a;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
@@ -130,7 +129,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px; /* ✅ tighter icon/text spacing */
 
   padding: 0.5rem 0.4rem;
   border: none;

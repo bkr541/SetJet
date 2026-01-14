@@ -9,7 +9,8 @@ import {
   ChevronDown,
   ChevronUp,
   Archive,
-  Map as MapIcon
+  Map as MapIcon,
+  MoveRight
 } from 'lucide-react';
 import './FlightResults.css';
 import DestinationCard from './DestinationCard';
@@ -157,14 +158,17 @@ function FlightResults({
             <span style={{ color: '#004e5a' }}>{flights.length}</span> Flight Results
           </h2>
 
-          <span className="trip-type-pill">{getTripTypeLabel(searchParams.tripType)}</span>
+          <span className="trip-type-pill">
+            <MoveRight size={14} />
+            {getTripTypeLabel(searchParams.tripType)}
+          </span>
 
           {fromCache && (
-          <span className="cache-badge">
-            <Archive size={14} />
-            From Cache
-          </span>
-        )}
+            <span className="cache-badge">
+              <Archive size={14} />
+              From Cache
+            </span>
+          )}
         </div>
 
         <div className="search-summary">
@@ -198,20 +202,13 @@ function FlightResults({
         </div>
 
         {mapData && (
-          <div style={{ marginTop: '1rem', width: '100%' }}>
+          <div className="map-toggle-container">
             <div
-              onClick={() => setShowMap(!showMap)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                userSelect: 'none',
-                color: '#475569',
-                fontWeight: '600',
-                marginBottom: '0.5rem',
-                gap: '8px'
-              }}
+              className="map-toggle-button"
+              role="button"
+              tabIndex={0}
+              onClick={() => setShowMap((prev) => !prev)}
+              onKeyDown={(e) => e.key === 'Enter' && setShowMap((prev) => !prev)}
             >
               <MapIcon size={18} />
               <span>{showMap ? 'Hide' : 'Show'} Destinations Map</span>
@@ -295,7 +292,6 @@ function FlightResults({
                     GoWild Only
                   </button>
 
-                  {/* ✅ NEW FILTER OPTION (toggle only for now) */}
                   <button
                     className={`control-option ${hasEventsOnly ? 'active' : ''}`}
                     onClick={() => setHasEventsOnly(!hasEventsOnly)}
