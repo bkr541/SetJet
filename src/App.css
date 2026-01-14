@@ -109,3 +109,18 @@
 .clear-cache-btn:hover {
   background-color: #c53030;
 }
+
+.auth-screen {
+  width: 100%;
+  overflow: hidden;
+  max-height: 1200px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: max-height 250ms ease, opacity 250ms ease, transform 250ms ease;
+}
+
+.auth-screen.collapse {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-8px);
+}

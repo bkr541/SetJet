@@ -1,14 +1,15 @@
-/* ... [All previous CSS styles remain exactly the same] ... */
+/* --- NEW CONTAINER FOR DROPDOWN POSITIONING --- */
+.relative-input-container {
+  position: relative;
+}
 
 .search-form-container {
   background: #ffffff;
   border-radius: 12px;
-  padding: 1.25rem 2rem 2rem; /* reduced top padding only */
+  padding: 1.25rem 2rem 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
 }
-
-/* --- the rest of your CSS stays the same below --- */
 
 .search-form {
   display: flex;
@@ -28,11 +29,6 @@
   font-size: 0.95rem;
 }
 
-/* --- NEW CONTAINER FOR DROPDOWN POSITIONING --- */
-.relative-input-container {
-  position: relative;
-}
-
 /* --- SEARCH INPUT STYLES --- */
 .search-input-wrapper {
   display: flex;
@@ -44,6 +40,8 @@
   transition: all 0.2s ease;
   position: relative;
   min-height: 50px;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .search-input-wrapper:focus-within {
@@ -69,7 +67,7 @@
 .search-icon {
   color: #8d8d8d;
   margin-right: 0.75rem;
-  flex-shrink: 0;
+  flex: 0 0 auto;
   transition: all 0.2s ease;
   align-self: center;
 }
@@ -79,8 +77,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  flex: 1;
+  flex: 1 1 auto;
   align-items: center;
+  min-width: 0; /* critical: allow flex child to shrink */
 }
 
 .airport-pill {
@@ -102,7 +101,7 @@
   cursor: pointer;
   color: #7abcc4;
   transition: color 0.2s;
-  width: 18px; 
+  width: 18px;
   height: 18px;
 }
 
@@ -110,13 +109,11 @@
   color: #d15656;
 }
 
-/* -------------------------------- */
-
 .clear-icon {
   cursor: pointer;
   color: #004e5a;
   margin-left: 8px;
-  flex-shrink: 0;
+  flex: 0 0 auto;
   transition: opacity 0.2s;
   align-self: center;
 }
@@ -130,8 +127,8 @@
   padding: 0 !important;
   font-size: 1rem;
   color: #161616;
-  flex: 1;
-  min-width: 100px;
+  flex: 1 1 auto;
+  min-width: 0; /* allow shrinking inside flex row */
   background: transparent !important;
   outline: none;
   height: 28px;
@@ -152,14 +149,14 @@
   color: #8d8d8d;
 }
 
-/* 1. Main Container: Fixed width matching inputs */
+/* Main container */
 .react-datepicker {
   font-family: inherit !important;
-  font-size: 1.1rem !important; 
+  font-size: 1.1rem !important;
   border: 1px solid #e0e0e0 !important;
   border-radius: 12px !important;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
-  width: 26rem !important; 
+  width: 26rem !important;
   display: flex !important;
   flex-direction: column !important;
 }
@@ -168,7 +165,6 @@
   width: 100% !important;
 }
 
-/* 2. Header Styling */
 .react-datepicker__header {
   background-color: #f2f9fa !important;
   border-bottom: 1px solid #e0e0e0 !important;
@@ -184,7 +180,6 @@
   margin-bottom: 0.8rem !important;
 }
 
-/* 3. Day Names Row */
 .react-datepicker__day-names {
   display: flex !important;
   justify-content: space-between !important;
@@ -201,32 +196,28 @@
   font-size: 1rem !important;
 }
 
-/* --- WEEKEND HEADER LABELS (Sun & Sat) --- */
 .react-datepicker__day-name:first-child,
 .react-datepicker__day-name:last-child {
   color: #D22B2B !important;
 }
 
-/* 4. Month Grid */
 .react-datepicker__month {
   display: flex !important;
   flex-direction: column !important;
-  margin: 0.8rem 0.8rem 0 0.8rem !important; 
+  margin: 0.8rem 0.8rem 0 0.8rem !important;
   gap: 0.2rem !important;
 }
 
-/* 5. Week Row */
 .react-datepicker__week {
   display: flex !important;
   justify-content: space-between !important;
   width: 100% !important;
 }
 
-/* 6. Individual Day */
 .react-datepicker__day {
   flex: 1 !important;
-  width: auto !important; 
-  aspect-ratio: 1 / 1;    
+  width: auto !important;
+  aspect-ratio: 1 / 1;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -235,12 +226,10 @@
   border-radius: 50% !important;
 }
 
-/* --- WEEKEND DATES --- */
 .react-datepicker__day--weekend:not(.react-datepicker__day--selected):not(.react-datepicker__day--keyboard-selected) {
   color: #D22B2B !important;
 }
 
-/* --- SELECTED DAY STYLING --- */
 .react-datepicker__day--selected {
   background-color: #0096a6 !important;
   color: white !important;
@@ -252,7 +241,6 @@
   background-color: #007d8a !important;
 }
 
-/* --- KEYBOARD SELECTED STATE --- */
 .react-datepicker__day--keyboard-selected {
   background-color: transparent !important;
   color: #0096a6 !important;
@@ -265,35 +253,31 @@
   border: none !important;
 }
 
-/* --- TODAY'S DATE STYLING --- */
 .react-datepicker__day--today {
   font-weight: 800 !important;
   color: #0096a6 !important;
   background-color: transparent !important;
   border: none !important;
-  font-size: 1.3rem !important; 
+  font-size: 1.3rem !important;
 }
 
-/* Day Hover Effect */
 .react-datepicker__day:hover {
   background-color: #e0f5f7 !important;
   color: #004e5a !important;
   border-radius: 50% !important;
 }
 
-/* Arrows */
 .react-datepicker__navigation {
-  top: 18px !important; 
+  top: 18px !important;
 }
 
 .react-datepicker__navigation-icon::before {
   border-color: #004e5a !important;
-  border-width: 3px 3px 0 0 !important; 
+  border-width: 3px 3px 0 0 !important;
   height: 10px !important;
   width: 10px !important;
 }
 
-/* Disabled days */
 .react-datepicker__day--disabled {
   color: #ccc !important;
   pointer-events: none;
@@ -320,12 +304,10 @@
   border-radius: 50%;
 }
 
-/* Ensure dot is white if selected */
 .react-datepicker__day--selected.blackout-date::after {
   background-color: #ffffff;
 }
 
-/* --- CALENDAR LEGEND --- */
 .calendar-legend {
   padding: 0.4rem;
   display: flex;
@@ -339,12 +321,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: #f3f4f6; 
+  background-color: #f3f4f6;
   border: 1px solid #d1d5db;
   padding: 0.3rem 0.8rem;
   border-radius: 50px;
   font-size: 0.85rem;
-  color: #374151; 
+  color: #374151;
   font-weight: 600;
 }
 
@@ -355,8 +337,6 @@
   border-radius: 50%;
   display: inline-block;
 }
-
-/* -------------------------------- */
 
 /* --- DROPDOWN AUTOCOMPLETE STYLES --- */
 .autocomplete-dropdown {
@@ -445,8 +425,6 @@
   color: #6f6f6f;
 }
 
-/* ------------------------------- */
-
 .form-group input:not(.search-box-input) {
   padding: 0.75rem;
   border: 1px solid #e0e0e0;
@@ -511,9 +489,7 @@
   box-shadow: none;
 }
 
-/* --- SWITCH / TOGGLE SELECTOR STYLES (Fixed "Broken" Layout) --- */
-
-/* 1. Track Container */
+/* --- SWITCH / TOGGLE SELECTOR STYLES --- */
 .trip-type-selector {
   display: flex;
   align-items: stretch;
@@ -527,7 +503,6 @@
   gap: 2px;
 }
 
-/* 2. Individual Options (Pills) */
 .trip-type-option {
   flex: 1;
   display: flex;
@@ -555,8 +530,8 @@
   background: #004e5a;
   color: #ffffff;
   font-weight: 700;
-  box-shadow: 
-    0 4px 6px -1px rgba(0, 78, 90, 0.3), 
+  box-shadow:
+    0 4px 6px -1px rgba(0, 78, 90, 0.3),
     0 2px 4px -1px rgba(0, 78, 90, 0.15);
   transform: translateY(-1px);
   z-index: 1;
@@ -570,7 +545,6 @@
   font-size: 0.9rem;
 }
 
-/* Icon Styles */
 .option-icon {
   margin-right: 8px;
   stroke-width: 2px;
@@ -583,8 +557,6 @@
   color: #ffffff;
   stroke-width: 2.5px;
 }
-
-/* ------------------------------------- */
 
 .toggle-group {
   margin-top: 0.25rem;
@@ -709,38 +681,126 @@ input:checked + .toggle-slider:before {
   box-shadow: 0 0 0 1px #0096a6;
 }
 
-.map-toggle-group {
-  margin-top: 1.5rem;
-  width: 100%;
-  background-color: #fafafa;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 1rem;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
+/* ===========================
+   MOBILE UPDATES (REQUESTED)
+   =========================== */
 @media (max-width: 768px) {
+  /* White surface edge-to-edge */
+  .search-form-container {
+    padding: 0;            /* remove outer padding so background hits edges */
+    border-radius: 0;
+    margin-bottom: 0;
+  }
+
+  /* Keep inner spacing for content (surface still touches edges) */
+  .search-form-container h2 {
+    padding: 0 1rem;
+    margin-top: 1.25rem;
+  }
+
+  .search-form {
+    padding: 0 1rem 1.25rem;
+  }
+
   .form-row {
     grid-template-columns: 1fr;
   }
 
+  /* Switch elements compact + horizontal */
   .trip-type-selector {
-    flex-direction: column;
-    border-radius: 16px;
-    gap: 4px;
-    padding: 6px;
-    height: auto;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 18px;
   }
-  
+
   .trip-type-option {
-    border-radius: 12px;
-    justify-content: flex-start;
-    padding-left: 1rem;
-    margin-bottom: 0;
-    width: 100%;
+    min-width: 0;              /* allow shrinking */
+    padding: 0.55rem 0.35rem;  /* tighter so 4 fit */
+    justify-content: center;
   }
-  
+
+  .trip-type-option span {
+    font-size: 0.78rem;
+  }
+
+  .option-icon {
+    margin-right: 6px;
+  }
+
+  /* Airport inputs: KEEP HEIGHT FIXED on mobile + prevent overflow */
+  .search-input-wrapper {
+    width: 100%;
+    max-width: 100%;
+    height: 56px;          /* lock height */
+    min-height: 56px;      /* lock height */
+    overflow: hidden;      /* prevent stretching beyond viewport */
+    border-radius: 18px;
+    padding: 0.65rem 1rem;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  /* Keep chips on one line and scroll horizontally (no wrapping = no height jump) */
+  .pills-container {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0; /* critical: allow shrink so wrapper doesn't expand */
+  }
+
+  /* Hide scrollbar (still scrollable) */
+  .pills-container::-webkit-scrollbar {
+    display: none;
+  }
+  .pills-container {
+    scrollbar-width: none;
+  }
+
+  .airport-pill {
+    font-size: 1.05rem;
+    padding: 3px 10px 3px 12px;
+  }
+
+  /* Do NOT force the input to a new line on mobile */
+  .search-box-input {
+    flex-basis: auto;
+    min-width: 0; /* allow shrink */
+    margin-top: 0;
+    height: 28px;
+    flex: 1 1 auto;
+  }
+
+  /* Keep icons from forcing width */
+  .search-icon,
+  .clear-icon {
+    flex: 0 0 auto;
+  }
+
+  /* Datepicker smaller on mobile */
+  .react-datepicker {
+    width: calc(100vw - 32px) !important;
+    max-width: 22rem !important;
+    font-size: 1rem !important;
+  }
+
+  .react-datepicker__current-month {
+    font-size: 1.1rem !important;
+  }
+
+  .react-datepicker__day-name {
+    font-size: 0.9rem !important;
+  }
+
+  .react-datepicker__day {
+    font-size: 1rem !important;
+  }
+
   .toggle-group.right-align {
     justify-content: flex-end;
     margin-top: 1rem;

@@ -305,7 +305,7 @@ function SearchForm({ onSearch, loading }) {
       {/* Reduced whitespace around logo */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
         <img 
-          src={process.env.PUBLIC_URL + '/Logos/setjet_planelogo2.png'} 
+          src={process.env.PUBLIC_URL + '/Logos/setjet_logo4.png'} 
           alt="SetJet Logo" 
           style={{ height: '100px', width: 'auto' }} 
         />
@@ -572,9 +572,10 @@ function SearchForm({ onSearch, loading }) {
               )}
             </div>
 
-            <small>
-              {anyDestination ? "We'll search every available route from your origin." : ""}
-            </small>
+            {/* Only render helper text when actually needed (removes extra whitespace) */}
+            {anyDestination && (
+              <small>We'll search every available route from your origin.</small>
+            )}
 
             <div className="toggle-group right-align">
               <label className="toggle-switch">
@@ -598,7 +599,7 @@ function SearchForm({ onSearch, loading }) {
 
         {/* --- DATE INPUTS REPLACED WITH REACT-DATEPICKER --- */}
         {searchMode === 'build-your-own' && (
-          <>
+          <div className="date-section">
             <div className="form-row">
               <div className="form-group">
                 <label>Outbound Departure Date</label>
@@ -632,63 +633,65 @@ function SearchForm({ onSearch, loading }) {
                 </DatePicker>
               </div>
             </div>
-          </>
+          </div>
         )}
 
         {searchMode === 'package' && tripType !== 'trip-planner' && (
-          <div className="form-row">
-            <div className="form-group">
-              <label>{tripType === 'day-trip' ? 'Travel Date' : 'Departure Date'}</label>
-              <DatePicker
-                selected={departureDate}
-                onChange={(date) => {
-                  setDepartureDate(date);
-                  if (returnDate && date > returnDate && tripType !== 'day-trip') {
-                    setReturnDate(null);
-                  }
-                }}
-                customInput={<CustomDateInput />}
-                placeholderText={todayPlaceholder}
-                dateFormat="PP"
-                minDate={new Date()}
-                fixedHeight
-                dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
-              >
-                <CalendarLegend />
-              </DatePicker>
-            </div>
-
-            {tripType !== 'one-way' && (
+          <div className="date-section">
+            <div className="form-row">
               <div className="form-group">
-                <label>{tripType === 'day-trip' ? 'Return Date (same day)' : 'Return Date'}</label>
-                {tripType === 'day-trip' ? (
-                  <div className="search-input-wrapper disabled has-value">
-                    <CalendarIcon className="search-icon" size={20} />
-                    <span className="date-display-text">
-                      {departureDate ? format(departureDate, 'PP') : 'Same as departure'}
-                    </span>
-                  </div>
-                ) : (
-                  <DatePicker
-                    selected={returnDate}
-                    onChange={(date) => setReturnDate(date)}
-                    customInput={<CustomDateInput />}
-                    placeholderText={todayPlaceholder}
-                    dateFormat="PP"
-                    minDate={departureDate || new Date()}
-                    fixedHeight
-                    dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
-                  >
-                    <CalendarLegend />
-                  </DatePicker>
-                )}
+                <label>{tripType === 'day-trip' ? 'Travel Date' : 'Departure Date'}</label>
+                <DatePicker
+                  selected={departureDate}
+                  onChange={(date) => {
+                    setDepartureDate(date);
+                    if (returnDate && date > returnDate && tripType !== 'day-trip') {
+                      setReturnDate(null);
+                    }
+                  }}
+                  customInput={<CustomDateInput />}
+                  placeholderText={todayPlaceholder}
+                  dateFormat="PP"
+                  minDate={new Date()}
+                  fixedHeight
+                  dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
+                >
+                  <CalendarLegend />
+                </DatePicker>
               </div>
-            )}
+
+              {tripType !== 'one-way' && (
+                <div className="form-group">
+                  <label>{tripType === 'day-trip' ? 'Return Date (same day)' : 'Return Date'}</label>
+                  {tripType === 'day-trip' ? (
+                    <div className="search-input-wrapper disabled has-value">
+                      <CalendarIcon className="search-icon" size={20} />
+                      <span className="date-display-text">
+                        {departureDate ? format(departureDate, 'PP') : 'Same as departure'}
+                      </span>
+                    </div>
+                  ) : (
+                    <DatePicker
+                      selected={returnDate}
+                      onChange={(date) => setReturnDate(date)}
+                      customInput={<CustomDateInput />}
+                      placeholderText={todayPlaceholder}
+                      dateFormat="PP"
+                      minDate={departureDate || new Date()}
+                      fixedHeight
+                      dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
+                    >
+                      <CalendarLegend />
+                    </DatePicker>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {tripType === 'trip-planner' && (
-          <>
+          <div className="date-section">
             <div className="form-group">
               <label>Earliest Departure Date</label>
               <DatePicker
@@ -775,7 +778,7 @@ function SearchForm({ onSearch, loading }) {
               </div>
               <small>We'll try to find non-stop options, but show connecting flights if needed</small>
             </div>
-          </>
+          </div>
         )}
 
         <button type="submit" className="search-button" disabled={loading}>

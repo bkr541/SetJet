@@ -6,11 +6,11 @@ import {
   LogIn, 
   UserPlus,
   ArrowRight,
-  Sparkles // Added icon for Demo button
+  Sparkles
 } from 'lucide-react';
 import './LoginSignup.css';
 
-function LoginSignup({ onLogin }) {
+function LoginSignup({ onLogin, onDemoLogin }) {
   const [mode, setMode] = useState('login'); // 'login' or 'signup'
   const [formData, setFormData] = useState({
     name: '',
@@ -29,9 +29,10 @@ function LoginSignup({ onLogin }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add your authentication logic here
     console.log(`Submitting ${mode} form:`, formData);
-    if (onLogin) onLogin(); 
+
+    // Future real auth hook
+    if (onLogin) onLogin();
   };
 
   return (
@@ -144,7 +145,6 @@ function LoginSignup({ onLogin }) {
           <span>{mode === 'login' ? 'Login' : 'Create Account'}</span>
           <ArrowRight size={20} />
         </button>
-
       </form>
 
       {/* FOOTER LINKS */}
@@ -171,7 +171,11 @@ function LoginSignup({ onLogin }) {
         <div className="divider">
           <span>or try without account</span>
         </div>
-        <button type="button" className="demo-button" onClick={onLogin}>
+        <button
+          type="button"
+          className="demo-button"
+          onClick={onDemoLogin}
+        >
           <Sparkles size={18} />
           <span>Demo Login</span>
         </button>

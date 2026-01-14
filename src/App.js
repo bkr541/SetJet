@@ -2,9 +2,14 @@ import React, { useState } from 'react';
 import './App.css';
 import SearchForm from './components/SearchForm';
 import FlightResults from './components/FlightResults';
+import LoginSignup from './components/LoginSignup'; // ✅ add this import
 import { searchFlightsStreaming, clearLocalCache, planTrip } from './services/api';
 
 function App() {
+  // ✅ Auth gate + animation flag
+  const [showAuth, setShowAuth] = useState(true);
+  const [isAuthCollapsing, setIsAuthCollapsing] = useState(false);
+
   const [searchParams, setSearchParams] = useState(null);
   const [flights, setFlights] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -18,6 +23,17 @@ function App() {
   const [selectedOutboundFlight, setSelectedOutboundFlight] = useState(null);
   const [returnFlights, setReturnFlights] = useState([]);
   const [buildYourOwnStep, setBuildYourOwnStep] = useState('outbound'); // 'outbound' or 'return'
+
+  // ✅ Called when user presses "Demo Login" in LoginSignup
+  const handleDemoLogin = () => {
+    setIsAuthCollapsing(true);
+
+    // match this to your CSS transition duration
+    setTimeout(() => {
+      setShowAuth(false);
+      setIsAuthCollapsing(false);
+    }, 250);
+  };
 
   const handleSelectOutboundFlight = (flight) => {
     setSelectedOutboundFlight(flight);
@@ -97,9 +113,10 @@ function App() {
         });
         setLoading(false);
 
-        // Show message if results were found on a later date
         if (result.days_searched > 1 && result.flights?.length > 0) {
-          console.log(`Trip planner searched ${result.days_searched} days and found ${result.total_options} options starting ${result.earliest_departure}`);
+          console.log(
+            `Trip planner searched ${result.days_searched} days and found ${result.total_options} options starting ${result.earliest_departure}`
+          );
         } else {
           console.log(`Trip planner found ${result.total_options} options, showing top ${result.flights?.length}`);
         }
@@ -120,18 +137,15 @@ function App() {
     // Use streaming API for regular searches
     searchFlightsStreaming(
       params,
-      // onFlights callback - called each time new flights arrive
       (newFlights) => {
         setFlights(prevFlights => [...prevFlights, ...newFlights]);
         setRoutesSearched(prev => prev + 1);
       },
-      // onComplete callback - called when search is done
       (result) => {
         setLoading(false);
         setFromCache(result.fromCache || false);
         console.log(`Search complete: ${result.total} total flights`);
       },
-      // onError callback
       (err) => {
         setError(err.message || 'Failed to fetch flights. Please try again.');
         console.error('Search error:', err);
@@ -140,25 +154,47 @@ function App() {
     );
   };
 
+  // ✅ AUTH FIRST SCREEN
+  if (showAuth) {
+    return (
+      <div className="App">
+        <main className="main">
+          <div className="container">
+            <div className={`auth-screen ${isAuthCollapsing ? 'collapse' : ''}`}>
+              {/* IMPORTANT: pass this into LoginSignup and call it from Demo Login button */}
+              <LoginSignup onDemoLogin={handleDemoLogin} />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ✅ MAIN APP SCREEN
   return (
     <div className="App">
       <main className="main">
         <div className="container">
           <SearchForm onSearch={handleSearch} loading={loading} />
+
           {error && (
             <div className="error-message">
               <p>⚠️ {error}</p>
             </div>
           )}
+
           {loading && (
             <div className="loading-message">
               <div className="spinner"></div>
-              <p>Searching for flights... {routesSearched}/{totalRoutes} routes searched</p>
+              <p>
+                Searching for flights... {routesSearched}/{totalRoutes} routes searched
+              </p>
               {flights.length > 0 && (
                 <p className="flights-found">{flights.length} flights found so far</p>
               )}
             </div>
           )}
+
           {searchParams && flights.length > 0 && (
             <FlightResults
               flights={flights}
@@ -166,7 +202,10 @@ function App() {
               fromCache={fromCache}
               isLoading={loading}
               tripPlannerInfo={tripPlannerInfo}
-              buildYourOwnMode={searchParams.searchMode === 'build-your-own' || searchParams.searchMode === 'build-your-own-return'}
+              buildYourOwnMode={
+                searchParams.searchMode === 'build-your-own' ||
+                searchParams.searchMode === 'build-your-own-return'
+              }
               buildYourOwnStep={buildYourOwnStep}
               selectedOutboundFlight={selectedOutboundFlight}
               onSelectOutbound={handleSelectOutboundFlight}
