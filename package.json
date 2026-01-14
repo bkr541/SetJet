@@ -9,6 +9,8 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "@solar-icons/react": "^1.0.1",
+    "@svgr/webpack": "^8.1.0",
     "date-fns": "^2.30.0",
     "lucide-react": "^0.562.0",
     "pigeon-maps": "^0.22.1",

@@ -6,7 +6,9 @@ import {
   LogIn, 
   UserPlus,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Calendar,
+  AtSign
 } from 'lucide-react';
 import './LoginSignup.css';
 
@@ -14,10 +16,15 @@ function LoginSignup({ onLogin, onDemoLogin }) {
   const [mode, setMode] = useState('login'); // 'login' or 'signup'
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
+    dob: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
+
+  const [errors, setErrors] = useState({});
+  const [focusedField, setFocusedField] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,25 +32,100 @@ function LoginSignup({ onLogin, onDemoLogin }) {
       ...prev,
       [name]: value
     }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleFocus = (field) => setFocusedField(field);
+  const handleBlur = () => setFocusedField(null);
+
+  // Helper to determine Icon styling based on state
+  const getIconProps = (fieldName) => {
+    const isFocused = focusedField === fieldName;
+    const hasValue = formData[fieldName] && formData[fieldName].length > 0;
+
+    if (isFocused) {
+      // Focused: sj-active color, no fill
+      return { color: '#0096a6', fill: 'none' };
+    }
+    if (hasValue) {
+      // Valid/Not Null (Not Focused): sj-primary color, filled
+      return { color: '#004e5a', fill: '#004e5a' };
+    }
+    // Default
+    return { color: '#161616', fill: 'none' };
+  };
+
+  const validate = () => {
+    let tempErrors = {};
+    let isValid = true;
+
+    if (mode === 'login') {
+      if (!formData.email) {
+        tempErrors.email = "Email is required";
+        isValid = false;
+      }
+      if (!formData.password) {
+        tempErrors.password = "Password is required";
+        isValid = false;
+      }
+    }
+
+    if (mode === 'signup') {
+      if (!formData.name) { tempErrors.name = "Full Name is required"; isValid = false; }
+      if (!formData.username) { tempErrors.username = "Username is required"; isValid = false; }
+      if (!formData.dob) { tempErrors.dob = "Date of Birth is required"; isValid = false; }
+      if (!formData.email) { tempErrors.email = "Email is required"; isValid = false; }
+      if (!formData.password) { tempErrors.password = "Password is required"; isValid = false; }
+      if (!formData.confirmPassword) { tempErrors.confirmPassword = "Confirm Password is required"; isValid = false; }
+      if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
+        tempErrors.password = "Passwords do not match";
+        tempErrors.confirmPassword = "Passwords do not match";
+        isValid = false;
+      }
+    }
+
+    setErrors(tempErrors);
+    return isValid;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(`Submitting ${mode} form:`, formData);
+    if (validate()) {
+      console.log(`Submitting ${mode} form:`, formData);
+      if (onLogin) onLogin();
+    }
+  };
 
-    // Future real auth hook
-    if (onLogin) onLogin();
+  const handleModeSwitch = (newMode) => {
+    setMode(newMode);
+    setErrors({});
+    setFocusedField(null);
+    setFormData({
+      name: '',
+      username: '',
+      dob: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
   };
 
   return (
     <div className="login-container">
       
+      {/* LOGO SECTION */}
+      <div className="logo-container">
+        <img src="/logos/setjet_logoa.png" alt="SetJet Logo" className="auth-logo" />
+      </div>
+
       {/* MODE TOGGLE SWITCH */}
       <div className="auth-mode-toggle">
         <button
           type="button"
           className={`auth-mode-option ${mode === 'login' ? 'active' : ''}`}
-          onClick={() => setMode('login')}
+          onClick={() => handleModeSwitch('login')}
         >
           <LogIn size={18} className="option-icon" />
           <span>Login</span>
@@ -51,91 +133,214 @@ function LoginSignup({ onLogin, onDemoLogin }) {
         <button
           type="button"
           className={`auth-mode-option ${mode === 'signup' ? 'active' : ''}`}
-          onClick={() => setMode('signup')}
+          onClick={() => handleModeSwitch('signup')}
         >
           <UserPlus size={18} className="option-icon" />
           <span>Sign Up</span>
         </button>
       </div>
 
-      <h2 className="auth-title">
-        {mode === 'login' ? 'Welcome Back' : 'Create Account'}
-      </h2>
-
-      <form onSubmit={handleSubmit} className="auth-form">
-        
-        {/* NAME FIELD (Sign Up Only) */}
+      <div className="auth-header">
+        <h2 className="auth-title">
+          {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+        </h2>
         {mode === 'signup' && (
-          <div className="form-group fade-in">
-            <label htmlFor="name">Full Name</label>
-            <div className="auth-input-wrapper">
-              <User className="auth-icon" size={20} />
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="e.g. Jane Doe"
-                className="auth-input"
-                required
-              />
+          <p className="auth-subtitle">
+            Fill out the below fields to create your SetJet account today
+          </p>
+        )}
+        {mode === 'login' && (
+          <p className="auth-subtitle">
+            Enter your credentials to access your account
+          </p>
+        )}
+      </div>
+
+      <form onSubmit={handleSubmit} className="auth-form" noValidate>
+        
+        {/* --- SIGN UP FORM --- */}
+        {mode === 'signup' && (
+          <div className="fade-in">
+            
+            {/* GROUP: PERSONAL */}
+            <div className="form-section-group">
+              <h3 className="section-heading">Personal</h3>
+              
+              {/* FULL NAME */}
+              <div className="form-group">
+                <div className={`auth-input-wrapper ${errors.name ? 'error' : ''}`}>
+                  <User className="auth-icon" size={22} {...getIconProps('name')} />
+                  <div className="input-stack">
+                    <span className="input-label-small">Full Name</span>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      onFocus={() => handleFocus('name')}
+                      onBlur={handleBlur}
+                      placeholder="Set McJetson"
+                      className="auth-input stacked"
+                    />
+                  </div>
+                </div>
+                {errors.name && <span className="error-msg">{errors.name}</span>}
+              </div>
+
+              {/* USERNAME */}
+              <div className="form-group">
+                <div className={`auth-input-wrapper ${errors.username ? 'error' : ''}`}>
+                  <AtSign className="auth-icon" size={22} {...getIconProps('username')} />
+                  <div className="input-stack">
+                    <span className="input-label-small">Username</span>
+                    <input
+                      type="text"
+                      id="username"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      onFocus={() => handleFocus('username')}
+                      onBlur={handleBlur}
+                      placeholder="bobby_mcb"
+                      className="auth-input stacked"
+                    />
+                  </div>
+                </div>
+                {errors.username && <span className="error-msg">{errors.username}</span>}
+              </div>
+
+              {/* DOB */}
+              <div className="form-group">
+                <div className={`auth-input-wrapper ${errors.dob ? 'error' : ''}`}>
+                  <Calendar className="auth-icon" size={22} {...getIconProps('dob')} />
+                  <div className="input-stack">
+                    <span className="input-label-small">Date of Birth</span>
+                    <input
+                      type="text"
+                      id="dob"
+                      name="dob"
+                      value={formData.dob}
+                      onChange={handleChange}
+                      onFocus={(e) => {
+                        handleFocus('dob');
+                        e.target.type = 'date';
+                      }}
+                      onBlur={(e) => {
+                        handleBlur();
+                        if (!e.target.value) e.target.type = 'text';
+                      }}
+                      placeholder="mm/dd/yyyy"
+                      className="auth-input stacked"
+                      /* style={{ textTransform: 'uppercase' }} */
+                    />
+                  </div>
+                </div>
+                {errors.dob && <span className="error-msg">{errors.dob}</span>}
+              </div>
+            </div>
+
+            {/* GROUP: ACCOUNT */}
+            <div className="form-section-group" style={{ marginTop: '0.5rem' }}>
+              <h3 className="section-heading">Account</h3>
+
+              {/* EMAIL */}
+              <div className="form-group">
+                <div className={`auth-input-wrapper ${errors.email ? 'error' : ''}`}>
+                  <Mail className="auth-icon" size={22} {...getIconProps('email')} />
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    onFocus={() => handleFocus('email')}
+                    onBlur={handleBlur}
+                    placeholder="Your E-mail"
+                    className="auth-input"
+                  />
+                </div>
+                {errors.email && <span className="error-msg">{errors.email}</span>}
+              </div>
+
+              {/* PASSWORD */}
+              <div className="form-group">
+                <div className={`auth-input-wrapper ${errors.password ? 'error' : ''}`}>
+                  <Lock className="auth-icon" size={22} {...getIconProps('password')} />
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    onFocus={() => handleFocus('password')}
+                    onBlur={handleBlur}
+                    placeholder="Password"
+                    className="auth-input"
+                  />
+                </div>
+                {errors.password && <span className="error-msg">{errors.password}</span>}
+              </div>
+
+              {/* CONFIRM PASSWORD */}
+              <div className="form-group">
+                <div className={`auth-input-wrapper ${errors.confirmPassword ? 'error' : ''}`}>
+                  <Lock className="auth-icon" size={22} {...getIconProps('confirmPassword')} />
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    onFocus={() => handleFocus('confirmPassword')}
+                    onBlur={handleBlur}
+                    placeholder="Confirm Password"
+                    className="auth-input"
+                  />
+                </div>
+                {errors.confirmPassword && <span className="error-msg">{errors.confirmPassword}</span>}
+              </div>
             </div>
           </div>
         )}
 
-        {/* EMAIL FIELD */}
-        <div className="form-group">
-          <label htmlFor="email">Email Address</label>
-          <div className="auth-input-wrapper">
-            <Mail className="auth-icon" size={20} />
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="name@example.com"
-              className="auth-input"
-              required
-            />
-          </div>
-        </div>
+        {/* --- LOG IN FORM --- */}
+        {mode === 'login' && (
+          <div className="fade-in">
+            <div className="form-group">
+              <div className={`auth-input-wrapper ${errors.email ? 'error' : ''}`}>
+                <Mail className="auth-icon" size={22} {...getIconProps('email')} />
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  onFocus={() => handleFocus('email')}
+                  onBlur={handleBlur}
+                  placeholder="Your E-mail"
+                  className="auth-input"
+                />
+              </div>
+              {errors.email && <span className="error-msg">{errors.email}</span>}
+            </div>
 
-        {/* PASSWORD FIELD */}
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <div className="auth-input-wrapper">
-            <Lock className="auth-icon" size={20} />
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="••••••••"
-              className="auth-input"
-              required
-            />
-          </div>
-        </div>
-
-        {/* CONFIRM PASSWORD (Sign Up Only) */}
-        {mode === 'signup' && (
-          <div className="form-group fade-in">
-            <label htmlFor="confirmPassword">Confirm Password</label>
-            <div className="auth-input-wrapper">
-              <Lock className="auth-icon" size={20} />
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="auth-input"
-                required
-              />
+            <div className="form-group">
+              <div className={`auth-input-wrapper ${errors.password ? 'error' : ''}`}>
+                <Lock className="auth-icon" size={22} {...getIconProps('password')} />
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  onFocus={() => handleFocus('password')}
+                  onBlur={handleBlur}
+                  placeholder="Password"
+                  className="auth-input"
+                />
+              </div>
+              {errors.password && <span className="error-msg">{errors.password}</span>}
             </div>
           </div>
         )}
@@ -152,14 +357,14 @@ function LoginSignup({ onLogin, onDemoLogin }) {
         {mode === 'login' ? (
           <p>
             Don't have an account?{' '}
-            <button type="button" className="link-button" onClick={() => setMode('signup')}>
+            <button type="button" className="link-button" onClick={() => handleModeSwitch('signup')}>
               Sign up
             </button>
           </p>
         ) : (
           <p>
             Already have an account?{' '}
-            <button type="button" className="link-button" onClick={() => setMode('login')}>
+            <button type="button" className="link-button" onClick={() => handleModeSwitch('login')}>
               Login
             </button>
           </p>

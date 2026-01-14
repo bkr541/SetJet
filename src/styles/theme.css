@@ -1,4 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+
 :root {
+  /* =========================
+     TYPOGRAPHY
+     ========================= */
+  --font-family: 'Nunito', sans-serif;
+
   /* =========================
      NEUTRALS (Carbon-style)
      ========================= */
@@ -26,6 +33,7 @@
      SEMANTIC COLORS
      ========================= */
   --focus-ring: #0096a6;
+  --error-red: #FF2C2C;
 
   --info-bg: rgba(0, 150, 166, 0.12);
   --info-border: #0096a6;
@@ -39,4 +47,8 @@
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+body {
+  font-family: var(--font-family);
 }
