@@ -1,6 +1,6 @@
 .flight-card {
   background: #ffffff;
-  border: 1px solid #eaecf0;
+  border: 2px solid #eaecf0;
   border-radius: 12px;
   padding: 0;
   margin-bottom: 1.5rem;
@@ -173,7 +173,7 @@
   position: absolute;
   left: 10%;
   right: 10%;
-  height: 1px;
+  height: 3px;
   background-color: #e4e7ec;
   z-index: 0;
 }

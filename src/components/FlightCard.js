@@ -44,7 +44,7 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
       <div className="grid-cell center icon-cell">
         <div className="plane-icon-wrapper">
           {/* Increased by 6px */}
-          <TicketsPlane size={34} className="plane-icon" />
+          <TicketsPlane size={42} className="plane-icon" />
         </div>
       </div>
       <div className="grid-cell right">
@@ -114,7 +114,6 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
           {flight.gowild_eligible ? (
             <div className="price-value gowild">
               GoWild Pass
-              <span className="tax-subtext">+ taxes (~$5-15)</span>
             </div>
           ) : (
             <div className="price-value standard">${flight.price}</div>
@@ -147,8 +146,8 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
                 Alerts <span className="alert-count-badge">{alertCount}</span>
               </span>
               <div className="alerts-header-icons">
-                {hasBlackout && <Circle size={16} className="summary-icon blackout-icon" fill="currentColor" />}
-                {hasSeatAlert && <Circle size={16} className="summary-icon seats-icon" fill="currentColor" />}
+                {hasBlackout && <Circle size={14} className="summary-icon blackout-icon" fill="currentColor" />}
+                {hasSeatAlert && <Circle size={14} className="summary-icon seats-icon" fill="currentColor" />}
               </div>
             </div>
             {isAlertsExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
