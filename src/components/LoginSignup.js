@@ -174,7 +174,7 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
 
         if (response.ok) {
           if (mode === 'signup') {
-            alert('Account created successfully!');
+            /* alert('Account created successfully!'); */
             if (onSignupSuccess) onSignupSuccess(); 
           } else {
             if (result.onboarding_complete === 'No') {

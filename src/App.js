@@ -3,13 +3,13 @@ import './App.css';
 import SearchForm from './components/SearchForm';
 import FlightResults from './components/FlightResults';
 import LoginSignup from './components/LoginSignup';
-import InitProfileCities from './components/InitProfileCities'; // ✅ New Import
+import OnboardingPicAndSocial from './components/OnboardingPicAndSocial'; // ✅ Updated Import
 import { searchFlightsStreaming, clearLocalCache, planTrip } from './services/api';
 
 function App() {
   // ✅ Auth & Onboarding State
   const [showAuth, setShowAuth] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false); // ✅ New State
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [isAuthCollapsing, setIsAuthCollapsing] = useState(false);
 
   const [searchParams, setSearchParams] = useState(null);
@@ -41,7 +41,7 @@ function App() {
     setIsAuthCollapsing(true);
     setTimeout(() => {
       setShowAuth(false);
-      setShowOnboarding(true); // ✅ Go to Cities selection
+      setShowOnboarding(true); // ✅ Go to Pic/Social setup
       setIsAuthCollapsing(false);
     }, 250);
   };
@@ -162,14 +162,14 @@ function App() {
     );
   }
 
-  // ✅ SCREEN 2: ONBOARDING (InitProfileCities)
+  // ✅ SCREEN 2: ONBOARDING (Now OnboardingPicAndSocial)
   if (showOnboarding) {
     return (
       <div className="App">
         <main className="main">
           <div className="container">
             {/* Pass handler to finish onboarding */}
-            <InitProfileCities onComplete={handleOnboardingComplete} />
+            <OnboardingPicAndSocial onComplete={handleOnboardingComplete} />
           </div>
         </main>
       </div>

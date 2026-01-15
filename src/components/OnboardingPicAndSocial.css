@@ -1,0 +1,141 @@
+/* --- STEPPER PROGRESS BAR --- */
+.stepper-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding: 0 0.5rem;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 2px solid #e2e8f0;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.step-label {
+  position: absolute;
+  top: 32px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #004e5a;
+  white-space: nowrap;
+}
+
+/* Active Step Styling */
+.step-item.active .step-circle {
+  border-color: #004e5a;
+  background-color: #004e5a;
+  color: #ffffff;
+}
+
+/* Connecting Lines */
+.step-line {
+  flex: 1;
+  height: 2px;
+  background-color: #e2e8f0;
+  margin: 0 4px;
+  margin-bottom: 14px; /* Align with center of circle (approx) */
+}
+
+
+/* --- PROFILE UPLOAD --- */
+.profile-upload-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.profile-pic-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 0.5rem;
+}
+
+.profile-preview {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #004e5a;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  background-color: #f1f5f9;
+}
+
+.upload-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #004e5a;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease;
+}
+
+.upload-btn:hover {
+  transform: scale(1.1);
+  background-color: #006b78;
+}
+
+.upload-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+
+/* --- SOCIAL INPUTS --- */
+.socials-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.social-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  margin-right: 1rem;
+  border-radius: 4px; /* Slight rounding for square logos like IG/FB */
+}
+
+/* Focus State for Input Wrapper */
+.auth-input-wrapper.focused {
+  border-color: #0096a6;
+  box-shadow: 0 0 0 1px #0096a6;
+}
+
+/* --- DISABLED BUTTON --- */
+.auth-button:disabled {
+  background-color: #cbd5e1;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
