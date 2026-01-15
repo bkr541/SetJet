@@ -96,11 +96,52 @@ function LoginSignup({ onLogin, onDemoLogin }) {
     return isValid;
   };
 
-  const handleSubmit = (e) => {
+  // --- UPDATED HANDLESUBMIT TO SEND DATA TO FLASK ---
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      console.log(`Submitting ${mode} form:`, formData);
-      if (onLogin) onLogin();
+      
+      // 1. Create FormData payload
+      const payload = new FormData();
+      payload.append('email', formData.email);
+      payload.append('password', formData.password);
+
+      // Add signup-specific fields
+      if (mode === 'signup') {
+        payload.append('name', formData.name);
+        payload.append('username', formData.username);
+        payload.append('dob', formData.dob);
+        // Note: 'cities' is optional and handled by backend defaults
+      }
+
+      // 2. Determine Endpoint
+      const endpoint = mode === 'signup' 
+        ? 'http://127.0.0.1:5001/api/signup' 
+        : 'http://127.0.0.1:5001/api/login';
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          body: payload, 
+          // fetch automatically sets Content-Type to multipart/form-data
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // Success!
+          if (mode === 'signup') {
+            alert('Account created successfully!');
+          }
+          if (onLogin) onLogin(); // Transition to main app
+        } else {
+          // Show error from backend (e.g. "Username taken")
+          alert(result.error || 'An error occurred');
+        }
+      } catch (error) {
+        console.error('Connection Error:', error);
+        alert('Failed to connect to the server. Is the backend running on port 5001?');
+      }
     }
   };
 

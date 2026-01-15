@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import './App.css';
 import SearchForm from './components/SearchForm';
 import FlightResults from './components/FlightResults';
-import LoginSignup from './components/LoginSignup'; // ✅ add this import
+import LoginSignup from './components/LoginSignup';
+import InitProfileCities from './components/InitProfileCities'; // ✅ New Import
 import { searchFlightsStreaming, clearLocalCache, planTrip } from './services/api';
 
 function App() {
-  // ✅ Auth gate + animation flag
+  // ✅ Auth & Onboarding State
   const [showAuth, setShowAuth] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false); // ✅ New State
   const [isAuthCollapsing, setIsAuthCollapsing] = useState(false);
 
   const [searchParams, setSearchParams] = useState(null);
@@ -22,17 +24,31 @@ function App() {
   // Build-your-own mode state
   const [selectedOutboundFlight, setSelectedOutboundFlight] = useState(null);
   const [returnFlights, setReturnFlights] = useState([]);
-  const [buildYourOwnStep, setBuildYourOwnStep] = useState('outbound'); // 'outbound' or 'return'
+  const [buildYourOwnStep, setBuildYourOwnStep] = useState('outbound');
 
-  // ✅ Called when user presses "Demo Login" in LoginSignup
-  const handleDemoLogin = () => {
+  // 1. Handle Standard Login (Skip Onboarding)
+  const handleLoginSuccess = () => {
     setIsAuthCollapsing(true);
-
-    // match this to your CSS transition duration
     setTimeout(() => {
       setShowAuth(false);
+      setShowOnboarding(false); // Go straight to app
       setIsAuthCollapsing(false);
     }, 250);
+  };
+
+  // 2. Handle Signup Success (Go to Onboarding)
+  const handleSignupSuccess = () => {
+    setIsAuthCollapsing(true);
+    setTimeout(() => {
+      setShowAuth(false);
+      setShowOnboarding(true); // ✅ Go to Cities selection
+      setIsAuthCollapsing(false);
+    }, 250);
+  };
+
+  // 3. Handle Onboarding Completion (Go to App)
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
   };
 
   const handleSelectOutboundFlight = (flight) => {
@@ -40,11 +56,8 @@ function App() {
     setBuildYourOwnStep('return');
     setReturnFlights([]);
 
-    // Use desired return date if specified, otherwise use outbound arrival date
     const returnDepartureDate = searchParams.desiredReturnDate || (flight.arrival_date || flight.arrivalDate);
 
-    // Automatically search for return flights
-    // Search from destination back to origin
     const returnSearchParams = {
       searchMode: 'build-your-own-return',
       tripType: 'one-way',
@@ -55,22 +68,16 @@ function App() {
     };
 
     console.log('🔄 Searching for return flights:', returnSearchParams);
-    console.log(`   From: ${flight.destination} → To: ${flight.origin}`);
-    console.log(`   Return date: ${returnDepartureDate}`);
-
     handleSearch(returnSearchParams);
   };
 
   const handleSelectReturnFlight = (flight) => {
-    // Combine outbound and return into a complete trip
     const completedTrip = {
       ...selectedOutboundFlight,
       is_round_trip: true,
       return_flight: flight,
       total_price: (selectedOutboundFlight.price || 0) + (flight.price || 0)
     };
-
-    // You could either add this to flights or show it separately
     setFlights([completedTrip]);
     setBuildYourOwnStep('complete');
   };
@@ -86,11 +93,8 @@ function App() {
     setSearchParams(params);
     setLoading(true);
     setError(null);
-
-    // Always clear flights when starting a new search
     setFlights([]);
 
-    // Reset build-your-own state when starting fresh outbound search
     if (params.searchMode === 'build-your-own') {
       setSelectedOutboundFlight(null);
       setBuildYourOwnStep('outbound');
@@ -101,7 +105,6 @@ function App() {
     setRoutesSearched(0);
     setTripPlannerInfo(null);
 
-    // Handle trip planner mode differently
     if (params.tripType === 'trip-planner') {
       try {
         const result = await planTrip(params);
@@ -112,29 +115,17 @@ function App() {
           total_options: result.total_options
         });
         setLoading(false);
-
-        if (result.days_searched > 1 && result.flights?.length > 0) {
-          console.log(
-            `Trip planner searched ${result.days_searched} days and found ${result.total_options} options starting ${result.earliest_departure}`
-          );
-        } else {
-          console.log(`Trip planner found ${result.total_options} options, showing top ${result.flights?.length}`);
-        }
       } catch (err) {
         setError(err.message || 'Failed to plan trip. Please try again.');
-        console.error('Trip planner error:', err);
         setLoading(false);
       }
       return;
     }
 
-    // Calculate total routes for regular search
     const origins = params.origins || [];
     const destinations = params.destinations || [];
-    const total = origins.length * destinations.length;
-    setTotalRoutes(total);
+    setTotalRoutes(origins.length * destinations.length);
 
-    // Use streaming API for regular searches
     searchFlightsStreaming(
       params,
       (newFlights) => {
@@ -144,25 +135,26 @@ function App() {
       (result) => {
         setLoading(false);
         setFromCache(result.fromCache || false);
-        console.log(`Search complete: ${result.total} total flights`);
       },
       (err) => {
         setError(err.message || 'Failed to fetch flights. Please try again.');
-        console.error('Search error:', err);
         setLoading(false);
       }
     );
   };
 
-  // ✅ AUTH FIRST SCREEN
+  // ✅ SCREEN 1: AUTH
   if (showAuth) {
     return (
       <div className="App">
         <main className="main">
           <div className="container">
             <div className={`auth-screen ${isAuthCollapsing ? 'collapse' : ''}`}>
-              {/* IMPORTANT: pass this into LoginSignup and call it from Demo Login button */}
-              <LoginSignup onDemoLogin={handleDemoLogin} />
+              <LoginSignup 
+                onLogin={handleLoginSuccess} 
+                onDemoLogin={handleLoginSuccess}
+                onSignupSuccess={handleSignupSuccess} // ✅ Triggers onboarding
+              />
             </div>
           </div>
         </main>
@@ -170,7 +162,21 @@ function App() {
     );
   }
 
-  // ✅ MAIN APP SCREEN
+  // ✅ SCREEN 2: ONBOARDING (InitProfileCities)
+  if (showOnboarding) {
+    return (
+      <div className="App">
+        <main className="main">
+          <div className="container">
+            {/* Pass handler to finish onboarding */}
+            <InitProfileCities onComplete={handleOnboardingComplete} />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ✅ SCREEN 3: MAIN APP
   return (
     <div className="App">
       <main className="main">

@@ -49,6 +49,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False) 
+    name = db.Column(db.String(100), nullable=False, default='')
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    dob = db.Column(db.String(20), nullable=False, default='')
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
     # Stores cities as "Denver,Miami,Austin"
     cities = db.Column(db.String(200), nullable=False)
@@ -111,19 +114,27 @@ def signup():
     Creates a user, uploads photo, saves cities, and sends email.
     """
     # 1. Get Text Data
+    name = request.form.get('name')
+    username = request.form.get('username')
+    dob = request.form.get('dob')
     email = request.form.get('email')
     password = request.form.get('password')
-    cities = request.form.get('cities') # Comes in as "City1,City2,City3"
+    
+    # Defaults to empty string since you aren't sending cities yet
+    cities = request.form.get('cities', '') 
 
-    # 2. Validation (Max 3 Cities)
-    if not cities or len(cities.split(',')) > 3:
-        return jsonify({'error': 'You must select 1-3 cities.'}), 400
+    # 2. Validation
+    # We removed the 'cities' check since it's currently empty.
+    # Check for existing user to prevent crashes
+    if User.query.filter((User.email == email) | (User.username == username)).first():
+        return jsonify({'error': 'Email or Username already taken.'}), 400
 
     # 3. Handle Image Upload
     filename = 'default.jpg'
     # Ensure upload directory exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     
+    # This will skip if no file is sent (which matches your current setup)
     if 'profile_photo' in request.files:
         file = request.files['profile_photo']
         if file.filename != '':
@@ -132,7 +143,15 @@ def signup():
 
     # 4. Save to Database
     try:
-        new_user = User(email=email, password=password, image_file=filename, cities=cities)
+        new_user = User(
+            name=name,
+            username=username,
+            dob=dob,
+            email=email,
+            password=password,
+            image_file=filename,
+            cities=cities
+        )
         db.session.add(new_user)
         db.session.commit()
     except Exception as e:
@@ -141,7 +160,7 @@ def signup():
     # 5. Send Email
     try:
         msg = Message('Welcome to SetJet!', sender='noreply@setjet.com', recipients=[email])
-        msg.body = f"Welcome! You are now tracking flights for: {cities}"
+        msg.body = f"Welcome {name}! Your account has been created successfully."
         mail.send(msg)
     except Exception as e:
         print(f"Email failed (expected if creds are empty): {e}")
