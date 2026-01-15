@@ -65,12 +65,26 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // DOB Restriction: Prevent typing more than standard date format length (10 chars: YYYY-MM-DD)
-    if (name === 'dob' && value.length > 10) {
-      return;
-    }
+    if (name === 'dob') {
+      // 1. Strip non-numeric characters to get raw numbers
+      const numericValue = value.replace(/\D/g, '');
 
-    setFormData(prev => ({ ...prev, [name]: value }));
+      // 2. Limit to 8 digits (MMDDYYYY)
+      if (numericValue.length > 8) return;
+
+      // 3. Apply mask logic (MM/DD/YYYY)
+      let formattedValue = numericValue;
+      if (numericValue.length > 2) {
+        formattedValue = `${numericValue.slice(0, 2)}/${numericValue.slice(2)}`;
+      }
+      if (numericValue.length > 4) {
+        formattedValue = `${formattedValue.slice(0, 5)}/${numericValue.slice(4)}`;
+      }
+
+      setFormData(prev => ({ ...prev, [name]: formattedValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
     
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -107,6 +121,11 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
       if (!formData.name) { tempErrors.name = "Full Name is required"; isValid = false; }
       if (!formData.username) { tempErrors.username = "Username is required"; isValid = false; }
       if (!formData.dob) { tempErrors.dob = "Date of Birth is required"; isValid = false; }
+      // Basic format check for complete date
+      if (formData.dob && formData.dob.length < 10) { 
+        tempErrors.dob = "Enter a valid date (mm/dd/yyyy)"; 
+        isValid = false; 
+      }
       if (!formData.email) { tempErrors.email = "Email is required"; isValid = false; }
       if (!formData.password) { tempErrors.password = "Password is required"; isValid = false; }
       if (!formData.confirmPassword) { tempErrors.confirmPassword = "Confirm Password is required"; isValid = false; }
@@ -287,7 +306,11 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
 
               <div className="form-group">
                 <div className={`auth-input-wrapper ${errors.dob ? 'error' : ''}`}>
-                  {/* CHANGED: Moved Icon to the RIGHT by placing it after input-stack */}
+                  <Calendar 
+                    className="auth-icon" 
+                    size={22} 
+                    {...getIconProps('dob')} 
+                  />
                   <div className="input-stack">
                     <span className="input-label-small" style={{ color: getIconProps('dob').color }}>Date of Birth</span>
                     <input 
@@ -297,19 +320,12 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
                       maxLength={10} 
                       value={formData.dob} 
                       onChange={handleChange} 
-                      onFocus={(e) => { handleFocus('dob'); e.target.type = 'date'; }} 
-                      onBlur={(e) => { handleBlur(); if (!e.target.value) e.target.type = 'text'; }} 
+                      onFocus={() => handleFocus('dob')} 
+                      onBlur={handleBlur} 
                       placeholder="mm/dd/yyyy" 
                       className="auth-input stacked" 
                     />
                   </div>
-                  {/* Icon now on the right side with adjusted margins */}
-                  <Calendar 
-                    className="auth-icon" 
-                    size={22} 
-                    {...getIconProps('dob')} 
-                    style={{ marginRight: 0, marginLeft: '1rem' }} 
-                  />
                 </div>
                 {errors.dob && <span className="error-msg">{errors.dob}</span>}
               </div>
@@ -333,7 +349,8 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
                 {errors.password && <span className="error-msg">{errors.password}</span>}
 
                 {/* --- PASSWORD STRENGTH METER --- */}
-                {formData.password && (
+                {/* Collapses when score >= 4 */}
+                {formData.password && passwordStrength.score < 4 && (
                   <div className="strength-meter-container">
                     {renderStrengthBars()}
                     <div className="strength-criteria">
