@@ -50,8 +50,14 @@ function LoginSignup({ onLogin, onDemoLogin }) {
       return { color: '#0096a6', fill: 'none' };
     }
     if (hasValue) {
-      // Valid/Not Null (Not Focused): sj-primary color, filled
-      return { color: '#004e5a', fill: '#004e5a' };
+      // Valid/Not Null (Not Focused)
+      // Logic Update: If Login mode, do NOT fill. If Signup mode, fill.
+      const shouldFill = mode === 'signup';
+      
+      return { 
+        color: '#004e5a', 
+        fill: shouldFill ? '#004e5a' : 'none' 
+      };
     }
     // Default
     return { color: '#161616', fill: 'none' };
@@ -171,7 +177,12 @@ function LoginSignup({ onLogin, onDemoLogin }) {
                 <div className={`auth-input-wrapper ${errors.name ? 'error' : ''}`}>
                   <User className="auth-icon" size={22} {...getIconProps('name')} />
                   <div className="input-stack">
-                    <span className="input-label-small">Full Name</span>
+                    <span 
+                      className="input-label-small"
+                      style={{ color: getIconProps('name').color }}
+                    >
+                      Full Name
+                    </span>
                     <input
                       type="text"
                       id="name"
@@ -193,7 +204,12 @@ function LoginSignup({ onLogin, onDemoLogin }) {
                 <div className={`auth-input-wrapper ${errors.username ? 'error' : ''}`}>
                   <AtSign className="auth-icon" size={22} {...getIconProps('username')} />
                   <div className="input-stack">
-                    <span className="input-label-small">Username</span>
+                    <span 
+                      className="input-label-small"
+                      style={{ color: getIconProps('username').color }}
+                    >
+                      Username
+                    </span>
                     <input
                       type="text"
                       id="username"
@@ -215,7 +231,12 @@ function LoginSignup({ onLogin, onDemoLogin }) {
                 <div className={`auth-input-wrapper ${errors.dob ? 'error' : ''}`}>
                   <Calendar className="auth-icon" size={22} {...getIconProps('dob')} />
                   <div className="input-stack">
-                    <span className="input-label-small">Date of Birth</span>
+                    <span 
+                      className="input-label-small"
+                      style={{ color: getIconProps('dob').color }}
+                    >
+                      Date of Birth
+                    </span>
                     <input
                       type="text"
                       id="dob"
@@ -372,19 +393,22 @@ function LoginSignup({ onLogin, onDemoLogin }) {
       </div>
 
       {/* --- DEMO LOGIN SECTION --- */}
-      <div className="demo-section">
-        <div className="divider">
-          <span>or try without account</span>
+      {/* Logic Update: Only show if mode is 'login' */}
+      {mode === 'login' && (
+        <div className="demo-section">
+          <div className="divider">
+            <span>or try without account</span>
+          </div>
+          <button
+            type="button"
+            className="demo-button"
+            onClick={onDemoLogin}
+          >
+            <Sparkles size={18} />
+            <span>Demo Login</span>
+          </button>
         </div>
-        <button
-          type="button"
-          className="demo-button"
-          onClick={onDemoLogin}
-        >
-          <Sparkles size={18} />
-          <span>Demo Login</span>
-        </button>
-      </div>
+      )}
 
     </div>
   );
