@@ -1,69 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
-  User, 
+  MapPin, 
   ArrowRight,
+  X,
+  Plus
 } from 'lucide-react';
 import './InitProfileCities.css';
+// Assuming the data file is located one level up in the data folder based on your prompt
+import cityData from '../data/FrontierDestinationInfo_numeric.json';
 
-function LoginSignup({ onLogin }) {
-  const [formData, setFormData] = useState({
-    name: '',
-  });
+function InitProfileCities({ onComplete }) { // Changed prop to onComplete to match App.js flow
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCities, setSelectedCities] = useState([]);
+  const [isFocused, setIsFocused] = useState(false);
+  const [error, setError] = useState('');
 
-  const [errors, setErrors] = useState({});
-  const [focusedField, setFocusedField] = useState(null);
+  // Filter cities based on input (only if > 3 chars)
+  const filteredCities = useMemo(() => {
+    if (searchTerm.length <= 3) return [];
+    
+    return cityData.filter(item => 
+      item.City && item.City.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    setSearchTerm(e.target.value);
+    if (error) setError('');
   };
 
-  const handleFocus = (field) => setFocusedField(field);
-  const handleBlur = () => setFocusedField(null);
+  const handleFocus = () => setIsFocused(true);
+  // Delay blur to allow clicking on dropdown items
+  const handleBlur = () => setTimeout(() => setIsFocused(false), 200);
 
-  // Helper to determine Icon styling
-  const getIconProps = (fieldName) => {
-    const isFocused = focusedField === fieldName;
-    const hasValue = formData[fieldName] && formData[fieldName].length > 0;
+  const handleSelectCity = (cityRecord) => {
+    // 1. Validation: Max 5 cities
+    if (selectedCities.length >= 5) {
+      setError('You can only select up to 5 Key Cities.');
+      setSearchTerm(''); // Optional: clear input on error to clean up UI
+      return;
+    }
 
-    if (isFocused) {
-      // Focused
-      return { color: '#0096a6', fill: 'none' };
+    // 2. Format: "City, State Abbreviation" (or Country if international)
+    const locationStr = cityRecord['State Abbreviation'] 
+      ? `${cityRecord.City}, ${cityRecord['State Abbreviation']}`
+      : `${cityRecord.City}, ${cityRecord.Country}`;
+
+    // 3. Prevent Duplicates
+    if (selectedCities.includes(locationStr)) {
+      setSearchTerm('');
+      return;
     }
-    if (hasValue) {
-      // Valid/Not Null (Not Focused) - Defaulting to fill behavior for the single input
-      return { color: '#004e5a', fill: '#004e5a' };
-    }
-    // Default
-    return { color: '#161616', fill: 'none' };
+
+    // 4. Add to state
+    setSelectedCities(prev => [...prev, locationStr]);
+    setSearchTerm(''); // Clear input
+    setError('');
   };
 
-  const validate = () => {
-    let tempErrors = {};
-    let isValid = true;
-
-    if (!formData.name) { 
-        tempErrors.name = "Full Name is required"; 
-        isValid = false; 
-    }
-
-    setErrors(tempErrors);
-    return isValid;
+  const handleRemoveCity = (cityToRemove) => {
+    setSelectedCities(prev => prev.filter(c => c !== cityToRemove));
+    if (error) setError('');
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validate()) {
-      // Simply log and proceed as per stripped down requirements
-      console.log('Submitting name:', formData.name);
-      if (onLogin) onLogin(); 
-    }
+    // You might want to enforce at least 1 city, but for now we just pass it on
+    console.log('Selected Cities:', selectedCities);
+    if (onComplete) onComplete(selectedCities);
+  };
+
+  const getIconProps = () => {
+    if (isFocused) return { color: '#0096a6', fill: 'none' };
+    if (searchTerm.length > 0) return { color: '#004e5a', fill: 'none' };
+    return { color: '#161616', fill: 'none' };
   };
 
   return (
@@ -76,49 +86,99 @@ function LoginSignup({ onLogin }) {
 
       <div className="auth-header">
         <h2 className="auth-title">
-          Welcome Back
+          Where do you fly?
         </h2>
         <p className="auth-subtitle">
-            Enter your credentials to access your account
+            Select up to 5 cities to personalize your deals.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="auth-form" noValidate>
         
-        <div className="fade-in">
+        <div className="fade-in" style={{ position: 'relative' }}>
           
-          {/* FULL NAME */}
+          {/* CITY SEARCH INPUT */}
           <div className="form-group">
-            <div className={`auth-input-wrapper ${errors.name ? 'error' : ''}`}>
-              <User className="auth-icon" size={22} {...getIconProps('name')} />
+            <div className={`auth-input-wrapper ${error ? 'error' : ''}`}>
+              {/* Changed icon to MapPin */}
+              <MapPin className="auth-icon" size={22} {...getIconProps()} />
               <div className="input-stack">
                 <span 
                     className="input-label-small"
-                    style={{ color: getIconProps('name').color }}
+                    style={{ color: getIconProps().color }}
                 >
-                    Full Name
+                    City Search
                 </span>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  value={searchTerm}
                   onChange={handleChange}
-                  onFocus={() => handleFocus('name')}
+                  onFocus={handleFocus}
                   onBlur={handleBlur}
-                  placeholder="Set McJetson"
+                  placeholder="e.g. Atlanta, Denver..."
                   className="auth-input stacked"
+                  autoComplete="off"
                 />
               </div>
             </div>
-            {errors.name && <span className="error-msg">{errors.name}</span>}
+            {error && <span className="error-msg">{error}</span>}
+            
+            {/* FLOATING DROPDOWN */}
+            {isFocused && searchTerm.length > 3 && filteredCities.length > 0 && (
+              <div className="city-dropdown">
+                {filteredCities.map((city, index) => (
+                  <div 
+                    key={index} 
+                    className="city-dropdown-item"
+                    onMouseDown={() => handleSelectCity(city)} // Use onMouseDown to trigger before onBlur
+                  >
+                    <div className="city-main">
+                      {city.City}, {city['State Abbreviation'] || city.Country}
+                    </div>
+                    <div className="city-sub">
+                      {city['Airport Name']} ({city['IATA Code']})
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* EMPTY STATE DROPDOWN (Optional UX improvement) */}
+            {isFocused && searchTerm.length > 3 && filteredCities.length === 0 && (
+              <div className="city-dropdown">
+                 <div className="city-dropdown-item no-hover">
+                    No cities found matching "{searchTerm}"
+                 </div>
+              </div>
+            )}
           </div>
+
+          {/* KEY CITIES GROUP */}
+          {selectedCities.length > 0 && (
+            <div className="key-cities-section">
+              <h3 className="section-heading">Your Key Cities ({selectedCities.length}/5)</h3>
+              <div className="chips-container">
+                {selectedCities.map((city, idx) => (
+                  <div key={idx} className="city-chip">
+                    <span>{city}</span>
+                    <button 
+                      type="button" 
+                      className="chip-remove-btn"
+                      onClick={() => handleRemoveCity(city)}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
         </div>
 
         {/* SUBMIT BUTTON */}
         <button type="submit" className="auth-button">
-          <span>Login</span>
+          <span>Continue</span>
           <ArrowRight size={20} />
         </button>
       </form>
@@ -127,4 +187,4 @@ function LoginSignup({ onLogin }) {
   );
 }
 
-export default LoginSignup;
+export default InitProfileCities;

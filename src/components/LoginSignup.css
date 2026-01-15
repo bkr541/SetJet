@@ -61,8 +61,6 @@
   letter-spacing: 0.05em;
   color: #94a3b8;
   font-weight: 700;
-  /* border-bottom: 1px solid #f1f5f9; */
-  /* padding-bottom: 0.5rem; */
 }
 
 /* --- TOGGLE SWITCH --- */
@@ -152,7 +150,6 @@
   margin-right: 1rem;
   flex-shrink: 0;
   transition: all 0.2s ease;
-  /* Color logic handled via inline JS styles */
 }
 
 /* Standard Input (Email/Password) */
@@ -178,6 +175,16 @@
   opacity: 1;
 }
 
+/* REMOVE DEFAULT BLUE AUTOFILL BACKGROUND */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active{
+    -webkit-box-shadow: 0 0 0 1000px white inset !important;
+    -webkit-text-fill-color: #161616 !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
 /* Stacked Input Style (Name/Username/DOB) */
 .input-stack {
   display: flex;
@@ -192,7 +199,7 @@
   font-weight: 600;
   margin-bottom: 2px;
   line-height: 1;
-  transition: color 0.2s ease; /* Added transition for smooth color change */
+  transition: color 0.2s ease;
 }
 
 .auth-input.stacked {
@@ -271,7 +278,6 @@
 /* Animation */
 .fade-in {
   animation: fadeIn 0.3s ease-out forwards;
-  /* ✅ ADDED: Restore Flex Layout for Login Inputs */
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -340,4 +346,53 @@
   background-color: #f8fafc;
   color: #334155;
   transform: translateY(-1px);
+}
+
+/* --- PASSWORD STRENGTH METER --- */
+.strength-meter-container {
+  margin-top: 0.5rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+.strength-bars {
+  display: flex;
+  gap: 4px;
+  height: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.strength-bar-segment {
+  flex: 1;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+/* Criteria List */
+.strength-criteria {
+  /* Changed from Grid to Flex Column for vertical list */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.criteria-item {
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #94a3b8;
+  transition: color 0.3s ease;
+  /* Added Open Sans Font */
+  font-family: 'Open Sans', sans-serif;
+}
+
+.criteria-item.met {
+  color: #10b981; /* Success Green */
+}
+
+.criteria-icon {
+  width: 12px;
+  height: 12px;
 }

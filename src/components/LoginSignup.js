@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Mail, 
   Lock, 
@@ -8,7 +8,9 @@ import {
   ArrowRight,
   Sparkles,
   Calendar,
-  AtSign
+  AtSign,
+  Check,
+  X
 } from 'lucide-react';
 import './LoginSignup.css';
 
@@ -25,23 +27,69 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
 
   const [errors, setErrors] = useState({});
   const [focusedField, setFocusedField] = useState(null);
+  
+  // State for password strength
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    criteria: {
+      hasUpper: false,
+      hasNumber: false,
+      hasSpecial: false,
+      noName: true
+    }
+  });
+
+  // Calculate password strength whenever password or name changes
+  useEffect(() => {
+    if (mode === 'signup') {
+      const { password, name } = formData;
+      const criteria = {
+        hasUpper: /[A-Z]/.test(password),
+        hasNumber: /[0-9]/.test(password),
+        hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+        // Pass if name is empty OR if password does NOT include name
+        noName: !name || name.trim() === '' || !password.toLowerCase().includes(name.toLowerCase())
+      };
+
+      // Calculate score (0 to 4)
+      let score = 0;
+      if (criteria.hasUpper) score++;
+      if (criteria.hasNumber) score++;
+      if (criteria.hasSpecial) score++;
+      if (criteria.noName && password.length > 0) score++; 
+
+      setPasswordStrength({ score, criteria });
+    }
+  }, [formData.password, formData.name, mode]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // DOB Restriction: Prevent typing more than standard date format length (10 chars: YYYY-MM-DD)
+    if (name === 'dob' && value.length > 10) {
+      return;
+    }
+
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleFocus = (field) => setFocusedField(field);
   const handleBlur = () => setFocusedField(null);
 
+  // Helper to determine Icon styling based on state
   const getIconProps = (fieldName) => {
     const isFocused = focusedField === fieldName;
     const hasValue = formData[fieldName] && formData[fieldName].length > 0;
-    if (isFocused) return { color: '#0096a6', fill: 'none' };
+    
+    if (isFocused) {
+      return { color: '#0096a6', fill: 'none' };
+    }
     if (hasValue) {
-      const shouldFill = mode === 'signup';
-      return { color: '#004e5a', fill: shouldFill ? '#004e5a' : 'none' };
+      return { color: '#004e5a', fill: 'none' }; 
     }
     return { color: '#161616', fill: 'none' };
   };
@@ -62,8 +110,15 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
       if (!formData.email) { tempErrors.email = "Email is required"; isValid = false; }
       if (!formData.password) { tempErrors.password = "Password is required"; isValid = false; }
       if (!formData.confirmPassword) { tempErrors.confirmPassword = "Confirm Password is required"; isValid = false; }
+      
       if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
         tempErrors.password = "Passwords do not match";
+        isValid = false;
+      }
+
+      // Password Strength Validation on Submit
+      if (passwordStrength.score < 4 && formData.password) {
+        tempErrors.password = "Password is not strong enough";
         isValid = false;
       }
     }
@@ -99,22 +154,16 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
         const result = await response.json();
 
         if (response.ok) {
-          
           if (mode === 'signup') {
-            // CASE 1: Sign Up Success
             alert('Account created successfully!');
-            // New accounts are always Onboarding='No', so trigger onboarding flow
             if (onSignupSuccess) onSignupSuccess(); 
           } else {
-            // CASE 2: Login Success
-            // Check the 'onboarding_complete' field from the DB
             if (result.onboarding_complete === 'No') {
-              if (onSignupSuccess) onSignupSuccess(); // Send to Onboarding
+              if (onSignupSuccess) onSignupSuccess(); 
             } else {
-              if (onLogin) onLogin(); // Send to Main App
+              if (onLogin) onLogin(); 
             }
           }
-
         } else {
           alert(result.error || 'An error occurred');
         }
@@ -130,6 +179,42 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
     setErrors({});
     setFocusedField(null);
     setFormData({ name: '', username: '', dob: '', email: '', password: '', confirmPassword: '' });
+  };
+
+  // Helper to determine strength bar colors
+  const getStrengthColor = () => {
+    const { score } = passwordStrength;
+    if (score < 2) return '#FF2C2C'; // Red (Weak)
+    if (score < 4) return '#FFB800'; // Yellow (Average)
+    return '#10b981'; // Green (Strong)
+  };
+
+  // Helper to render strength bars
+  const renderStrengthBars = () => {
+    const { score } = passwordStrength;
+    let filledBars = 0;
+    
+    if (formData.password.length > 0) {
+      if (score < 2) filledBars = 1;
+      else if (score < 4) filledBars = 2;
+      else filledBars = 3;
+    }
+
+    const color = getStrengthColor();
+
+    return (
+      <div className="strength-bars">
+        {[1, 2, 3].map((barNum) => (
+          <div 
+            key={barNum} 
+            className="strength-bar-segment"
+            style={{ 
+              backgroundColor: barNum <= filledBars ? color : '#e2e8f0'
+            }}
+          />
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -202,11 +287,29 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
 
               <div className="form-group">
                 <div className={`auth-input-wrapper ${errors.dob ? 'error' : ''}`}>
-                  <Calendar className="auth-icon" size={22} {...getIconProps('dob')} />
+                  {/* CHANGED: Moved Icon to the RIGHT by placing it after input-stack */}
                   <div className="input-stack">
                     <span className="input-label-small" style={{ color: getIconProps('dob').color }}>Date of Birth</span>
-                    <input type="text" id="dob" name="dob" value={formData.dob} onChange={handleChange} onFocus={(e) => { handleFocus('dob'); e.target.type = 'date'; }} onBlur={(e) => { handleBlur(); if (!e.target.value) e.target.type = 'text'; }} placeholder="mm/dd/yyyy" className="auth-input stacked" />
+                    <input 
+                      type="text" 
+                      id="dob" 
+                      name="dob" 
+                      maxLength={10} 
+                      value={formData.dob} 
+                      onChange={handleChange} 
+                      onFocus={(e) => { handleFocus('dob'); e.target.type = 'date'; }} 
+                      onBlur={(e) => { handleBlur(); if (!e.target.value) e.target.type = 'text'; }} 
+                      placeholder="mm/dd/yyyy" 
+                      className="auth-input stacked" 
+                    />
                   </div>
+                  {/* Icon now on the right side with adjusted margins */}
+                  <Calendar 
+                    className="auth-icon" 
+                    size={22} 
+                    {...getIconProps('dob')} 
+                    style={{ marginRight: 0, marginLeft: '1rem' }} 
+                  />
                 </div>
                 {errors.dob && <span className="error-msg">{errors.dob}</span>}
               </div>
@@ -221,13 +324,40 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
                 </div>
                 {errors.email && <span className="error-msg">{errors.email}</span>}
               </div>
+
               <div className="form-group">
                 <div className={`auth-input-wrapper ${errors.password ? 'error' : ''}`}>
                   <Lock className="auth-icon" size={22} {...getIconProps('password')} />
                   <input type="password" id="password" name="password" value={formData.password} onChange={handleChange} onFocus={() => handleFocus('password')} onBlur={handleBlur} placeholder="Password" className="auth-input" />
                 </div>
                 {errors.password && <span className="error-msg">{errors.password}</span>}
+
+                {/* --- PASSWORD STRENGTH METER --- */}
+                {formData.password && (
+                  <div className="strength-meter-container">
+                    {renderStrengthBars()}
+                    <div className="strength-criteria">
+                      <div className={`criteria-item ${passwordStrength.criteria.hasUpper ? 'met' : ''}`}>
+                        {passwordStrength.criteria.hasUpper ? <Check className="criteria-icon" /> : <X className="criteria-icon" />}
+                        1 Uppercase Letter
+                      </div>
+                      <div className={`criteria-item ${passwordStrength.criteria.hasNumber ? 'met' : ''}`}>
+                        {passwordStrength.criteria.hasNumber ? <Check className="criteria-icon" /> : <X className="criteria-icon" />}
+                        1 Number
+                      </div>
+                      <div className={`criteria-item ${passwordStrength.criteria.hasSpecial ? 'met' : ''}`}>
+                        {passwordStrength.criteria.hasSpecial ? <Check className="criteria-icon" /> : <X className="criteria-icon" />}
+                        1 Special Character
+                      </div>
+                      <div className={`criteria-item ${passwordStrength.criteria.noName ? 'met' : ''}`}>
+                        {passwordStrength.criteria.noName ? <Check className="criteria-icon" /> : <X className="criteria-icon" />}
+                        Cannot contain Full Name
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
+
               <div className="form-group">
                 <div className={`auth-input-wrapper ${errors.confirmPassword ? 'error' : ''}`}>
                   <Lock className="auth-icon" size={22} {...getIconProps('confirmPassword')} />
