@@ -43,7 +43,7 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 
 # ==========================================
-# 2. NEW USER MODEL
+# 2. UPDATED USER MODEL
 # ==========================================
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -54,7 +54,10 @@ class User(db.Model):
     dob = db.Column(db.String(20), nullable=False, default='')
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
     # Stores cities as "Denver,Miami,Austin"
-    cities = db.Column(db.String(200), nullable=False)
+    cities = db.Column(db.String(200), nullable=True) # Changed to True since it might be empty initially
+    
+    # ✅ NEW FIELD: Tracks if user has finished onboarding
+    onboarding_complete = db.Column(db.String(5), nullable=False, default='No')
 
     def __repr__(self):
         return f"User('{self.email}', '{self.cities}')"
@@ -107,7 +110,7 @@ def health_check():
         'dev_mode': DEV_MODE
     })
 
-# --- NEW SIGNUP ENDPOINT ---
+# --- SIGNUP ENDPOINT ---
 @app.route('/api/signup', methods=['POST'])
 def signup():
     """
@@ -124,7 +127,6 @@ def signup():
     cities = request.form.get('cities', '') 
 
     # 2. Validation
-    # We removed the 'cities' check since it's currently empty.
     # Check for existing user to prevent crashes
     if User.query.filter((User.email == email) | (User.username == username)).first():
         return jsonify({'error': 'Email or Username already taken.'}), 400
@@ -150,7 +152,8 @@ def signup():
             email=email,
             password=password,
             image_file=filename,
-            cities=cities
+            cities=cities,
+            onboarding_complete='No' # ✅ Explicitly setting default
         )
         db.session.add(new_user)
         db.session.commit()
@@ -167,6 +170,28 @@ def signup():
         # We don't return an error here so the user creation still succeeds
 
     return jsonify({'message': 'User created successfully!'}), 201
+
+# --- LOGIN ENDPOINT (NEW) ---
+@app.route('/api/login', methods=['POST'])
+def login():
+    """
+    Verifies user and returns onboarding status.
+    """
+    email = request.form.get('email')
+    password = request.form.get('password')
+
+    # Find user by email
+    user = User.query.filter_by(email=email).first()
+
+    # Verify password (Simple check for now, add hashing in production)
+    if user and user.password == password:
+        return jsonify({
+            'message': 'Login successful',
+            'username': user.username,
+            'onboarding_complete': user.onboarding_complete  # 'Yes' or 'No'
+        }), 200
+    else:
+        return jsonify({'error': 'Invalid email or password'}), 401
 # ---------------------------
 
 @app.route('/api/locations', methods=['GET'])
