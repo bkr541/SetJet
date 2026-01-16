@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   ArrowRight,
   Upload,
@@ -11,6 +11,9 @@ import './OnboardingPicAndSocial.css';
 import cityData from '../data/FrontierDestinationInfo_numeric.json';
 
 function OnboardingPicAndSocial({ onComplete }) {
+  // State for the Welcome Modal
+  const [showModal, setShowModal] = useState(true);
+
   const [formData, setFormData] = useState({
     username: '',
     dob: '', 
@@ -24,6 +27,18 @@ function OnboardingPicAndSocial({ onComplete }) {
   const [errors, setErrors] = useState({});
   
   const [isHomeSearchFocused, setIsHomeSearchFocused] = useState(false);
+
+  // Disable background scrolling when modal is open
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showModal]);
 
   const filteredHomeAirports = useMemo(() => {
     if (!formData.homeAirport || formData.homeAirport.length < 2) return [];
@@ -235,10 +250,10 @@ function OnboardingPicAndSocial({ onComplete }) {
       
       <div className="auth-header">
         <h2 className="auth-title">
-          User Setup
+          Add Your Style
         </h2>
         <p className="auth-subtitle">
-            Now, let's get to know you a little more
+            Upload a profile picture and tell us about yourself.
         </p>
       </div>
 
@@ -405,6 +420,32 @@ function OnboardingPicAndSocial({ onComplete }) {
           <ArrowRight size={20} />
         </button>
       </form>
+
+      {/* --- WELCOME MODAL --- */}
+      {showModal && (
+        <div className="welcome-modal-overlay">
+          <div 
+            className="welcome-modal-content"
+            style={{ backgroundImage: "url('/artifacts/onboardingmodal1.png')" }}
+          >
+            {/* Gradient Overlay for Text Readability */}
+            <div className="welcome-modal-gradient">
+              <div className="welcome-text-container">
+                <h2 className="welcome-title">Welcome to SetJet!</h2>
+                <p className="welcome-subtitle">
+                  We're excited to help you find the best flights. Let's finish setting up your profile.
+                </p>
+                <button 
+                  className="welcome-button"
+                  onClick={() => setShowModal(false)}
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
