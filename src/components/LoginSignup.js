@@ -7,10 +7,14 @@ import {
   UserPlus,
   ArrowRight,
   Sparkles,
+  LogInIcon,
   Calendar,
   AtSign,
   Check,
-  X
+  UserRoundPlus,
+  UserRound,
+  X,
+  UserRoundPlusIcon
 } from 'lucide-react';
 import './LoginSignup.css';
 
@@ -86,6 +90,7 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
     
+    // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -98,13 +103,24 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
   const getIconProps = (fieldName) => {
     const isFocused = focusedField === fieldName;
     const hasValue = formData[fieldName] && formData[fieldName].length > 0;
-    
+    const hasError = !!errors[fieldName]; // Check if field has an error
+
+    // Priority 1: Error State (Red)
+    if (hasError) {
+        return { color: '#FF2C2C', fill: 'none' };
+    }
+
+    // Priority 2: Focus State (Teal)
     if (isFocused) {
       return { color: '#0096a6', fill: 'none' };
     }
+
+    // Priority 3: Valid Value (Dark Teal)
     if (hasValue) {
       return { color: '#004e5a', fill: 'none' }; 
     }
+
+    // Default (Dark Grey)
     return { color: '#161616', fill: 'none' };
   };
 
@@ -120,12 +136,48 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
     if (mode === 'signup') {
       if (!formData.name) { tempErrors.name = "Full Name is required"; isValid = false; }
       if (!formData.username) { tempErrors.username = "Username is required"; isValid = false; }
-      if (!formData.dob) { tempErrors.dob = "Date of Birth is required"; isValid = false; }
-      // Basic format check for complete date
-      if (formData.dob && formData.dob.length < 10) { 
-        tempErrors.dob = "Enter a valid date (mm/dd/yyyy)"; 
+      
+      // --- DATE OF BIRTH VALIDATION ---
+      if (!formData.dob) { 
+        tempErrors.dob = "Date of Birth is required"; 
         isValid = false; 
+      } else if (formData.dob.length < 10) {
+        // Check for complete format
+        tempErrors.dob = "Enter a valid date (mm/dd/yyyy)"; 
+        isValid = false;
+      } else {
+        const parts = formData.dob.split('/');
+        const month = parseInt(parts[0], 10);
+        const day = parseInt(parts[1], 10);
+        const year = parseInt(parts[2], 10);
+
+        // 1. Check strict ranges
+        if (month < 1 || month > 12) {
+          tempErrors.dob = "Invalid month";
+          isValid = false;
+        } else if (day < 1 || day > 31) {
+          tempErrors.dob = "Invalid day";
+          isValid = false;
+        } else {
+          // 2. Check strict date validity using JS Date rollover behavior
+          const dobDate = new Date(year, month - 1, day);
+          
+          if (dobDate.getMonth() !== month - 1 || dobDate.getDate() !== day) {
+             tempErrors.dob = "Invalid date provided";
+             isValid = false;
+          } else {
+            // 3. Future Check
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time for accurate date comparison
+
+            if (dobDate > today) {
+              tempErrors.dob = "Date cannot be in the future";
+              isValid = false;
+            }
+          }
+        }
       }
+
       if (!formData.email) { tempErrors.email = "Email is required"; isValid = false; }
       if (!formData.password) { tempErrors.password = "Password is required"; isValid = false; }
       if (!formData.confirmPassword) { tempErrors.confirmPassword = "Confirm Password is required"; isValid = false; }
@@ -174,7 +226,6 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
 
         if (response.ok) {
           if (mode === 'signup') {
-            /* alert('Account created successfully!'); */
             if (onSignupSuccess) onSignupSuccess(); 
           } else {
             if (result.onboarding_complete === 'No') {
@@ -239,7 +290,7 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
   return (
     <div className="login-container">
       <div className="logo-container">
-        <img src="/logos/setjet_logoa.png" alt="SetJet Logo" className="auth-logo" />
+        <img src="/logos/logo5.png" alt="SetJet Logo" className="auth-logo" />
       </div>
 
       <div className="auth-mode-toggle">
@@ -256,7 +307,7 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
           className={`auth-mode-option ${mode === 'signup' ? 'active' : ''}`}
           onClick={() => handleModeSwitch('signup')}
         >
-          <UserPlus size={18} className="option-icon" />
+          <UserRoundPlus size={18} className="option-icon" />
           <span>Sign Up</span>
         </button>
       </div>
@@ -267,12 +318,12 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
         </h2>
         {mode === 'signup' && (
           <p className="auth-subtitle">
-            Fill out the below fields to create your SetJet account today
+            Fill out the below fields to start your jet setting journey
           </p>
         )}
         {mode === 'login' && (
           <p className="auth-subtitle">
-            Enter your credentials to access your account
+            Ready to jet set to another adventure?
           </p>
         )}
       </div>
@@ -284,9 +335,11 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
               <h3 className="section-heading">Personal</h3>
               <div className="form-group">
                 <div className={`auth-input-wrapper ${errors.name ? 'error' : ''}`}>
-                  <User className="auth-icon" size={22} {...getIconProps('name')} />
+                  <UserRound className="auth-icon" size={22} {...getIconProps('name')} />
                   <div className="input-stack">
-                    <span className="input-label-small" style={{ color: getIconProps('name').color }}>Full Name</span>
+                    <span className="input-label-small" style={{ color: getIconProps('name').color }}>
+                      Full Name {!formData.name && <span className="required-star">*</span>}
+                    </span>
                     <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} onFocus={() => handleFocus('name')} onBlur={handleBlur} placeholder="Set McJetson" className="auth-input stacked" />
                   </div>
                 </div>
@@ -297,7 +350,9 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
                 <div className={`auth-input-wrapper ${errors.username ? 'error' : ''}`}>
                   <AtSign className="auth-icon" size={22} {...getIconProps('username')} />
                   <div className="input-stack">
-                    <span className="input-label-small" style={{ color: getIconProps('username').color }}>Username</span>
+                    <span className="input-label-small" style={{ color: getIconProps('username').color }}>
+                      Username {!formData.username && <span className="required-star">*</span>}
+                    </span>
                     <input type="text" id="username" name="username" value={formData.username} onChange={handleChange} onFocus={() => handleFocus('username')} onBlur={handleBlur} placeholder="bobby_mcb" className="auth-input stacked" />
                   </div>
                 </div>
@@ -312,7 +367,9 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
                     {...getIconProps('dob')} 
                   />
                   <div className="input-stack">
-                    <span className="input-label-small" style={{ color: getIconProps('dob').color }}>Date of Birth</span>
+                    <span className="input-label-small" style={{ color: getIconProps('dob').color }}>
+                      Date of Birth {!formData.dob && <span className="required-star">*</span>}
+                    </span>
                     <input 
                       type="text" 
                       id="dob" 
@@ -407,7 +464,7 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
 
         <button type="submit" className="auth-button">
           <span>{mode === 'login' ? 'Login' : 'Create Account'}</span>
-          <ArrowRight size={20} />
+          <LogInIcon size={20} />
         </button>
       </form>
 

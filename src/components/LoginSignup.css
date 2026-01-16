@@ -17,7 +17,7 @@
 }
 
 .auth-logo {
-  height: 80px;
+  height: 160px;
   width: auto;
   object-fit: contain;
 }
@@ -28,7 +28,7 @@
 }
 
 .auth-title {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.0rem 0;
   color: #161616;
   font-size: 1.75rem;
   font-weight: 800;
@@ -216,6 +216,13 @@ input:-webkit-autofill:active{
   margin-left: 0.5rem;
   margin-top: 2px;
   animation: slideDown 0.2s ease-out;
+}
+
+/* Required Star */
+.required-star {
+  color: #FF2C2C;
+  margin-left: 3px;
+  font-weight: 700;
 }
 
 /* --- BUTTONS --- */
