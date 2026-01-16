@@ -26,13 +26,34 @@ function OnboardingPicAndSocial({ onComplete }) {
   // Home Airport Search State
   const [isHomeSearchFocused, setIsHomeSearchFocused] = useState(false);
 
-  // Filter Home Airports
+  // Filter Home Airports (Now Distinct Cities only)
   const filteredHomeAirports = useMemo(() => {
     if (!formData.homeAirport || formData.homeAirport.length < 2) return [];
     
-    return cityData.filter(item => 
-      item.City && item.City.toLowerCase().includes(formData.homeAirport.toLowerCase())
-    );
+    const lowerInput = formData.homeAirport.toLowerCase();
+    const uniqueCities = new Set();
+    const distinctResults = [];
+
+    // Loop through data to find matches and dedup based on "City, State" string
+    for (const item of cityData) {
+      if (item.City && item.City.toLowerCase().includes(lowerInput)) {
+        // Construct the display label
+        const locationStr = item['State Abbreviation'] 
+          ? `${item.City}, ${item['State Abbreviation']}`
+          : `${item.City}, ${item.Country}`;
+
+        // If we haven't seen this exact location string yet, add it
+        if (!uniqueCities.has(locationStr)) {
+          uniqueCities.add(locationStr);
+          distinctResults.push({
+            ...item,
+            displayLabel: locationStr // Attach constructed label for easy rendering
+          });
+        }
+      }
+    }
+    
+    return distinctResults;
   }, [formData.homeAirport]);
 
   const handleChange = (e) => {
@@ -59,9 +80,10 @@ function OnboardingPicAndSocial({ onComplete }) {
   };
 
   const handleSelectHomeAirport = (cityRecord) => {
-    const locationStr = cityRecord['State Abbreviation'] 
+    // Use the displayLabel we created in useMemo, or reconstruct if needed
+    const locationStr = cityRecord.displayLabel || (cityRecord['State Abbreviation'] 
       ? `${cityRecord.City}, ${cityRecord['State Abbreviation']}`
-      : `${cityRecord.City}, ${cityRecord.Country}`;
+      : `${cityRecord.City}, ${cityRecord.Country}`);
     
     setFormData(prev => ({ ...prev, homeAirport: locationStr }));
     setIsHomeSearchFocused(false);
@@ -120,9 +142,7 @@ function OnboardingPicAndSocial({ onComplete }) {
         </div>
       </div>
       
-      <div className="logo-container">
-        <img src="/logos/setjet_logoa.png" alt="SetJet Logo" className="auth-logo" />
-      </div>
+      {/* REMOVED LOGO IMAGE CONTAINER HERE */}
 
       <div className="auth-header">
         <h2 className="auth-title">
@@ -141,7 +161,8 @@ function OnboardingPicAndSocial({ onComplete }) {
           <div className="profile-upload-section">
             <div className="profile-pic-wrapper">
               <img 
-                src={previewUrl || "/artifacts/defaultprofilepic.png"} 
+                /* Updated default source */
+                src={previewUrl || "/artifacts/defaultprofileillenium2.png"} 
                 alt="Profile" 
                 className="profile-preview" 
               />
@@ -163,7 +184,7 @@ function OnboardingPicAndSocial({ onComplete }) {
             </p>
           </div>
 
-          {/* BIO INPUT (Reverted to simple expandable behavior) */}
+          {/* BIO INPUT */}
           <div className="form-group">
             <div className={`auth-input-wrapper bio-wrapper ${focusedField === 'bio' ? 'focused' : ''}`}>
               <FileText className="auth-icon" size={22} {...getIconProps('bio')} />
@@ -187,7 +208,7 @@ function OnboardingPicAndSocial({ onComplete }) {
             </div>
           </div>
 
-          {/* HOME AIRPORT SEARCH */}
+          {/* HOME CITY SEARCH */}
           <div className="form-group" style={{ position: 'relative' }}>
             <div className={`auth-input-wrapper ${focusedField === 'homeAirport' ? 'focused' : ''}`}>
               <MapPin className="auth-icon" size={22} {...getIconProps('homeAirport')} />
@@ -196,7 +217,8 @@ function OnboardingPicAndSocial({ onComplete }) {
                   className="input-label-small"
                   style={{ color: getIconProps('homeAirport').color }}
                 >
-                  Home Airport
+                  {/* Changed label from Home Airport to Home City */}
+                  Home City
                   {/* Red Asterisk */}
                   {!formData.homeAirport && <span style={{ color: '#FF2C2C', marginLeft: '4px' }}>*</span>}
                 </span>
@@ -227,10 +249,8 @@ function OnboardingPicAndSocial({ onComplete }) {
                     onMouseDown={() => handleSelectHomeAirport(city)}
                   >
                     <div className="city-main">
-                      {city.City}, {city['State Abbreviation'] || city.Country}
-                    </div>
-                    <div className="city-sub">
-                      {city['Airport Name']} ({city['IATA Code']})
+                      {/* Only showing distinct City, State */}
+                      {city.displayLabel}
                     </div>
                   </div>
                 ))}

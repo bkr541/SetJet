@@ -47,12 +47,32 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
   useEffect(() => {
     if (mode === 'signup') {
       const { password, name } = formData;
+      
+      // Check for sequential characters from name in password
+      let hasNameSequence = false;
+      
+      // Only check if name has enough characters to form a sequence > 4 (i.e., 5+)
+      if (name && name.length >= 5) {
+        const lowerName = name.toLowerCase();
+        const lowerPass = password.toLowerCase();
+        
+        // Iterate through name to find any 5-character substring
+        for (let i = 0; i <= lowerName.length - 5; i++) {
+          const sequence = lowerName.substring(i, i + 5);
+          // If the password contains this 5-char sequence
+          if (lowerPass.includes(sequence)) {
+            hasNameSequence = true;
+            break;
+          }
+        }
+      }
+
       const criteria = {
         hasUpper: /[A-Z]/.test(password),
         hasNumber: /[0-9]/.test(password),
         hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-        // Pass if name is empty OR if password does NOT include name
-        noName: !name || name.trim() === '' || !password.toLowerCase().includes(name.toLowerCase())
+        // Pass if no sequence was found
+        noName: !hasNameSequence 
       };
 
       // Calculate score (0 to 4)
@@ -103,7 +123,7 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
   const getIconProps = (fieldName) => {
     const isFocused = focusedField === fieldName;
     const hasValue = formData[fieldName] && formData[fieldName].length > 0;
-    const hasError = !!errors[fieldName]; // Check if field has an error
+    const hasError = !!errors[fieldName]; 
 
     // Priority 1: Error State (Red)
     if (hasError) {
@@ -188,9 +208,14 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
       }
 
       // Password Strength Validation on Submit
-      if (passwordStrength.score < 4 && formData.password) {
-        tempErrors.password = "Password is not strong enough";
-        isValid = false;
+      if (formData.password) {
+        if (!passwordStrength.criteria.noName) {
+            tempErrors.password = "Password cannot contain part of your name";
+            isValid = false;
+        } else if (passwordStrength.score < 4) {
+            tempErrors.password = "Password is not strong enough";
+            isValid = false;
+        }
       }
     }
 
@@ -228,9 +253,15 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
           if (mode === 'signup') {
             if (onSignupSuccess) onSignupSuccess(); 
           } else {
+            // --- LOGIN SUCCESS LOGIC ---
+            console.log('Login successful. Onboarding complete?', result.onboarding_complete);
+            
+            // Check onboarding status
             if (result.onboarding_complete === 'No') {
+              // Redirect to Onboarding Flow
               if (onSignupSuccess) onSignupSuccess(); 
             } else {
+              // Redirect to Flight Search / Dashboard
               if (onLogin) onLogin(); 
             }
           }
@@ -425,7 +456,7 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
                       </div>
                       <div className={`criteria-item ${passwordStrength.criteria.noName ? 'met' : ''}`}>
                         {passwordStrength.criteria.noName ? <Check className="criteria-icon" /> : <X className="criteria-icon" />}
-                        Cannot contain Full Name
+                        Cannot contain part of name
                       </div>
                     </div>
                   </div>
