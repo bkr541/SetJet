@@ -3,30 +3,28 @@ import {
   ArrowRight,
   Upload,
   MapPin,
-  FileText
+  FileText,
+  AtSign,
+  Calendar 
 } from 'lucide-react';
 import './OnboardingPicAndSocial.css';
-// Ensure this path matches your project structure
 import cityData from '../data/FrontierDestinationInfo_numeric.json';
 
 function OnboardingPicAndSocial({ onComplete }) {
   const [formData, setFormData] = useState({
+    username: '',
+    dob: '', 
     bio: '',
-    homeAirport: '',
-    instagram: '',
-    facebook: '',
-    x: '',
-    soundcloud: ''
+    homeAirport: ''
   });
   
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [focusedField, setFocusedField] = useState(null);
+  const [errors, setErrors] = useState({});
   
-  // Home Airport Search State
   const [isHomeSearchFocused, setIsHomeSearchFocused] = useState(false);
 
-  // Filter Home Airports (Now Distinct Cities only)
   const filteredHomeAirports = useMemo(() => {
     if (!formData.homeAirport || formData.homeAirport.length < 2) return [];
     
@@ -34,20 +32,17 @@ function OnboardingPicAndSocial({ onComplete }) {
     const uniqueCities = new Set();
     const distinctResults = [];
 
-    // Loop through data to find matches and dedup based on "City, State" string
     for (const item of cityData) {
       if (item.City && item.City.toLowerCase().includes(lowerInput)) {
-        // Construct the display label
         const locationStr = item['State Abbreviation'] 
           ? `${item.City}, ${item['State Abbreviation']}`
           : `${item.City}, ${item.Country}`;
 
-        // If we haven't seen this exact location string yet, add it
         if (!uniqueCities.has(locationStr)) {
           uniqueCities.add(locationStr);
           distinctResults.push({
             ...item,
-            displayLabel: locationStr // Attach constructed label for easy rendering
+            displayLabel: locationStr
           });
         }
       }
@@ -58,7 +53,27 @@ function OnboardingPicAndSocial({ onComplete }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'dob') {
+        const numericValue = value.replace(/\D/g, '');
+        if (numericValue.length > 8) return;
+  
+        let formattedValue = numericValue;
+        if (numericValue.length > 2) {
+          formattedValue = `${numericValue.slice(0, 2)}/${numericValue.slice(2)}`;
+        }
+        if (numericValue.length > 4) {
+          formattedValue = `${formattedValue.slice(0, 5)}/${numericValue.slice(4)}`;
+        }
+  
+        setFormData(prev => ({ ...prev, [name]: formattedValue }));
+      } else {
+        setFormData(prev => ({ ...prev, [name]: value }));
+      }
+    
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleFileChange = (e) => {
@@ -80,7 +95,6 @@ function OnboardingPicAndSocial({ onComplete }) {
   };
 
   const handleSelectHomeAirport = (cityRecord) => {
-    // Use the displayLabel we created in useMemo, or reconstruct if needed
     const locationStr = cityRecord.displayLabel || (cityRecord['State Abbreviation'] 
       ? `${cityRecord.City}, ${cityRecord['State Abbreviation']}`
       : `${cityRecord.City}, ${cityRecord.Country}`);
@@ -92,7 +106,9 @@ function OnboardingPicAndSocial({ onComplete }) {
   const getIconProps = (fieldName) => {
     const isFocused = focusedField === fieldName;
     const hasValue = formData[fieldName] && formData[fieldName].length > 0;
+    const hasError = !!errors[fieldName];
 
+    if (hasError) return { color: '#FF2C2C', fill: 'none' };
     if (isFocused) {
       return { color: '#0096a6', fill: 'none' };
     }
@@ -102,21 +118,96 @@ function OnboardingPicAndSocial({ onComplete }) {
     return { color: '#161616', fill: 'none' };
   };
 
-  const getInputWrapperClass = (fieldName) => {
-    const isFocused = focusedField === fieldName;
-    return `auth-input-wrapper ${isFocused ? 'focused' : ''}`;
+  const validate = () => {
+    let tempErrors = {};
+    let isValid = true;
+
+    if (!formData.username) {
+        tempErrors.username = 'Username is required';
+        isValid = false;
+    }
+
+    if (!formData.dob) { 
+        tempErrors.dob = "Date of Birth is required"; 
+        isValid = false; 
+    } else if (formData.dob.length < 10) {
+        tempErrors.dob = "Enter a valid date (mm/dd/yyyy)"; 
+        isValid = false;
+    } else {
+        const parts = formData.dob.split('/');
+        const month = parseInt(parts[0], 10);
+        const day = parseInt(parts[1], 10);
+        const year = parseInt(parts[2], 10);
+
+        if (month < 1 || month > 12) {
+            tempErrors.dob = "Invalid month";
+            isValid = false;
+        } else if (day < 1 || day > 31) {
+            tempErrors.dob = "Invalid day";
+            isValid = false;
+        } else {
+            const dobDate = new Date(year, month - 1, day);
+            if (dobDate.getMonth() !== month - 1 || dobDate.getDate() !== day) {
+                tempErrors.dob = "Invalid date provided";
+                isValid = false;
+            } else {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); 
+                if (dobDate > today) {
+                    tempErrors.dob = "Date cannot be in the future";
+                    isValid = false;
+                }
+            }
+        }
+    }
+
+    setErrors(tempErrors);
+    return isValid;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) return; 
     
-    console.log('Submitting:', { 
-      file, 
-      data: formData 
-    });
+    if (!file) {
+      alert("Please upload a profile photo.");
+      return;
+    }
+
+    if (!validate()) {
+        return;
+    }
+
+    const email = localStorage.getItem('current_email');
+    if (!email) {
+      alert("No account found. Please restart the signup process.");
+      return;
+    }
     
-    if (onComplete) onComplete(); 
+    const payload = new FormData();
+    payload.append('email', email);
+    payload.append('username', formData.username);
+    payload.append('dob', formData.dob); 
+    payload.append('bio', formData.bio);
+    payload.append('home_city', formData.homeAirport);
+    payload.append('profile_photo', file);
+
+    try {
+      const response = await fetch('http://127.0.0.1:5001/api/update_profile', {
+        method: 'POST',
+        body: payload,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        if (onComplete) onComplete(); 
+      } else {
+        alert(result.error || 'Failed to update profile.');
+      }
+    } catch (error) {
+      console.error("Error submitting profile:", error);
+      alert("Failed to connect to server.");
+    }
   };
 
   return (
@@ -142,14 +233,12 @@ function OnboardingPicAndSocial({ onComplete }) {
         </div>
       </div>
       
-      {/* REMOVED LOGO IMAGE CONTAINER HERE */}
-
       <div className="auth-header">
         <h2 className="auth-title">
-          Add Your Style
+          User Setup
         </h2>
         <p className="auth-subtitle">
-            Upload a profile picture and connect your socials.
+            Now, let's get to know you a little more
         </p>
       </div>
 
@@ -161,7 +250,6 @@ function OnboardingPicAndSocial({ onComplete }) {
           <div className="profile-upload-section">
             <div className="profile-pic-wrapper">
               <img 
-                /* Updated default source */
                 src={previewUrl || "/artifacts/defaultprofileillenium2.png"} 
                 alt="Profile" 
                 className="profile-preview" 
@@ -179,10 +267,60 @@ function OnboardingPicAndSocial({ onComplete }) {
             </div>
             <p className="upload-label">
               Upload Profile Photo
-              {/* Red Asterisk */}
-              {!file && <span style={{ color: '#FF2C2C', marginLeft: '4px' }}>*</span>}
+              {!file && <span style={{ color: '#FF2C2C', marginLeft: '4px', fontWeight: 'bold' }}>*</span>}
             </p>
           </div>
+
+          {/* USERNAME INPUT */}
+          <div className="form-group">
+            <div className={`auth-input-wrapper ${errors.username ? 'error' : ''} ${focusedField === 'username' ? 'focused' : ''}`}>
+              <AtSign className="auth-icon" size={22} {...getIconProps('username')} />
+              <div className="input-stack">
+                <span 
+                  className="input-label-small"
+                  style={{ color: getIconProps('username').color }}
+                >
+                  Username
+                  {!formData.username && <span style={{ color: '#FF2C2C', marginLeft: '3px', fontWeight: '700' }}>*</span>}
+                </span>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  onFocus={() => handleFocus('username')}
+                  onBlur={() => handleBlur('username')}
+                  placeholder="bobby_mcb"
+                  className="auth-input stacked"
+                />
+              </div>
+            </div>
+            {errors.username && <span className="error-msg" style={{color: '#FF2C2C', fontSize: '0.8rem', fontWeight: 600, marginLeft: '0.5rem'}}>{errors.username}</span>}
+          </div>
+
+          {/* DOB INPUT */}
+          <div className="form-group">
+            <div className={`auth-input-wrapper ${errors.dob ? 'error' : ''} ${focusedField === 'dob' ? 'focused' : ''}`}>
+                <Calendar className="auth-icon" size={22} {...getIconProps('dob')} />
+                <div className="input-stack">
+                <span className="input-label-small" style={{ color: getIconProps('dob').color }}>
+                    Date of Birth {!formData.dob && <span style={{ color: '#FF2C2C', marginLeft: '3px', fontWeight: '700' }}>*</span>}
+                </span>
+                <input 
+                    type="text" 
+                    name="dob" 
+                    maxLength={10} 
+                    value={formData.dob} 
+                    onChange={handleChange} 
+                    onFocus={() => handleFocus('dob')} 
+                    onBlur={() => handleBlur('dob')} 
+                    placeholder="mm/dd/yyyy" 
+                    className="auth-input stacked" 
+                />
+                </div>
+            </div>
+            {errors.dob && <span className="error-msg" style={{color: '#FF2C2C', fontSize: '0.8rem', fontWeight: 600, marginLeft: '0.5rem'}}>{errors.dob}</span>}
+            </div>
 
           {/* BIO INPUT */}
           <div className="form-group">
@@ -217,10 +355,8 @@ function OnboardingPicAndSocial({ onComplete }) {
                   className="input-label-small"
                   style={{ color: getIconProps('homeAirport').color }}
                 >
-                  {/* Changed label from Home Airport to Home City */}
                   Home City
-                  {/* Red Asterisk */}
-                  {!formData.homeAirport && <span style={{ color: '#FF2C2C', marginLeft: '4px' }}>*</span>}
+                  {!formData.homeAirport && <span style={{ color: '#FF2C2C', marginLeft: '4px', fontWeight: 'bold' }}>*</span>}
                 </span>
                 <input
                   type="text"
@@ -249,7 +385,6 @@ function OnboardingPicAndSocial({ onComplete }) {
                     onMouseDown={() => handleSelectHomeAirport(city)}
                   >
                     <div className="city-main">
-                      {/* Only showing distinct City, State */}
                       {city.displayLabel}
                     </div>
                   </div>
@@ -258,110 +393,6 @@ function OnboardingPicAndSocial({ onComplete }) {
             )}
           </div>
 
-          {/* SOCIAL INPUTS */}
-          <div className="socials-group">
-            
-            {/* INSTAGRAM */}
-            <div className="form-group">
-              <div className={getInputWrapperClass('instagram')}>
-                <img src="/logos/logo_instagram.jpeg" alt="IG" className="social-icon-img" />
-                <div className="input-stack">
-                  <span 
-                    className="input-label-small"
-                    style={{ color: getIconProps('instagram').color }}
-                  >
-                    Instagram
-                  </span>
-                  <input
-                    type="text"
-                    name="instagram"
-                    value={formData.instagram}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('instagram')}
-                    onBlur={() => handleBlur('instagram')}
-                    placeholder="@username"
-                    className="auth-input stacked"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* FACEBOOK */}
-            <div className="form-group">
-              <div className={getInputWrapperClass('facebook')}>
-                <img src="/logos/logo_facebook.png" alt="FB" className="social-icon-img" />
-                <div className="input-stack">
-                  <span 
-                    className="input-label-small"
-                    style={{ color: getIconProps('facebook').color }}
-                  >
-                    Facebook
-                  </span>
-                  <input
-                    type="text"
-                    name="facebook"
-                    value={formData.facebook}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('facebook')}
-                    onBlur={() => handleBlur('facebook')}
-                    placeholder="@username"
-                    className="auth-input stacked"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* X (Twitter) */}
-            <div className="form-group">
-              <div className={getInputWrapperClass('x')}>
-                <img src="/logos/logo_x.png" alt="X" className="social-icon-img" />
-                <div className="input-stack">
-                  <span 
-                    className="input-label-small"
-                    style={{ color: getIconProps('x').color }}
-                  >
-                    X (Twitter)
-                  </span>
-                  <input
-                    type="text"
-                    name="x"
-                    value={formData.x}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('x')}
-                    onBlur={() => handleBlur('x')}
-                    placeholder="@username"
-                    className="auth-input stacked"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* SOUNDCLOUD */}
-            <div className="form-group">
-              <div className={getInputWrapperClass('soundcloud')}>
-                <img src="/logos/logo_soundcloud.jpg" alt="SC" className="social-icon-img" />
-                <div className="input-stack">
-                  <span 
-                    className="input-label-small"
-                    style={{ color: getIconProps('soundcloud').color }}
-                  >
-                    SoundCloud
-                  </span>
-                  <input
-                    type="text"
-                    name="soundcloud"
-                    value={formData.soundcloud}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('soundcloud')}
-                    onBlur={() => handleBlur('soundcloud')}
-                    placeholder="@username"
-                    className="auth-input stacked"
-                  />
-                </div>
-              </div>
-            </div>
-
-          </div>
         </div>
 
         {/* SUBMIT BUTTON */}

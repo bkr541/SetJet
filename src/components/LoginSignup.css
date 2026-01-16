@@ -403,3 +403,40 @@ input:-webkit-autofill:active{
   width: 12px;
   height: 12px;
 }
+
+/* =========================================
+   MOBILE RESPONSIVENESS
+   ========================================= */
+@media (max-width: 600px) {
+  .login-container {
+    /* Counteract the parent container paddings 
+       (Assuming App.css: .main has 2rem vertical, .container has 20px horizontal)
+    */
+    margin: -2rem -20px;
+    width: calc(100% + 40px); /* 100% width + 20px left + 20px right */
+    max-width: none;
+    
+    /* Remove Card Styling for Full Screen feel */
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 100vh;
+    
+    /* Reduce Padding as requested */
+    padding: 1.5rem;
+    
+    /* Ensure content is centered if needed, or let it flow */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* Optional: Adjust logo size for mobile */
+  .auth-logo {
+    height: 120px;
+  }
+  
+  /* Ensure header spacing is good on mobile */
+  .auth-header {
+    margin-bottom: 1.5rem;
+  }
+}

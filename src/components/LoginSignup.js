@@ -2,28 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { 
   Mail, 
   Lock, 
-  User, 
   LogIn, 
   UserPlus,
   ArrowRight,
   Sparkles,
   LogInIcon,
-  Calendar,
-  AtSign,
   Check,
-  UserRoundPlus,
   UserRound,
   X,
-  UserRoundPlusIcon
+  UserRoundPlus
 } from 'lucide-react';
 import './LoginSignup.css';
 
 function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
   const [mode, setMode] = useState('login'); 
   const [formData, setFormData] = useState({
-    name: '',
-    username: '',
-    dob: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -43,39 +38,34 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
     }
   });
 
-  // Calculate password strength whenever password or name changes
+  // Calculate password strength
   useEffect(() => {
     if (mode === 'signup') {
-      const { password, name } = formData;
+      const { password, firstName, lastName } = formData;
       
       // Check for sequential characters from name in password
       let hasNameSequence = false;
       
-      // Only check if name has enough characters to form a sequence > 4 (i.e., 5+)
-      if (name && name.length >= 5) {
-        const lowerName = name.toLowerCase();
-        const lowerPass = password.toLowerCase();
-        
-        // Iterate through name to find any 5-character substring
-        for (let i = 0; i <= lowerName.length - 5; i++) {
-          const sequence = lowerName.substring(i, i + 5);
-          // If the password contains this 5-char sequence
-          if (lowerPass.includes(sequence)) {
-            hasNameSequence = true;
-            break;
-          }
-        }
+      // Check against First Name
+      if (firstName && firstName.length >= 4) {
+         const lowerFirst = firstName.toLowerCase();
+         const lowerPass = password.toLowerCase();
+         if (lowerPass.includes(lowerFirst)) hasNameSequence = true;
+      }
+      // Check against Last Name
+      if (lastName && lastName.length >= 4) {
+         const lowerLast = lastName.toLowerCase();
+         const lowerPass = password.toLowerCase();
+         if (lowerPass.includes(lowerLast)) hasNameSequence = true;
       }
 
       const criteria = {
         hasUpper: /[A-Z]/.test(password),
         hasNumber: /[0-9]/.test(password),
         hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-        // Pass if no sequence was found
         noName: !hasNameSequence 
       };
 
-      // Calculate score (0 to 4)
       let score = 0;
       if (criteria.hasUpper) score++;
       if (criteria.hasNumber) score++;
@@ -84,33 +74,12 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
 
       setPasswordStrength({ score, criteria });
     }
-  }, [formData.password, formData.name, mode]);
+  }, [formData.password, formData.firstName, formData.lastName, mode]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    if (name === 'dob') {
-      // 1. Strip non-numeric characters to get raw numbers
-      const numericValue = value.replace(/\D/g, '');
-
-      // 2. Limit to 8 digits (MMDDYYYY)
-      if (numericValue.length > 8) return;
-
-      // 3. Apply mask logic (MM/DD/YYYY)
-      let formattedValue = numericValue;
-      if (numericValue.length > 2) {
-        formattedValue = `${numericValue.slice(0, 2)}/${numericValue.slice(2)}`;
-      }
-      if (numericValue.length > 4) {
-        formattedValue = `${formattedValue.slice(0, 5)}/${numericValue.slice(4)}`;
-      }
-
-      setFormData(prev => ({ ...prev, [name]: formattedValue }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
     
-    // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -119,28 +88,14 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
   const handleFocus = (field) => setFocusedField(field);
   const handleBlur = () => setFocusedField(null);
 
-  // Helper to determine Icon styling based on state
   const getIconProps = (fieldName) => {
     const isFocused = focusedField === fieldName;
     const hasValue = formData[fieldName] && formData[fieldName].length > 0;
     const hasError = !!errors[fieldName]; 
 
-    // Priority 1: Error State (Red)
-    if (hasError) {
-        return { color: '#FF2C2C', fill: 'none' };
-    }
-
-    // Priority 2: Focus State (Teal)
-    if (isFocused) {
-      return { color: '#0096a6', fill: 'none' };
-    }
-
-    // Priority 3: Valid Value (Dark Teal)
-    if (hasValue) {
-      return { color: '#004e5a', fill: 'none' }; 
-    }
-
-    // Default (Dark Grey)
+    if (hasError) return { color: '#FF2C2C', fill: 'none' };
+    if (isFocused) return { color: '#0096a6', fill: 'none' };
+    if (hasValue) return { color: '#004e5a', fill: 'none' }; 
     return { color: '#161616', fill: 'none' };
   };
 
@@ -154,51 +109,19 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
     }
 
     if (mode === 'signup') {
-      if (!formData.name) { tempErrors.name = "Full Name is required"; isValid = false; }
-      if (!formData.username) { tempErrors.username = "Username is required"; isValid = false; }
+      if (!formData.firstName) { tempErrors.firstName = "First Name is required"; isValid = false; }
+      if (!formData.lastName) { tempErrors.lastName = "Last Name is required"; isValid = false; }
       
-      // --- DATE OF BIRTH VALIDATION ---
-      if (!formData.dob) { 
-        tempErrors.dob = "Date of Birth is required"; 
+      // Email Validation (Required + Format Check)
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+      if (!formData.email) { 
+        tempErrors.email = "Email is required"; 
         isValid = false; 
-      } else if (formData.dob.length < 10) {
-        // Check for complete format
-        tempErrors.dob = "Enter a valid date (mm/dd/yyyy)"; 
+      } else if (!emailRegex.test(formData.email)) {
+        tempErrors.email = "Email must be a valid email address";
         isValid = false;
-      } else {
-        const parts = formData.dob.split('/');
-        const month = parseInt(parts[0], 10);
-        const day = parseInt(parts[1], 10);
-        const year = parseInt(parts[2], 10);
-
-        // 1. Check strict ranges
-        if (month < 1 || month > 12) {
-          tempErrors.dob = "Invalid month";
-          isValid = false;
-        } else if (day < 1 || day > 31) {
-          tempErrors.dob = "Invalid day";
-          isValid = false;
-        } else {
-          // 2. Check strict date validity using JS Date rollover behavior
-          const dobDate = new Date(year, month - 1, day);
-          
-          if (dobDate.getMonth() !== month - 1 || dobDate.getDate() !== day) {
-             tempErrors.dob = "Invalid date provided";
-             isValid = false;
-          } else {
-            // 3. Future Check
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Reset time for accurate date comparison
-
-            if (dobDate > today) {
-              tempErrors.dob = "Date cannot be in the future";
-              isValid = false;
-            }
-          }
-        }
       }
 
-      if (!formData.email) { tempErrors.email = "Email is required"; isValid = false; }
       if (!formData.password) { tempErrors.password = "Password is required"; isValid = false; }
       if (!formData.confirmPassword) { tempErrors.confirmPassword = "Confirm Password is required"; isValid = false; }
       
@@ -207,10 +130,9 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
         isValid = false;
       }
 
-      // Password Strength Validation on Submit
       if (formData.password) {
         if (!passwordStrength.criteria.noName) {
-            tempErrors.password = "Password cannot contain part of your name";
+            tempErrors.password = "Password cannot contain your name";
             isValid = false;
         } else if (passwordStrength.score < 4) {
             tempErrors.password = "Password is not strong enough";
@@ -232,9 +154,9 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
       payload.append('password', formData.password);
 
       if (mode === 'signup') {
-        payload.append('name', formData.name);
-        payload.append('username', formData.username);
-        payload.append('dob', formData.dob);
+        // Concatenate Name for backend compatibility
+        const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+        payload.append('name', fullName);
       }
 
       const endpoint = mode === 'signup' 
@@ -251,17 +173,13 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
 
         if (response.ok) {
           if (mode === 'signup') {
+            localStorage.setItem('current_email', formData.email);
             if (onSignupSuccess) onSignupSuccess(); 
           } else {
-            // --- LOGIN SUCCESS LOGIC ---
-            console.log('Login successful. Onboarding complete?', result.onboarding_complete);
-            
-            // Check onboarding status
+            localStorage.setItem('current_email', formData.email);
             if (result.onboarding_complete === 'No') {
-              // Redirect to Onboarding Flow
               if (onSignupSuccess) onSignupSuccess(); 
             } else {
-              // Redirect to Flight Search / Dashboard
               if (onLogin) onLogin(); 
             }
           }
@@ -279,18 +197,16 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
     setMode(newMode);
     setErrors({});
     setFocusedField(null);
-    setFormData({ name: '', username: '', dob: '', email: '', password: '', confirmPassword: '' });
+    setFormData({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '' });
   };
 
-  // Helper to determine strength bar colors
   const getStrengthColor = () => {
     const { score } = passwordStrength;
-    if (score < 2) return '#FF2C2C'; // Red (Weak)
-    if (score < 4) return '#FFB800'; // Yellow (Average)
-    return '#10b981'; // Green (Strong)
+    if (score < 2) return '#FF2C2C'; 
+    if (score < 4) return '#FFB800'; 
+    return '#10b981'; 
   };
 
-  // Helper to render strength bars
   const renderStrengthBars = () => {
     const { score } = passwordStrength;
     let filledBars = 0;
@@ -362,65 +278,36 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
       <form onSubmit={handleSubmit} className="auth-form" noValidate>
         {mode === 'signup' && (
           <div className="fade-in">
-            <div className="form-section-group">
-              <h3 className="section-heading">Personal</h3>
+              
+              {/* FIRST NAME */}
               <div className="form-group">
-                <div className={`auth-input-wrapper ${errors.name ? 'error' : ''}`}>
-                  <UserRound className="auth-icon" size={22} {...getIconProps('name')} />
+                <div className={`auth-input-wrapper ${errors.firstName ? 'error' : ''}`}>
+                  <UserRound className="auth-icon" size={22} {...getIconProps('firstName')} />
                   <div className="input-stack">
-                    <span className="input-label-small" style={{ color: getIconProps('name').color }}>
-                      Full Name {!formData.name && <span className="required-star">*</span>}
+                    <span className="input-label-small" style={{ color: getIconProps('firstName').color }}>
+                      First Name {!formData.firstName && <span className="required-star">*</span>}
                     </span>
-                    <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} onFocus={() => handleFocus('name')} onBlur={handleBlur} placeholder="Set McJetson" className="auth-input stacked" />
+                    <input type="text" id="firstName" name="firstName" value={formData.firstName} onChange={handleChange} onFocus={() => handleFocus('firstName')} onBlur={handleBlur} placeholder="Set" className="auth-input stacked" />
                   </div>
                 </div>
-                {errors.name && <span className="error-msg">{errors.name}</span>}
+                {errors.firstName && <span className="error-msg">{errors.firstName}</span>}
               </div>
 
+              {/* LAST NAME */}
               <div className="form-group">
-                <div className={`auth-input-wrapper ${errors.username ? 'error' : ''}`}>
-                  <AtSign className="auth-icon" size={22} {...getIconProps('username')} />
+                <div className={`auth-input-wrapper ${errors.lastName ? 'error' : ''}`}>
+                  <UserRound className="auth-icon" size={22} {...getIconProps('lastName')} />
                   <div className="input-stack">
-                    <span className="input-label-small" style={{ color: getIconProps('username').color }}>
-                      Username {!formData.username && <span className="required-star">*</span>}
+                    <span className="input-label-small" style={{ color: getIconProps('lastName').color }}>
+                      Last Name {!formData.lastName && <span className="required-star">*</span>}
                     </span>
-                    <input type="text" id="username" name="username" value={formData.username} onChange={handleChange} onFocus={() => handleFocus('username')} onBlur={handleBlur} placeholder="bobby_mcb" className="auth-input stacked" />
+                    <input type="text" id="lastName" name="lastName" value={formData.lastName} onChange={handleChange} onFocus={() => handleFocus('lastName')} onBlur={handleBlur} placeholder="McJetson" className="auth-input stacked" />
                   </div>
                 </div>
-                {errors.username && <span className="error-msg">{errors.username}</span>}
+                {errors.lastName && <span className="error-msg">{errors.lastName}</span>}
               </div>
 
-              <div className="form-group">
-                <div className={`auth-input-wrapper ${errors.dob ? 'error' : ''}`}>
-                  <Calendar 
-                    className="auth-icon" 
-                    size={22} 
-                    {...getIconProps('dob')} 
-                  />
-                  <div className="input-stack">
-                    <span className="input-label-small" style={{ color: getIconProps('dob').color }}>
-                      Date of Birth {!formData.dob && <span className="required-star">*</span>}
-                    </span>
-                    <input 
-                      type="text" 
-                      id="dob" 
-                      name="dob" 
-                      maxLength={10} 
-                      value={formData.dob} 
-                      onChange={handleChange} 
-                      onFocus={() => handleFocus('dob')} 
-                      onBlur={handleBlur} 
-                      placeholder="mm/dd/yyyy" 
-                      className="auth-input stacked" 
-                    />
-                  </div>
-                </div>
-                {errors.dob && <span className="error-msg">{errors.dob}</span>}
-              </div>
-            </div>
-
-            <div className="form-section-group" style={{ marginTop: '0.5rem' }}>
-              <h3 className="section-heading">Account</h3>
+              {/* EMAIL */}
               <div className="form-group">
                 <div className={`auth-input-wrapper ${errors.email ? 'error' : ''}`}>
                   <Mail className="auth-icon" size={22} {...getIconProps('email')} />
@@ -429,6 +316,7 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
                 {errors.email && <span className="error-msg">{errors.email}</span>}
               </div>
 
+              {/* PASSWORD */}
               <div className="form-group">
                 <div className={`auth-input-wrapper ${errors.password ? 'error' : ''}`}>
                   <Lock className="auth-icon" size={22} {...getIconProps('password')} />
@@ -437,7 +325,6 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
                 {errors.password && <span className="error-msg">{errors.password}</span>}
 
                 {/* --- PASSWORD STRENGTH METER --- */}
-                {/* Collapses when score >= 4 */}
                 {formData.password && passwordStrength.score < 4 && (
                   <div className="strength-meter-container">
                     {renderStrengthBars()}
@@ -463,6 +350,7 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
                 )}
               </div>
 
+              {/* CONFIRM PASSWORD */}
               <div className="form-group">
                 <div className={`auth-input-wrapper ${errors.confirmPassword ? 'error' : ''}`}>
                   <Lock className="auth-icon" size={22} {...getIconProps('confirmPassword')} />
@@ -470,7 +358,6 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
                 </div>
                 {errors.confirmPassword && <span className="error-msg">{errors.confirmPassword}</span>}
               </div>
-            </div>
           </div>
         )}
 

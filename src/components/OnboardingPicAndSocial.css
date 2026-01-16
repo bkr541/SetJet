@@ -111,29 +111,13 @@
   font-weight: 600;
 }
 
-/* --- SOCIAL INPUTS & GENERAL --- */
-.socials-group {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.social-icon-img {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  margin-right: 1rem;
-  border-radius: 6px; 
-}
-
 /* Focus State for Input Wrapper */
 .auth-input-wrapper.focused {
   border-color: #0096a6;
   box-shadow: 0 0 0 1px #0096a6;
 }
 
-/* --- BIO INPUT (REVERTED to Simple Expansion) --- */
+/* --- BIO INPUT --- */
 .bio-wrapper {
   align-items: flex-start; /* Always align icon to top */
   padding-top: 0.75rem;

@@ -50,13 +50,21 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False) 
     name = db.Column(db.String(100), nullable=False, default='')
-    username = db.Column(db.String(50), unique=True, nullable=False)
+    
+    # Username is now nullable since it's added in step 2
+    username = db.Column(db.String(50), unique=True, nullable=True)
+    
     dob = db.Column(db.String(20), nullable=False, default='')
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
-    # Stores cities as "Denver,Miami,Austin"
-    cities = db.Column(db.String(200), nullable=True) # Changed to True since it might be empty initially
     
-    # ✅ NEW FIELD: Tracks if user has finished onboarding
+    # Stores cities as "Denver,Miami,Austin"
+    cities = db.Column(db.String(200), nullable=True) 
+
+    # New fields for onboarding data
+    bio = db.Column(db.String(500), nullable=True)
+    # REMOVED: instagram, facebook, x, soundcloud columns
+    
+    # Tracks if user has finished onboarding
     onboarding_complete = db.Column(db.String(5), nullable=False, default='No')
 
     def __repr__(self):
@@ -110,68 +118,94 @@ def health_check():
         'dev_mode': DEV_MODE
     })
 
-# --- SIGNUP ENDPOINT ---
+# --- SIGNUP ENDPOINT (STEP 1) ---
 @app.route('/api/signup', methods=['POST'])
 def signup():
     """
-    Creates a user, uploads photo, saves cities, and sends email.
+    Creates a user with basic info. Username, Photo, DOB added later.
     """
     # 1. Get Text Data
-    name = request.form.get('name')
-    username = request.form.get('username')
-    dob = request.form.get('dob')
+    name = request.form.get('name') # Combined First + Last Name
     email = request.form.get('email')
     password = request.form.get('password')
+    # dob = request.form.get('dob') # Removed from step 1
     
-    # Defaults to empty string since you aren't sending cities yet
-    cities = request.form.get('cities', '') 
-
     # 2. Validation
-    # Check for existing user to prevent crashes
-    if User.query.filter((User.email == email) | (User.username == username)).first():
-        return jsonify({'error': 'Email or Username already taken.'}), 400
+    if User.query.filter_by(email=email).first():
+        return jsonify({'error': 'Email already taken.'}), 400
 
-    # 3. Handle Image Upload
-    filename = 'default.jpg'
-    # Ensure upload directory exists
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    
-    # This will skip if no file is sent (which matches your current setup)
-    if 'profile_photo' in request.files:
-        file = request.files['profile_photo']
-        if file.filename != '':
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-    # 4. Save to Database
+    # 3. Save to Database
     try:
         new_user = User(
             name=name,
-            username=username,
-            dob=dob,
+            # username is None initially
+            # dob is None initially (defaults to '')
             email=email,
             password=password,
-            image_file=filename,
-            cities=cities,
-            onboarding_complete='No' # ✅ Explicitly setting default
+            onboarding_complete='No' 
         )
         db.session.add(new_user)
         db.session.commit()
     except Exception as e:
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
-    # 5. Send Email
+    # 4. Send Email
     try:
         msg = Message('Welcome to SetJet!', sender='noreply@setjet.com', recipients=[email])
-        msg.body = f"Welcome {name}! Your account has been created successfully."
+        msg.body = f"Welcome {name}! Please complete your profile in the app."
         mail.send(msg)
     except Exception as e:
         print(f"Email failed (expected if creds are empty): {e}")
-        # We don't return an error here so the user creation still succeeds
 
     return jsonify({'message': 'User created successfully!'}), 201
 
-# --- LOGIN ENDPOINT (NEW) ---
+
+# --- UPDATE PROFILE ENDPOINT (STEP 2: Onboarding) ---
+@app.route('/api/update_profile', methods=['POST'])
+def update_profile():
+    """
+    Updates user with Username, DOB, Bio, Cities, and Profile Pic.
+    Sets onboarding_complete to 'Yes'.
+    """
+    email = request.form.get('email')
+    username = request.form.get('username')
+    
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Check username uniqueness
+    existing_user_with_name = User.query.filter_by(username=username).first()
+    if existing_user_with_name and existing_user_with_name.id != user.id:
+        return jsonify({'error': 'Username already taken'}), 400
+
+    # Handle File Upload
+    if 'profile_photo' in request.files:
+        file = request.files['profile_photo']
+        if file.filename != '':
+            filename = secure_filename(f"{user.id}_{file.filename}")
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            user.image_file = filename
+
+    # Update Text Fields
+    user.username = username
+    user.dob = request.form.get('dob') # Now received here
+    user.bio = request.form.get('bio')
+    user.cities = request.form.get('home_city')
+    # REMOVED: assignments for instagram, facebook, x, soundcloud
+    
+    # Mark Complete
+    user.onboarding_complete = 'Yes'
+    
+    try:
+        db.session.commit()
+        return jsonify({'message': 'Profile updated successfully', 'onboarding_complete': 'Yes'}), 200
+    except Exception as e:
+        return jsonify({'error': f'Database update failed: {str(e)}'}), 500
+
+
+# --- LOGIN ENDPOINT ---
 @app.route('/api/login', methods=['POST'])
 def login():
     """
@@ -183,12 +217,12 @@ def login():
     # Find user by email
     user = User.query.filter_by(email=email).first()
 
-    # Verify password (Simple check for now, add hashing in production)
+    # Verify password (Simple check for now)
     if user and user.password == password:
         return jsonify({
             'message': 'Login successful',
             'username': user.username,
-            'onboarding_complete': user.onboarding_complete  # 'Yes' or 'No'
+            'onboarding_complete': user.onboarding_complete 
         }), 200
     else:
         return jsonify({'error': 'Invalid email or password'}), 401
