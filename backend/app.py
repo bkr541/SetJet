@@ -62,7 +62,7 @@ class User(db.Model):
     dob = db.Column(db.String(20), nullable=False, default='')
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
     
-    # ✅ CORRECTED: Field is now 'home_city', not 'cities'
+    # Field is 'home_city'
     home_city = db.Column(db.String(200), nullable=True) 
 
     # New fields for onboarding data
@@ -83,6 +83,16 @@ class FavoriteCities(db.Model):
 
     def __repr__(self):
         return f"FavoriteCities('User {self.user_id}', '{self.cities_list}')"
+
+# ✅ NEW TABLE: Favorite Artists
+class FavoriteArtists(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    # Stores the pipe-separated string of favorite artists
+    artists_list = db.Column(db.String(500), nullable=False)
+
+    def __repr__(self):
+        return f"FavoriteArtists('User {self.user_id}', '{self.artists_list}')"
 
 # ==========================================
 # 3. EXISTING AMADEUS & FLIGHT LOGIC
@@ -174,7 +184,7 @@ def signup():
     return jsonify({'message': 'User created successfully!'}), 201
 
 
-# --- GET USER INFO ENDPOINT (NEW) ---
+# --- GET USER INFO ENDPOINT ---
 @app.route('/api/get_user_info', methods=['POST'])
 def get_user_info():
     """
@@ -193,7 +203,7 @@ def get_user_info():
         'username': user.username,
         'dob': user.dob,
         'bio': user.bio,
-        'home_city': user.home_city, # ✅ Corrected: Uses home_city
+        'home_city': user.home_city,
         'image_file': user.image_file
     }), 200
 
@@ -230,7 +240,7 @@ def update_profile():
     user.username = username
     user.dob = request.form.get('dob')
     user.bio = request.form.get('bio')
-    user.home_city = request.form.get('home_city') # ✅ Corrected: Saves to home_city
+    user.home_city = request.form.get('home_city')
     
     try:
         db.session.commit()
@@ -243,11 +253,12 @@ def update_profile():
 @app.route('/api/save_favorite_cities', methods=['POST'])
 def save_favorite_cities():
     """
-    Saves the user's favorite cities to the new table and marks onboarding as complete.
+    Saves the user's favorite cities.
+    Does NOT complete onboarding yet.
     """
     data = request.get_json()
     email = data.get('email')
-    cities_str = data.get('cities')  # Expecting pipe-separated string: "City1|City2"
+    cities_str = data.get('cities')  # Expecting pipe-separated string
 
     if not email:
         return jsonify({'error': 'Email required'}), 400
@@ -266,11 +277,48 @@ def save_favorite_cities():
             new_fav = FavoriteCities(user_id=user.id, cities_list=cities_str)
             db.session.add(new_fav)
         
-        # Mark Onboarding as Complete NOW
+        # ✅ REMOVED: Do NOT mark complete here. Step 3 (Artists) will do it.
+        # user.onboarding_complete = 'Yes'
+        
+        db.session.commit()
+        return jsonify({'message': 'Favorite cities saved', 'onboarding_complete': 'No'}), 200
+
+    except Exception as e:
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
+
+
+# --- SAVE FAVORITE ARTISTS ENDPOINT (STEP 4: Onboarding Part 3) ---
+@app.route('/api/save_favorite_artists', methods=['POST'])
+def save_favorite_artists():
+    """
+    Saves the user's favorite artists AND marks onboarding as complete.
+    """
+    data = request.get_json()
+    email = data.get('email')
+    artists_str = data.get('artists')  # Expecting pipe-separated string
+
+    if not email:
+        return jsonify({'error': 'Email required'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    try:
+        # Check if entry exists, update if so, else create new
+        fav_entry = FavoriteArtists.query.filter_by(user_id=user.id).first()
+        
+        if fav_entry:
+            fav_entry.artists_list = artists_str
+        else:
+            new_fav = FavoriteArtists(user_id=user.id, artists_list=artists_str)
+            db.session.add(new_fav)
+        
+        # ✅ Mark Onboarding as Complete NOW
         user.onboarding_complete = 'Yes'
         
         db.session.commit()
-        return jsonify({'message': 'Favorite cities saved', 'onboarding_complete': 'Yes'}), 200
+        return jsonify({'message': 'Favorite artists saved', 'onboarding_complete': 'Yes'}), 200
 
     except Exception as e:
         return jsonify({'error': f'Database error: {str(e)}'}), 500

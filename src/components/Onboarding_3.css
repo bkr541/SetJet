@@ -1,4 +1,4 @@
-/* Reuse basic container styles from previous component for consistency */
+/* Reuse basic container styles */
 .login-container {
   background: #ffffff;
   border-radius: 24px;
@@ -8,7 +8,7 @@
   max-width: 450px;
   width: 100%;
   font-family: 'Nunito', sans-serif;
-  min-height: 600px; /* Ensure consistent height */
+  min-height: 640px; /* Ensure consistent height */
 }
 
 /* --- STEPPER --- */
@@ -63,8 +63,8 @@
 /* Completed Step Styling */
 .step-item.completed .step-circle {
   border-color: #004e5a;
-  background-color: #004e5a; /* Changed from white to teal */
-  color: #ffffff; /* Changed from teal to white */
+  background-color: #004e5a;
+  color: #ffffff;
 }
 
 /* Connecting Lines */
@@ -178,7 +178,7 @@
 }
 
 /* --- DROPDOWN --- */
-.city-dropdown {
+.artist-dropdown {
   position: absolute;
   top: 100%;
   left: 0;
@@ -194,7 +194,7 @@
   animation: slideDown 0.15s ease-out;
 }
 
-.city-dropdown-item {
+.artist-dropdown-item {
   padding: 0.75rem 1rem;
   cursor: pointer;
   border-bottom: 1px solid #f1f5f9;
@@ -202,17 +202,17 @@
   align-items: center;
 }
 
-.city-dropdown-item:last-child { border-bottom: none; }
-.city-dropdown-item:hover { background-color: #f8fafc; }
+.artist-dropdown-item:last-child { border-bottom: none; }
+.artist-dropdown-item:hover { background-color: #f8fafc; }
 
-.city-main {
+.artist-main {
   font-weight: 700;
   color: #1e293b;
   font-size: 0.95rem;
 }
 
-/* --- SELECTED CITIES CHIPS --- */
-.selected-cities-group {
+/* --- SELECTED ARTISTS CHIPS --- */
+.selected-artists-group {
   margin-top: 1.5rem;
 }
 
@@ -220,7 +220,7 @@
   font-size: 0.85rem;
   color: #64748b;
   font-weight: 700;
-  margin-bottom: 0.35rem; /* Reduced from 0.75rem */
+  margin-bottom: 0.35rem; 
   display: block;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -232,7 +232,7 @@
   gap: 0.75rem;
 }
 
-.city-chip {
+.artist-chip {
   display: flex;
   align-items: center;
   background-color: #f0f9fa; /* Light teal tint */
@@ -243,7 +243,7 @@
   animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.city-chip:hover {
+.artist-chip:hover {
   border-color: #0096a6;
   background-color: #e6f7f9;
 }
@@ -377,6 +377,6 @@
   }
   
   .auth-form {
-    flex: 1; /* Push button to bottom if desired */
+    flex: 1;
   }
 }

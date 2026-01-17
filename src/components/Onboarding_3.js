@@ -2,83 +2,76 @@ import React, { useState, useMemo } from 'react';
 import { 
   ArrowRight,
   ArrowLeft,
-  MapPin,
+  Music, // Changed from MapPin
   X,
   Search,
   Check
 } from 'lucide-react';
-import './Onboarding_2.css';
-// Ensure this path matches your project structure
-import cityData from '../data/FrontierDestinationInfo_numeric.json';
+import './Onboarding_3.css';
 
-function Onboarding_2({ onNext, onBack, homeCity }) {
+// Dummy Data for Artists (Placeholder for future API)
+const DUMMY_ARTISTS = [
+  { id: 1, name: 'Illenium', genre: 'Melodic Bass' },
+  { id: 2, name: 'Excision', genre: 'Dubstep' },
+  { id: 3, name: 'Seven Lions', genre: 'Melodic Dubstep' },
+  { id: 4, name: 'Odesza', genre: 'Electronic' },
+  { id: 5, name: 'Griz', genre: 'Funk' },
+  { id: 6, name: 'Subtronics', genre: 'Dubstep' },
+  { id: 7, name: 'Slander', genre: 'Trap/Bass' },
+  { id: 8, name: 'Above & Beyond', genre: 'Trance' },
+  { id: 9, name: 'Porter Robinson', genre: 'Electronic' },
+  { id: 10, name: 'Martin Garrix', genre: 'House' },
+  { id: 11, name: 'Zeds Dead', genre: 'Dubstep/House' },
+  { id: 12, name: 'Flume', genre: 'Future Bass' },
+  { id: 13, name: 'Skrillex', genre: 'Dubstep' },
+  { id: 14, name: 'Rezz', genre: 'Midtempo' },
+  { id: 15, name: 'RL Grime', genre: 'Trap' }
+];
+
+function Onboarding_3({ onNext, onBack }) {
   const [inputValue, setInputValue] = useState('');
-  const [selectedCities, setSelectedCities] = useState([]);
+  const [selectedArtists, setSelectedArtists] = useState([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   const [error, setError] = useState(null);
 
-  // Maximum number of selectable cities
+  // Maximum number of selectable artists
   const MAX_SELECTION = 5;
 
-  // Filter Logic (Distinct City, State)
-  const filteredCities = useMemo(() => {
-    if (!inputValue || inputValue.length < 2) return [];
+  // Filter Logic
+  const filteredArtists = useMemo(() => {
+    if (!inputValue || inputValue.length < 1) return [];
     
     const lowerInput = inputValue.toLowerCase();
-    const uniqueCities = new Set();
-    const distinctResults = [];
-
-    // Filter out cities already selected
-    const selectedLabels = new Set(selectedCities.map(c => c.displayLabel));
-
-    for (const item of cityData) {
-      if (item.City && item.City.toLowerCase().includes(lowerInput)) {
-        const locationStr = item['State Abbreviation'] 
-          ? `${item.City}, ${item['State Abbreviation']}`
-          : `${item.City}, ${item.Country}`;
-
-        // Add if unique and not already selected
-        if (!uniqueCities.has(locationStr) && !selectedLabels.has(locationStr)) {
-          uniqueCities.add(locationStr);
-          distinctResults.push({
-            ...item,
-            displayLabel: locationStr
-          });
-        }
-      }
-    }
     
-    return distinctResults;
-  }, [inputValue, selectedCities]);
+    // Filter out artists already selected
+    const selectedNames = new Set(selectedArtists.map(a => a.name));
 
-  const handleAddCity = (cityRecord) => {
-    setError(null); // Clear previous errors
+    return DUMMY_ARTISTS.filter(artist => 
+      artist.name.toLowerCase().includes(lowerInput) && 
+      !selectedNames.has(artist.name)
+    );
+  }, [inputValue, selectedArtists]);
 
-    // Check if the city is the user's Home City
-    if (homeCity && cityRecord.displayLabel.toLowerCase() === homeCity.toLowerCase()) {
-        setError("A Favorite City cannot be your Home City");
-        setInputValue('');
-        setIsSearchFocused(false);
-        return;
-    }
+  const handleAddArtist = (artistRecord) => {
+    setError(null);
 
-    if (selectedCities.length < MAX_SELECTION) {
-      setSelectedCities(prev => [...prev, cityRecord]);
+    if (selectedArtists.length < MAX_SELECTION) {
+      setSelectedArtists(prev => [...prev, artistRecord]);
       setInputValue(''); // Clear input after selection
       setIsSearchFocused(false);
     }
   };
 
-  const handleRemoveCity = (cityToRemove) => {
-    setSelectedCities(prev => prev.filter(city => city.displayLabel !== cityToRemove.displayLabel));
+  const handleRemoveArtist = (artistToRemove) => {
+    setSelectedArtists(prev => prev.filter(artist => artist.name !== artistToRemove.name));
   };
 
   const handleFocus = (field) => setFocusedField(field);
   
   const handleBlur = (field) => {
     setFocusedField(null);
-    if (field === 'favoriteCities') {
+    if (field === 'favoriteArtists') {
       // Delay closing to allow click event on dropdown item
       setTimeout(() => setIsSearchFocused(false), 200);
     }
@@ -89,31 +82,37 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
     
     const email = localStorage.getItem('current_email');
     
-    // Create pipe-separated string of cities for the database
-    const citiesString = selectedCities.map(c => c.displayLabel).join('|');
+    // Create pipe-separated string of artists
+    const artistsString = selectedArtists.map(a => a.name).join('|');
 
     try {
-        const response = await fetch('http://127.0.0.1:5001/api/save_favorite_cities', {
+        // Placeholder endpoint for saving artists
+        const response = await fetch('http://127.0.0.1:5001/api/save_favorite_artists', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, cities: citiesString })
+            body: JSON.stringify({ email, artists: artistsString })
         });
         
         if (response.ok) {
             if (onNext) {
-                onNext(selectedCities);
+                onNext(selectedArtists);
             }
         } else {
+            // For now, since the API might not exist yet, you might want to force success 
+            // if developing locally without the backend update:
+            // if (onNext) onNext(selectedArtists);
+            
             const data = await response.json();
-            alert(data.error || "Failed to save cities.");
+            alert(data.error || "Failed to save artists.");
         }
     } catch (error) {
-        console.error("Error saving favorite cities:", error);
+        console.error("Error saving favorite artists:", error);
+        // Fallback for development if API isn't ready
         alert("Server error. Please try again.");
     }
   };
 
-  const isMaxReached = selectedCities.length >= MAX_SELECTION;
+  const isMaxReached = selectedArtists.length >= MAX_SELECTION;
 
   const getIconProps = (fieldName) => {
     const isFocused = focusedField === fieldName;
@@ -123,25 +122,34 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
   };
 
   return (
-    <div className="login-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '600px' }}>
+    <div className="login-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '640px' }}>
       
       {/* STEPPER PROGRESS BAR */}
       <div className="stepper-container">
+        {/* Step 1 Complete */}
         <div className="step-item completed">
           <div className="step-circle">
             <Check size={18} strokeWidth={3} />
           </div>
         </div>
         <div className="step-line filled"></div>
+        
+        {/* Step 2 Complete */}
+        <div className="step-item completed">
+          <div className="step-circle">
+            <Check size={18} strokeWidth={3} />
+          </div>
+        </div>
+        <div className="step-line filled"></div>
+        
+        {/* Step 3 Active (Music) */}
         <div className="step-item active">
-          <div className="step-circle">2</div>
-          <span className="step-label">Flights</span>
-        </div>
-        <div className="step-line"></div>
-        <div className="step-item">
           <div className="step-circle">3</div>
+          <span className="step-label">Music</span>
         </div>
         <div className="step-line"></div>
+        
+        {/* Step 4 Pending */}
         <div className="step-item">
           <div className="step-circle">4</div>
         </div>
@@ -149,10 +157,10 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
       
       <div className="auth-header">
         <h2 className="auth-title">
-          Where do you fly?
+          Who do you listen to?
         </h2>
         <p className="auth-subtitle">
-            Select up to 5 favorite cities to help us personalize your deals.
+            Select up to 5 favorite artists to help us find your perfect set.
         </p>
       </div>
 
@@ -164,30 +172,30 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
         
         <div className="fade-in" style={{ position: 'relative' }}>
           
-          {/* FAVORITE CITIES INPUT */}
+          {/* FAVORITE ARTISTS INPUT */}
           <div className="form-group" style={{ position: 'relative', zIndex: 50 }}>
-            <div className={`auth-input-wrapper ${focusedField === 'favoriteCities' ? 'focused' : ''} ${isMaxReached ? 'disabled' : ''}`}>
-              <Search className="auth-icon" size={22} {...getIconProps('favoriteCities')} />
+            <div className={`auth-input-wrapper ${focusedField === 'favoriteArtists' ? 'focused' : ''} ${isMaxReached ? 'disabled' : ''}`}>
+              <Search className="auth-icon" size={22} {...getIconProps('favoriteArtists')} />
               <div className="input-stack">
                 <span 
                   className="input-label-small"
-                  style={{ color: isMaxReached ? '#94a3b8' : getIconProps('favoriteCities').color }}
+                  style={{ color: isMaxReached ? '#94a3b8' : getIconProps('favoriteArtists').color }}
                 >
-                  Favorite Cities {isMaxReached && "(Limit Reached)"}
+                  Favorite Artists {isMaxReached && "(Limit Reached)"}
                 </span>
                 <input
                   type="text"
-                  name="favoriteCities"
+                  name="favoriteArtists"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onFocus={() => {
                     if (!isMaxReached) {
-                      handleFocus('favoriteCities');
+                      handleFocus('favoriteArtists');
                       setIsSearchFocused(true);
                     }
                   }}
-                  onBlur={() => handleBlur('favoriteCities')}
-                  placeholder={isMaxReached ? "Max 5 cities selected" : "Search cities..."}
+                  onBlur={() => handleBlur('favoriteArtists')}
+                  placeholder={isMaxReached ? "Max 5 artists selected" : "Search artists..."}
                   className="auth-input stacked"
                   autoComplete="off"
                   disabled={isMaxReached}
@@ -203,17 +211,17 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
             )}
 
             {/* FLOATING DROPDOWN */}
-            {isSearchFocused && filteredCities.length > 0 && (
-              <div className="city-dropdown">
-                {filteredCities.map((city, index) => (
+            {isSearchFocused && filteredArtists.length > 0 && (
+              <div className="artist-dropdown">
+                {filteredArtists.map((artist, index) => (
                   <div 
                     key={index} 
-                    className="city-dropdown-item"
-                    onMouseDown={() => handleAddCity(city)}
+                    className="artist-dropdown-item"
+                    onMouseDown={() => handleAddArtist(artist)}
                   >
-                    <MapPin size={16} className="city-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
-                    <div className="city-main">
-                      {city.displayLabel}
+                    <Music size={16} className="artist-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
+                    <div className="artist-main">
+                      {artist.name}
                     </div>
                   </div>
                 ))}
@@ -221,18 +229,18 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
             )}
           </div>
 
-          {/* CURRENT SELECTED CITIES GROUP */}
-          {selectedCities.length > 0 && (
-            <div className="selected-cities-group fade-in">
-              <label className="section-label">Current Selected Cities</label>
+          {/* CURRENT SELECTED ARTISTS GROUP */}
+          {selectedArtists.length > 0 && (
+            <div className="selected-artists-group fade-in">
+              <label className="section-label">Current Selected Artists</label>
               <div className="chips-container">
-                {selectedCities.map((city, index) => (
-                  <div key={index} className="city-chip">
-                    <span className="chip-text">{city.displayLabel}</span>
+                {selectedArtists.map((artist, index) => (
+                  <div key={index} className="artist-chip">
+                    <span className="chip-text">{artist.name}</span>
                     <button 
                       type="button" 
                       className="chip-remove-btn"
-                      onClick={() => handleRemoveCity(city)}
+                      onClick={() => handleRemoveArtist(artist)}
                     >
                       <X size={14} />
                     </button>
@@ -272,4 +280,4 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
   );
 }
 
-export default Onboarding_2;
+export default Onboarding_3;

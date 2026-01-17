@@ -11,6 +11,7 @@ import {
 import './Onboarding_1.css';
 import cityData from '../data/FrontierDestinationInfo_numeric.json';
 import Onboarding_2 from './Onboarding_2'; 
+import Onboarding_3 from './Onboarding_3'; // ✅ ADDED
 
 // Carousel Assets
 const MODAL_IMAGES = [
@@ -50,7 +51,7 @@ function Onboarding_1({ onComplete }) {
   const [isModalClosing, setIsModalClosing] = useState(false);
   const [modalStep, setModalStep] = useState(0); // 0 to 4
   
-  // State for Flow Navigation (1 = Pic/Bio, 2 = Flights)
+  // State for Flow Navigation (1 = Pic/Bio, 2 = Flights, 3 = Music)
   const [step, setStep] = useState(1);
   const [firstName, setFirstName] = useState('');
 
@@ -99,7 +100,7 @@ function Onboarding_1({ onComplete }) {
             setFirstName(data.first_name);
           }
           
-          // ✅ UPDATED: Populate all fields if data exists
+          // Populate all fields if data exists
           setFormData(prev => ({
             ...prev,
             username: data.username || '',
@@ -278,7 +279,6 @@ function Onboarding_1({ onComplete }) {
         }
     }
 
-    // ✅ ADDED: Home City Validation
     if (!formData.homeAirport) {
         tempErrors.homeAirport = "Home City is required";
         isValid = false;
@@ -331,20 +331,29 @@ function Onboarding_1({ onComplete }) {
     }
   };
 
-  // If we have advanced to Step 2, render Onboarding_2
+  // ✅ STEP 2: Flights
   if (step === 2) {
     return (
       <Onboarding_2 
-        onNext={onComplete} 
+        onNext={() => setStep(3)} // Move to Step 3 instead of completing
         onBack={() => setStep(1)} 
         homeCity={formData.homeAirport} 
       />
     );
   }
 
+  // ✅ STEP 3: Music (Complete on success)
+  if (step === 3) {
+    return (
+      <Onboarding_3
+        onNext={onComplete} 
+        onBack={() => setStep(2)}
+      />
+    );
+  }
+
   // Otherwise render Step 1 (Pic and Socials/Bio)
   return (
-    // ✅ CHANGED: Increased minHeight to 640px for consistency
     <div className="login-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '640px' }}>
       
       {/* STEPPER PROGRESS BAR */}
@@ -490,7 +499,6 @@ function Onboarding_1({ onComplete }) {
 
           {/* HOME CITY SEARCH */}
           <div className="form-group" style={{ position: 'relative' }}>
-            {/* ✅ UPDATED: Added error class logic */}
             <div className={`auth-input-wrapper ${errors.homeAirport ? 'error' : ''} ${focusedField === 'homeAirport' ? 'focused' : ''}`}>
               <MapPin className="auth-icon" size={22} {...getIconProps('homeAirport')} />
               <div className="input-stack">
@@ -518,7 +526,6 @@ function Onboarding_1({ onComplete }) {
               </div>
             </div>
             
-            {/* ✅ ADDED: Error Message */}
             {errors.homeAirport && (
                 <span className="error-msg" style={{color: '#FF2C2C', fontSize: '0.8rem', fontWeight: 600, marginLeft: '0.5rem'}}>
                     {errors.homeAirport}
@@ -562,20 +569,16 @@ function Onboarding_1({ onComplete }) {
         <div className={`welcome-modal-overlay ${isModalClosing ? 'closing' : ''}`}>
           <div 
             className={`welcome-modal-content ${isModalClosing ? 'closing' : ''}`}
-            // Dynamically set image based on step
             style={{ backgroundImage: `url('${MODAL_IMAGES[modalStep]}')`, transition: 'background-image 0.4s ease-in-out' }}
           >
-            {/* Gradient Overlay for Text Readability */}
             <div className="welcome-modal-gradient">
               <div className="welcome-text-container">
                 
-                {/* Modal Title/Subtitle */}
                 <h2 className="welcome-title">{MODAL_CONTENT[modalStep].title}</h2>
                 <p className="welcome-subtitle">
                   {MODAL_CONTENT[modalStep].subtitle}
                 </p>
 
-                {/* Dot Indicators */}
                 <div style={{ 
                   display: 'flex', 
                   justifyContent: 'center', 
@@ -596,7 +599,6 @@ function Onboarding_1({ onComplete }) {
                   ))}
                 </div>
 
-                {/* Button Group */}
                 <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
                   
                   {modalStep > 0 && (
@@ -623,7 +625,6 @@ function Onboarding_1({ onComplete }) {
                     </button>
                   )}
 
-                  {/* Primary Button */}
                   <button 
                     className="welcome-button"
                     onClick={handleModalPrimary}
