@@ -121,6 +121,7 @@ def health_check():
 # --- SIGNUP ENDPOINT (STEP 1) ---
 @app.route('/api/signup', methods=['POST'])
 def signup():
+    print("DB:", db.engine.url)
     """
     Creates a user with basic info. Username, Photo, DOB added later.
     """
@@ -208,6 +209,7 @@ def update_profile():
 # --- LOGIN ENDPOINT ---
 @app.route('/api/login', methods=['POST'])
 def login():
+    print("DB:", db.engine.url)
     """
     Verifies user and returns onboarding status.
     """

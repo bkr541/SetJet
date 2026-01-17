@@ -3,7 +3,7 @@ import './App.css';
 import SearchForm from './components/SearchForm';
 import FlightResults from './components/FlightResults';
 import LoginSignup from './components/LoginSignup';
-import OnboardingPicAndSocial from './components/OnboardingPicAndSocial'; // ✅ Updated Import
+import Onboarding_1 from './components/Onboarding_1'; // ✅ Updated Import
 import { searchFlightsStreaming, clearLocalCache, planTrip } from './services/api';
 
 function App() {
@@ -162,14 +162,14 @@ function App() {
     );
   }
 
-  // ✅ SCREEN 2: ONBOARDING (Now OnboardingPicAndSocial)
+  // ✅ SCREEN 2: ONBOARDING (Now Onboarding_1)
   if (showOnboarding) {
     return (
       <div className="App">
         <main className="main">
           <div className="container">
             {/* Pass handler to finish onboarding */}
-            <OnboardingPicAndSocial onComplete={handleOnboardingComplete} />
+            <Onboarding_1 onComplete={handleOnboardingComplete} />
           </div>
         </main>
       </div>

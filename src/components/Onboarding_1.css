@@ -203,7 +203,11 @@
   align-items: center;
   padding: 1rem;
   backdrop-filter: blur(4px);
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.welcome-modal-overlay.closing {
+  animation: fadeOut 0.3s forwards;
 }
 
 .welcome-modal-content {
@@ -225,6 +229,10 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end; /* Push content to bottom */
+}
+
+.welcome-modal-content.closing {
+  animation: scaleDown 0.3s forwards;
 }
 
 /* Gradient overlay to make text readable on any image */
@@ -292,4 +300,14 @@
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes scaleDown {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.95); opacity: 0; }
 }

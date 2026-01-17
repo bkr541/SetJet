@@ -5,14 +5,49 @@ import {
   MapPin,
   FileText,
   AtSign,
-  Calendar 
+  Calendar,
+  ChevronLeft 
 } from 'lucide-react';
-import './OnboardingPicAndSocial.css';
+import './Onboarding_1.css';
 import cityData from '../data/FrontierDestinationInfo_numeric.json';
+import Onboarding_2 from './Onboarding_2'; 
 
-function OnboardingPicAndSocial({ onComplete }) {
+// Carousel Assets
+const MODAL_IMAGES = [
+  "/artifacts/onboardingmodal1.png",
+  "/artifacts/onboardingmodal2.png",
+  "/artifacts/onboardingmodal3.png",
+  "/artifacts/onboardingmodal4.png"
+];
+
+const MODAL_CONTENT = [
+  {
+    title: "Welcome to SetJet!",
+    subtitle: "We're excited to help you find the best flights. Let's finish setting up your profile."
+  },
+  {
+    title: "Discover New Places",
+    subtitle: "Explore destinations you've never seen before with our curated flight lists."
+  },
+  {
+    title: "Track Your Adventures",
+    subtitle: "Keep a log of your favorite cities and get notified when prices drop."
+  },
+  {
+    title: "Ready for Takeoff?",
+    subtitle: "Your journey begins now. Let's get your profile ready to fly."
+  }
+];
+
+function Onboarding_1({ onComplete }) {
   // State for the Welcome Modal
   const [showModal, setShowModal] = useState(true);
+  const [isModalClosing, setIsModalClosing] = useState(false);
+  const [modalStep, setModalStep] = useState(0); // 0 to 3
+  
+  // State for Flow Navigation (1 = Pic/Bio, 2 = Flights)
+  const [step, setStep] = useState(1);
+  const [firstName, setFirstName] = useState('');
 
   const [formData, setFormData] = useState({
     username: '',
@@ -39,6 +74,58 @@ function OnboardingPicAndSocial({ onComplete }) {
       document.body.style.overflow = 'unset';
     };
   }, [showModal]);
+
+  // --- CHANGED: Fetch First Name from DB using Email ---
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const email = localStorage.getItem('current_email');
+      if (!email) return;
+
+      try {
+        // NOTE: Adjust this endpoint to match your actual backend route for getting user info
+        const response = await fetch('http://127.0.0.1:5001/api/get_user_info', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Assuming the backend returns { first_name: "Name", ... }
+          if (data.first_name) {
+            setFirstName(data.first_name);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  // Handle Modal Primary Button (Next or Close)
+  const handleModalPrimary = () => {
+    if (modalStep < MODAL_IMAGES.length - 1) {
+      // Advance to next image
+      setModalStep(prev => prev + 1);
+    } else {
+      // Close modal
+      setIsModalClosing(true);
+      setTimeout(() => {
+        setShowModal(false);
+        setIsModalClosing(false);
+        setModalStep(0); // Reset for next time
+      }, 300);
+    }
+  };
+
+  // Handle Modal Back Button
+  const handleModalBack = () => {
+    if (modalStep > 0) {
+      setModalStep(prev => prev - 1);
+    }
+  };
 
   const filteredHomeAirports = useMemo(() => {
     if (!formData.homeAirport || formData.homeAirport.length < 2) return [];
@@ -215,7 +302,7 @@ function OnboardingPicAndSocial({ onComplete }) {
       const result = await response.json();
 
       if (response.ok) {
-        if (onComplete) onComplete(); 
+        setStep(2);
       } else {
         alert(result.error || 'Failed to update profile.');
       }
@@ -225,6 +312,12 @@ function OnboardingPicAndSocial({ onComplete }) {
     }
   };
 
+  // If we have advanced to Step 2, render Onboarding_2
+  if (step === 2) {
+    return <Onboarding_2 onNext={onComplete} />;
+  }
+
+  // Otherwise render Step 1 (Pic and Socials/Bio)
   return (
     <div className="login-container">
       
@@ -250,7 +343,7 @@ function OnboardingPicAndSocial({ onComplete }) {
       
       <div className="auth-header">
         <h2 className="auth-title">
-          Add Your Style
+          {firstName ? `${firstName}'s` : "Add Your"} Style
         </h2>
         <p className="auth-subtitle">
             Upload a profile picture and tell us about yourself.
@@ -286,56 +379,60 @@ function OnboardingPicAndSocial({ onComplete }) {
             </p>
           </div>
 
-          {/* USERNAME INPUT */}
-          <div className="form-group">
-            <div className={`auth-input-wrapper ${errors.username ? 'error' : ''} ${focusedField === 'username' ? 'focused' : ''}`}>
-              <AtSign className="auth-icon" size={22} {...getIconProps('username')} />
-              <div className="input-stack">
-                <span 
-                  className="input-label-small"
-                  style={{ color: getIconProps('username').color }}
-                >
-                  Username
-                  {!formData.username && <span style={{ color: '#FF2C2C', marginLeft: '3px', fontWeight: '700' }}>*</span>}
-                </span>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  onFocus={() => handleFocus('username')}
-                  onBlur={() => handleBlur('username')}
-                  placeholder="bobby_mcb"
-                  className="auth-input stacked"
-                />
-              </div>
-            </div>
-            {errors.username && <span className="error-msg" style={{color: '#FF2C2C', fontSize: '0.8rem', fontWeight: 600, marginLeft: '0.5rem'}}>{errors.username}</span>}
-          </div>
-
-          {/* DOB INPUT */}
-          <div className="form-group">
-            <div className={`auth-input-wrapper ${errors.dob ? 'error' : ''} ${focusedField === 'dob' ? 'focused' : ''}`}>
-                <Calendar className="auth-icon" size={22} {...getIconProps('dob')} />
+          {/* --- CHANGED: Flex Container for Side-by-Side Inputs --- */}
+          <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
+            
+            {/* USERNAME INPUT */}
+            <div className="form-group" style={{ flex: 1 }}>
+                <div className={`auth-input-wrapper ${errors.username ? 'error' : ''} ${focusedField === 'username' ? 'focused' : ''}`}>
+                <AtSign className="auth-icon" size={22} {...getIconProps('username')} />
                 <div className="input-stack">
-                <span className="input-label-small" style={{ color: getIconProps('dob').color }}>
-                    Date of Birth {!formData.dob && <span style={{ color: '#FF2C2C', marginLeft: '3px', fontWeight: '700' }}>*</span>}
-                </span>
-                <input 
-                    type="text" 
-                    name="dob" 
-                    maxLength={10} 
-                    value={formData.dob} 
-                    onChange={handleChange} 
-                    onFocus={() => handleFocus('dob')} 
-                    onBlur={() => handleBlur('dob')} 
-                    placeholder="mm/dd/yyyy" 
-                    className="auth-input stacked" 
-                />
+                    <span 
+                    className="input-label-small"
+                    style={{ color: getIconProps('username').color }}
+                    >
+                    Username
+                    {!formData.username && <span style={{ color: '#FF2C2C', marginLeft: '3px', fontWeight: '700' }}>*</span>}
+                    </span>
+                    <input
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    onFocus={() => handleFocus('username')}
+                    onBlur={() => handleBlur('username')}
+                    placeholder="bobby_mcb"
+                    className="auth-input stacked"
+                    />
                 </div>
+                </div>
+                {errors.username && <span className="error-msg" style={{color: '#FF2C2C', fontSize: '0.8rem', fontWeight: 600, marginLeft: '0.5rem'}}>{errors.username}</span>}
             </div>
-            {errors.dob && <span className="error-msg" style={{color: '#FF2C2C', fontSize: '0.8rem', fontWeight: 600, marginLeft: '0.5rem'}}>{errors.dob}</span>}
+
+            {/* DOB INPUT */}
+            <div className="form-group" style={{ flex: 1 }}>
+                <div className={`auth-input-wrapper ${errors.dob ? 'error' : ''} ${focusedField === 'dob' ? 'focused' : ''}`}>
+                    <Calendar className="auth-icon" size={22} {...getIconProps('dob')} />
+                    <div className="input-stack">
+                    <span className="input-label-small" style={{ color: getIconProps('dob').color }}>
+                        Date of Birth {!formData.dob && <span style={{ color: '#FF2C2C', marginLeft: '3px', fontWeight: '700' }}>*</span>}
+                    </span>
+                    <input 
+                        type="text" 
+                        name="dob" 
+                        maxLength={10} 
+                        value={formData.dob} 
+                        onChange={handleChange} 
+                        onFocus={() => handleFocus('dob')} 
+                        onBlur={() => handleBlur('dob')} 
+                        placeholder="mm/dd/yyyy" 
+                        className="auth-input stacked" 
+                    />
+                    </div>
+                </div>
+                {errors.dob && <span className="error-msg" style={{color: '#FF2C2C', fontSize: '0.8rem', fontWeight: 600, marginLeft: '0.5rem'}}>{errors.dob}</span>}
             </div>
+          </div>
 
           {/* BIO INPUT */}
           <div className="form-group">
@@ -421,26 +518,83 @@ function OnboardingPicAndSocial({ onComplete }) {
         </button>
       </form>
 
-      {/* --- WELCOME MODAL --- */}
+      {/* --- WELCOME MODAL (CAROUSEL) --- */}
       {showModal && (
-        <div className="welcome-modal-overlay">
+        <div className={`welcome-modal-overlay ${isModalClosing ? 'closing' : ''}`}>
           <div 
-            className="welcome-modal-content"
-            style={{ backgroundImage: "url('/artifacts/onboardingmodal1.png')" }}
+            className={`welcome-modal-content ${isModalClosing ? 'closing' : ''}`}
+            // Dynamically set image based on step
+            style={{ backgroundImage: `url('${MODAL_IMAGES[modalStep]}')`, transition: 'background-image 0.4s ease-in-out' }}
           >
             {/* Gradient Overlay for Text Readability */}
             <div className="welcome-modal-gradient">
               <div className="welcome-text-container">
-                <h2 className="welcome-title">Welcome to SetJet!</h2>
+                
+                {/* Modal Title/Subtitle */}
+                <h2 className="welcome-title">{MODAL_CONTENT[modalStep].title}</h2>
                 <p className="welcome-subtitle">
-                  We're excited to help you find the best flights. Let's finish setting up your profile.
+                  {MODAL_CONTENT[modalStep].subtitle}
                 </p>
-                <button 
-                  className="welcome-button"
-                  onClick={() => setShowModal(false)}
-                >
-                  Continue
-                </button>
+
+                {/* Dot Indicators */}
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  gap: '8px', 
+                  marginBottom: '1.5rem' 
+                }}>
+                  {MODAL_IMAGES.map((_, idx) => (
+                    <div 
+                      key={idx}
+                      style={{
+                        width: idx === modalStep ? '24px' : '8px',
+                        height: '8px',
+                        borderRadius: '4px',
+                        backgroundColor: idx === modalStep ? '#ffffff' : 'rgba(255,255,255,0.4)',
+                        transition: 'all 0.3s ease'
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Button Group */}
+                <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
+                  
+                  {/* Back Button (Only visible if not on first step) */}
+                  {modalStep > 0 && (
+                    <button
+                      onClick={handleModalBack}
+                      style={{
+                        background: 'rgba(255,255,255,0.2)',
+                        color: 'white',
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        padding: '0 1.25rem',
+                        borderRadius: '50px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: '700',
+                        fontSize: '1rem',
+                        backdropFilter: 'blur(5px)',
+                        transition: 'background 0.2s',
+                        width: 'auto'
+                      }}
+                    >
+                      <ChevronLeft size={24} />
+                    </button>
+                  )}
+
+                  {/* Primary Button */}
+                  <button 
+                    className="welcome-button"
+                    onClick={handleModalPrimary}
+                    style={{ flex: 1 }}
+                  >
+                    {modalStep === MODAL_IMAGES.length - 1 ? "Let's Start" : "Continue"}
+                  </button>
+                </div>
+
               </div>
             </div>
           </div>
@@ -451,4 +605,4 @@ function OnboardingPicAndSocial({ onComplete }) {
   );
 }
 
-export default OnboardingPicAndSocial;
+export default Onboarding_1;
