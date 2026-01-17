@@ -23,8 +23,8 @@ const MODAL_IMAGES = [
 
 const MODAL_CONTENT = [
   {
-    title: "Welcome to SetJet!",
-    subtitle: "We're excited to help you find the best flights. Let's finish setting up your profile."
+    title: "Welcome to SetJet",
+    subtitle: "SetJet is made to simplify doing one thing - find a set you can't miss, then get you there."
   },
   {
     title: "Discover New Places",
@@ -80,14 +80,13 @@ function Onboarding_1({ onComplete }) {
     };
   }, [showModal]);
 
-  // --- CHANGED: Fetch First Name from DB using Email ---
+  // Fetch First Name from DB using Email
   useEffect(() => {
     const fetchUserData = async () => {
       const email = localStorage.getItem('current_email');
       if (!email) return;
 
       try {
-        // NOTE: Adjust this endpoint to match your actual backend route for getting user info
         const response = await fetch('http://127.0.0.1:5001/api/get_user_info', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -96,10 +95,18 @@ function Onboarding_1({ onComplete }) {
         
         if (response.ok) {
           const data = await response.json();
-          // Assuming the backend returns { first_name: "Name", ... }
           if (data.first_name) {
             setFirstName(data.first_name);
           }
+          
+          // ✅ UPDATED: Populate all fields if data exists
+          setFormData(prev => ({
+            ...prev,
+            username: data.username || '',
+            dob: data.dob || '',
+            bio: data.bio || '',
+            homeAirport: data.home_city || ''
+          }));
         }
       } catch (error) {
         console.error("Error fetching user details:", error);
@@ -109,18 +116,16 @@ function Onboarding_1({ onComplete }) {
     fetchUserData();
   }, []);
 
-  // Handle Modal Primary Button (Next or Close)
+  // Handle Modal Primary Button
   const handleModalPrimary = () => {
     if (modalStep < MODAL_IMAGES.length - 1) {
-      // Advance to next image
       setModalStep(prev => prev + 1);
     } else {
-      // Close modal
       setIsModalClosing(true);
       setTimeout(() => {
         setShowModal(false);
         setIsModalClosing(false);
-        setModalStep(0); // Reset for next time
+        setModalStep(0); 
       }, 300);
     }
   };
@@ -208,6 +213,11 @@ function Onboarding_1({ onComplete }) {
     
     setFormData(prev => ({ ...prev, homeAirport: locationStr }));
     setIsHomeSearchFocused(false);
+    
+    // Clear error on selection
+    if (errors.homeAirport) {
+        setErrors(prev => ({...prev, homeAirport: ''}));
+    }
   };
 
   const getIconProps = (fieldName) => {
@@ -268,6 +278,12 @@ function Onboarding_1({ onComplete }) {
         }
     }
 
+    // ✅ ADDED: Home City Validation
+    if (!formData.homeAirport) {
+        tempErrors.homeAirport = "Home City is required";
+        isValid = false;
+    }
+
     setErrors(tempErrors);
     return isValid;
   };
@@ -275,10 +291,6 @@ function Onboarding_1({ onComplete }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // NOTE: Profile photo is no longer required.
-    // If no file is uploaded, the default image from artifacts/defaultprofileillenium2.png
-    // will be used (either visually here or handled by backend logic).
-
     if (!validate()) {
         return;
     }
@@ -296,7 +308,6 @@ function Onboarding_1({ onComplete }) {
     payload.append('bio', formData.bio);
     payload.append('home_city', formData.homeAirport);
     
-    // Only append profile_photo if a user actually selected a file
     if (file) {
       payload.append('profile_photo', file);
     }
@@ -322,12 +333,19 @@ function Onboarding_1({ onComplete }) {
 
   // If we have advanced to Step 2, render Onboarding_2
   if (step === 2) {
-    return <Onboarding_2 onNext={onComplete} />;
+    return (
+      <Onboarding_2 
+        onNext={onComplete} 
+        onBack={() => setStep(1)} 
+        homeCity={formData.homeAirport} 
+      />
+    );
   }
 
   // Otherwise render Step 1 (Pic and Socials/Bio)
   return (
-    <div className="login-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '600px' }}>
+    // ✅ CHANGED: Increased minHeight to 640px for consistency
+    <div className="login-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '640px' }}>
       
       {/* STEPPER PROGRESS BAR */}
       <div className="stepper-container">
@@ -388,7 +406,6 @@ function Onboarding_1({ onComplete }) {
             </div>
             <p className="upload-label">
               Upload Profile Photo
-              {/* Removed Required Asterisk */}
             </p>
           </div>
 
@@ -473,7 +490,8 @@ function Onboarding_1({ onComplete }) {
 
           {/* HOME CITY SEARCH */}
           <div className="form-group" style={{ position: 'relative' }}>
-            <div className={`auth-input-wrapper ${focusedField === 'homeAirport' ? 'focused' : ''}`}>
+            {/* ✅ UPDATED: Added error class logic */}
+            <div className={`auth-input-wrapper ${errors.homeAirport ? 'error' : ''} ${focusedField === 'homeAirport' ? 'focused' : ''}`}>
               <MapPin className="auth-icon" size={22} {...getIconProps('homeAirport')} />
               <div className="input-stack">
                 <span 
@@ -499,6 +517,13 @@ function Onboarding_1({ onComplete }) {
                 />
               </div>
             </div>
+            
+            {/* ✅ ADDED: Error Message */}
+            {errors.homeAirport && (
+                <span className="error-msg" style={{color: '#FF2C2C', fontSize: '0.8rem', fontWeight: 600, marginLeft: '0.5rem'}}>
+                    {errors.homeAirport}
+                </span>
+            )}
 
             {/* FLOATING DROPDOWN */}
             {isHomeSearchFocused && filteredHomeAirports.length > 0 && (
@@ -509,6 +534,7 @@ function Onboarding_1({ onComplete }) {
                     className="city-dropdown-item"
                     onMouseDown={() => handleSelectHomeAirport(city)}
                   >
+                    <MapPin size={16} className="city-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
                     <div className="city-main">
                       {city.displayLabel}
                     </div>
@@ -524,7 +550,6 @@ function Onboarding_1({ onComplete }) {
         <button 
           type="submit" 
           className="auth-button"
-          // Removed disabled check for file
           style={{ marginTop: 'auto' }}
         >
           <span>Continue</span>
@@ -574,7 +599,6 @@ function Onboarding_1({ onComplete }) {
                 {/* Button Group */}
                 <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
                   
-                  {/* Back Button (Only visible if not on first step) */}
                   {modalStep > 0 && (
                     <button
                       onClick={handleModalBack}

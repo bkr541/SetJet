@@ -198,6 +198,8 @@
   padding: 0.75rem 1rem;
   cursor: pointer;
   border-bottom: 1px solid #f1f5f9;
+  display: flex; /* Allow icon alignment */
+  align-items: center;
 }
 
 .city-dropdown-item:last-child { border-bottom: none; }
@@ -273,7 +275,16 @@
   color: #ef4444;
 }
 
-/* --- BUTTON --- */
+/* --- BUTTONS --- */
+
+/* Container for Back + Continue buttons */
+.auth-button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+/* Main Action Button */
 .auth-button {
   background: #004e5a;
   color: #ffffff;
@@ -303,6 +314,32 @@
   background: #0096a6;
   transform: translateY(0);
   box-shadow: none;
+}
+
+/* Back Button */
+.auth-back-btn {
+  background: #f1f5f9;
+  color: #64748b;
+  border: none;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.auth-back-btn:hover {
+  background: #e2e8f0;
+  color: #334155;
+  transform: translateY(-2px);
+}
+
+.auth-back-btn:active {
+  transform: translateY(0);
 }
 
 /* Animations */

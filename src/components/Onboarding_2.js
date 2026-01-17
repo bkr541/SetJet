@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   ArrowRight,
+  ArrowLeft,
   MapPin,
   X,
   Search,
@@ -10,11 +11,12 @@ import './Onboarding_2.css';
 // Ensure this path matches your project structure
 import cityData from '../data/FrontierDestinationInfo_numeric.json';
 
-function Onboarding_2({ onNext }) {
+function Onboarding_2({ onNext, onBack, homeCity }) {
   const [inputValue, setInputValue] = useState('');
   const [selectedCities, setSelectedCities] = useState([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+  const [error, setError] = useState(null);
 
   // Maximum number of selectable cities
   const MAX_SELECTION = 5;
@@ -51,6 +53,16 @@ function Onboarding_2({ onNext }) {
   }, [inputValue, selectedCities]);
 
   const handleAddCity = (cityRecord) => {
+    setError(null); // Clear previous errors
+
+    // Check if the city is the user's Home City
+    if (homeCity && cityRecord.displayLabel.toLowerCase() === homeCity.toLowerCase()) {
+        setError("A Favorite City cannot be your Home City");
+        setInputValue('');
+        setIsSearchFocused(false);
+        return;
+    }
+
     if (selectedCities.length < MAX_SELECTION) {
       setSelectedCities(prev => [...prev, cityRecord]);
       setInputValue(''); // Clear input after selection
@@ -72,11 +84,32 @@ function Onboarding_2({ onNext }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (onNext) {
-      // Pass the selected data to the parent handler
-      onNext(selectedCities);
+    
+    const email = localStorage.getItem('current_email');
+    
+    // Create pipe-separated string of cities for the database
+    const citiesString = selectedCities.map(c => c.displayLabel).join('|');
+
+    try {
+        const response = await fetch('http://127.0.0.1:5001/api/save_favorite_cities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, cities: citiesString })
+        });
+        
+        if (response.ok) {
+            if (onNext) {
+                onNext(selectedCities);
+            }
+        } else {
+            const data = await response.json();
+            alert(data.error || "Failed to save cities.");
+        }
+    } catch (error) {
+        console.error("Error saving favorite cities:", error);
+        alert("Server error. Please try again.");
     }
   };
 
@@ -162,6 +195,13 @@ function Onboarding_2({ onNext }) {
               </div>
             </div>
 
+            {/* Error Message */}
+            {error && (
+                <div style={{ color: '#FF2C2C', fontSize: '0.85rem', fontWeight: 600, marginTop: '0.5rem', marginLeft: '0.5rem' }}>
+                    {error}
+                </div>
+            )}
+
             {/* FLOATING DROPDOWN */}
             {isSearchFocused && filteredCities.length > 0 && (
               <div className="city-dropdown">
@@ -171,6 +211,7 @@ function Onboarding_2({ onNext }) {
                     className="city-dropdown-item"
                     onMouseDown={() => handleAddCity(city)}
                   >
+                    <MapPin size={16} className="city-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
                     <div className="city-main">
                       {city.displayLabel}
                     </div>
@@ -203,15 +244,28 @@ function Onboarding_2({ onNext }) {
 
         </div>
 
-        {/* SUBMIT BUTTON */}
-        <button 
-          type="submit" 
-          className="auth-button"
-          style={{ marginTop: 'auto' }}
-        >
-          <span>Continue</span>
-          <ArrowRight size={20} />
-        </button>
+        {/* BUTTON CONTAINER: Back and Continue */}
+        <div className="auth-button-group">
+            
+            {/* BACK BUTTON */}
+            <button
+                type="button"
+                className="auth-back-btn"
+                onClick={onBack}
+            >
+                <ArrowLeft size={24} />
+            </button>
+
+            {/* SUBMIT BUTTON */}
+            <button 
+                type="submit" 
+                className="auth-button"
+                style={{ marginTop: 0, flex: 1 }} 
+            >
+                <span>Continue</span>
+                <ArrowRight size={20} />
+            </button>
+        </div>
       </form>
 
     </div>

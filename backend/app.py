@@ -18,7 +18,9 @@ import time
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for React frontend
+
+# ✅ UPDATED CORS: Explicitly allow all origins to prevent blocking
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # ==========================================
 # 1. NEW CONFIGURATION (Database & Email)
@@ -43,14 +45,14 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 
 # ==========================================
-# 2. UPDATED USER MODEL
+# 2. UPDATED USER MODELS
 # ==========================================
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False) 
     
-    # ✅ CHANGED: Split Name into First and Last
+    # Split Name into First and Last
     first_name = db.Column(db.String(50), nullable=False, default='')
     last_name = db.Column(db.String(50), nullable=False, default='')
     
@@ -60,8 +62,8 @@ class User(db.Model):
     dob = db.Column(db.String(20), nullable=False, default='')
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
     
-    # Stores cities as "Denver,Miami,Austin"
-    cities = db.Column(db.String(200), nullable=True) 
+    # ✅ CORRECTED: Field is now 'home_city', not 'cities'
+    home_city = db.Column(db.String(200), nullable=True) 
 
     # New fields for onboarding data
     bio = db.Column(db.String(500), nullable=True)
@@ -71,6 +73,16 @@ class User(db.Model):
 
     def __repr__(self):
         return f"User('{self.email}', '{self.first_name}', '{self.last_name}')"
+
+# Table for Favorite Cities
+class FavoriteCities(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    # Stores the pipe-separated string of favorite cities
+    cities_list = db.Column(db.String(500), nullable=False)
+
+    def __repr__(self):
+        return f"FavoriteCities('User {self.user_id}', '{self.cities_list}')"
 
 # ==========================================
 # 3. EXISTING AMADEUS & FLIGHT LOGIC
@@ -162,12 +174,36 @@ def signup():
     return jsonify({'message': 'User created successfully!'}), 201
 
 
-# --- UPDATE PROFILE ENDPOINT (STEP 2: Onboarding) ---
+# --- GET USER INFO ENDPOINT (NEW) ---
+@app.route('/api/get_user_info', methods=['POST'])
+def get_user_info():
+    """
+    Retrieves user details to pre-fill the onboarding form.
+    """
+    data = request.get_json()
+    email = data.get('email')
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    return jsonify({
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'username': user.username,
+        'dob': user.dob,
+        'bio': user.bio,
+        'home_city': user.home_city, # ✅ Corrected: Uses home_city
+        'image_file': user.image_file
+    }), 200
+
+
+# --- UPDATE PROFILE ENDPOINT (STEP 2: Onboarding Part 1) ---
 @app.route('/api/update_profile', methods=['POST'])
 def update_profile():
     """
-    Updates user with Username, DOB, Bio, Cities, and Profile Pic.
-    Sets onboarding_complete to 'Yes'.
+    Updates user with Username, DOB, Bio, Home City, and Profile Pic.
+    Does NOT set onboarding_complete to 'Yes' yet.
     """
     email = request.form.get('email')
     username = request.form.get('username')
@@ -192,18 +228,52 @@ def update_profile():
 
     # Update Text Fields
     user.username = username
-    user.dob = request.form.get('dob') # Now received here
+    user.dob = request.form.get('dob')
     user.bio = request.form.get('bio')
-    user.cities = request.form.get('home_city')
-    
-    # Mark Complete
-    user.onboarding_complete = 'Yes'
+    user.home_city = request.form.get('home_city') # ✅ Corrected: Saves to home_city
     
     try:
         db.session.commit()
-        return jsonify({'message': 'Profile updated successfully', 'onboarding_complete': 'Yes'}), 200
+        return jsonify({'message': 'Profile updated successfully', 'onboarding_complete': 'No'}), 200
     except Exception as e:
         return jsonify({'error': f'Database update failed: {str(e)}'}), 500
+
+
+# --- SAVE FAVORITE CITIES ENDPOINT (STEP 3: Onboarding Part 2) ---
+@app.route('/api/save_favorite_cities', methods=['POST'])
+def save_favorite_cities():
+    """
+    Saves the user's favorite cities to the new table and marks onboarding as complete.
+    """
+    data = request.get_json()
+    email = data.get('email')
+    cities_str = data.get('cities')  # Expecting pipe-separated string: "City1|City2"
+
+    if not email:
+        return jsonify({'error': 'Email required'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    try:
+        # Check if entry exists, update if so, else create new
+        fav_entry = FavoriteCities.query.filter_by(user_id=user.id).first()
+        
+        if fav_entry:
+            fav_entry.cities_list = cities_str
+        else:
+            new_fav = FavoriteCities(user_id=user.id, cities_list=cities_str)
+            db.session.add(new_fav)
+        
+        # Mark Onboarding as Complete NOW
+        user.onboarding_complete = 'Yes'
+        
+        db.session.commit()
+        return jsonify({'message': 'Favorite cities saved', 'onboarding_complete': 'Yes'}), 200
+
+    except Exception as e:
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
 
 
 # --- LOGIN ENDPOINT ---
