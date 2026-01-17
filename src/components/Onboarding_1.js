@@ -17,7 +17,8 @@ const MODAL_IMAGES = [
   "/artifacts/onboardingmodal1.png",
   "/artifacts/onboardingmodal2.png",
   "/artifacts/onboardingmodal3.png",
-  "/artifacts/onboardingmodal4.png"
+  "/artifacts/onboardingmodal4.png",
+  "/artifacts/onboardingmodal5.png"
 ];
 
 const MODAL_CONTENT = [
@@ -34,6 +35,10 @@ const MODAL_CONTENT = [
     subtitle: "Keep a log of your favorite cities and get notified when prices drop."
   },
   {
+    title: "Plan Your Journey",
+    subtitle: "Organize your upcoming trips and keep all your travel details in one place."
+  },
+  {
     title: "Ready for Takeoff?",
     subtitle: "Your journey begins now. Let's get your profile ready to fly."
   }
@@ -43,7 +48,7 @@ function Onboarding_1({ onComplete }) {
   // State for the Welcome Modal
   const [showModal, setShowModal] = useState(true);
   const [isModalClosing, setIsModalClosing] = useState(false);
-  const [modalStep, setModalStep] = useState(0); // 0 to 3
+  const [modalStep, setModalStep] = useState(0); // 0 to 4
   
   // State for Flow Navigation (1 = Pic/Bio, 2 = Flights)
   const [step, setStep] = useState(1);
@@ -270,10 +275,9 @@ function Onboarding_1({ onComplete }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!file) {
-      alert("Please upload a profile photo.");
-      return;
-    }
+    // NOTE: Profile photo is no longer required.
+    // If no file is uploaded, the default image from artifacts/defaultprofileillenium2.png
+    // will be used (either visually here or handled by backend logic).
 
     if (!validate()) {
         return;
@@ -291,7 +295,11 @@ function Onboarding_1({ onComplete }) {
     payload.append('dob', formData.dob); 
     payload.append('bio', formData.bio);
     payload.append('home_city', formData.homeAirport);
-    payload.append('profile_photo', file);
+    
+    // Only append profile_photo if a user actually selected a file
+    if (file) {
+      payload.append('profile_photo', file);
+    }
 
     try {
       const response = await fetch('http://127.0.0.1:5001/api/update_profile', {
@@ -380,7 +388,7 @@ function Onboarding_1({ onComplete }) {
             </div>
             <p className="upload-label">
               Upload Profile Photo
-              {!file && <span style={{ color: '#FF2C2C', marginLeft: '4px', fontWeight: 'bold' }}>*</span>}
+              {/* Removed Required Asterisk */}
             </p>
           </div>
 
@@ -516,7 +524,7 @@ function Onboarding_1({ onComplete }) {
         <button 
           type="submit" 
           className="auth-button"
-          disabled={!file} 
+          // Removed disabled check for file
           style={{ marginTop: 'auto' }}
         >
           <span>Continue</span>

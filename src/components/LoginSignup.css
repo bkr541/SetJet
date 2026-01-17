@@ -416,6 +416,10 @@ input:-webkit-autofill:active{
   color: #10b981; /* Success Green */
 }
 
+.criteria-item.not-met {
+  color: #FF2C2C; /* Error Red */
+}
+
 .criteria-icon {
   width: 12px;
   height: 12px;

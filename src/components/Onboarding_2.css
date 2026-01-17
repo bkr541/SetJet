@@ -63,8 +63,8 @@
 /* Completed Step Styling */
 .step-item.completed .step-circle {
   border-color: #004e5a;
-  background-color: #ffffff;
-  color: #004e5a;
+  background-color: #004e5a; /* Changed from white to teal */
+  color: #ffffff; /* Changed from teal to white */
 }
 
 /* Connecting Lines */
@@ -218,7 +218,7 @@
   font-size: 0.85rem;
   color: #64748b;
   font-weight: 700;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.35rem; /* Reduced from 0.75rem */
   display: block;
   text-transform: uppercase;
   letter-spacing: 0.05em;

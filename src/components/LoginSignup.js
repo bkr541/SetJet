@@ -335,19 +335,19 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
                   <div className="strength-meter-container">
                     {renderStrengthBars()}
                     <div className="strength-criteria">
-                      <div className={`criteria-item ${passwordStrength.criteria.hasUpper ? 'met' : ''}`}>
+                      <div className={`criteria-item ${passwordStrength.criteria.hasUpper ? 'met' : 'not-met'}`}>
                         {passwordStrength.criteria.hasUpper ? <Check className="criteria-icon" /> : <X className="criteria-icon" />}
                         1 Uppercase Letter
                       </div>
-                      <div className={`criteria-item ${passwordStrength.criteria.hasNumber ? 'met' : ''}`}>
+                      <div className={`criteria-item ${passwordStrength.criteria.hasNumber ? 'met' : 'not-met'}`}>
                         {passwordStrength.criteria.hasNumber ? <Check className="criteria-icon" /> : <X className="criteria-icon" />}
                         1 Number
                       </div>
-                      <div className={`criteria-item ${passwordStrength.criteria.hasSpecial ? 'met' : ''}`}>
+                      <div className={`criteria-item ${passwordStrength.criteria.hasSpecial ? 'met' : 'not-met'}`}>
                         {passwordStrength.criteria.hasSpecial ? <Check className="criteria-icon" /> : <X className="criteria-icon" />}
                         1 Special Character
                       </div>
-                      <div className={`criteria-item ${passwordStrength.criteria.noName ? 'met' : ''}`}>
+                      <div className={`criteria-item ${passwordStrength.criteria.noName ? 'met' : 'not-met'}`}>
                         {passwordStrength.criteria.noName ? <Check className="criteria-icon" /> : <X className="criteria-icon" />}
                         Cannot contain part of name
                       </div>

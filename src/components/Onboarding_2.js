@@ -3,7 +3,8 @@ import {
   ArrowRight,
   MapPin,
   X,
-  Search
+  Search,
+  Check
 } from 'lucide-react';
 import './Onboarding_2.css';
 // Ensure this path matches your project structure
@@ -94,7 +95,9 @@ function Onboarding_2({ onNext }) {
       {/* STEPPER PROGRESS BAR */}
       <div className="stepper-container">
         <div className="step-item completed">
-          <div className="step-circle">1</div>
+          <div className="step-circle">
+            <Check size={18} strokeWidth={3} />
+          </div>
         </div>
         <div className="step-line filled"></div>
         <div className="step-item active">
