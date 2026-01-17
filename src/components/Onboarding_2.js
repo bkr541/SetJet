@@ -89,7 +89,7 @@ function Onboarding_2({ onNext }) {
   };
 
   return (
-    <div className="login-container">
+    <div className="login-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '600px' }}>
       
       {/* STEPPER PROGRESS BAR */}
       <div className="stepper-container">
@@ -120,7 +120,11 @@ function Onboarding_2({ onNext }) {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="auth-form">
+      <form 
+        onSubmit={handleSubmit} 
+        className="auth-form"
+        style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
+      >
         
         <div className="fade-in" style={{ position: 'relative' }}>
           
@@ -200,7 +204,7 @@ function Onboarding_2({ onNext }) {
         <button 
           type="submit" 
           className="auth-button"
-          style={{ marginTop: '2rem' }}
+          style={{ marginTop: 'auto' }}
         >
           <span>Continue</span>
           <ArrowRight size={20} />

@@ -49,9 +49,12 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False) 
-    name = db.Column(db.String(100), nullable=False, default='')
     
-    # Username is now nullable since it's added in step 2
+    # ✅ CHANGED: Split Name into First and Last
+    first_name = db.Column(db.String(50), nullable=False, default='')
+    last_name = db.Column(db.String(50), nullable=False, default='')
+    
+    # Username is nullable (added in later steps)
     username = db.Column(db.String(50), unique=True, nullable=True)
     
     dob = db.Column(db.String(20), nullable=False, default='')
@@ -62,13 +65,12 @@ class User(db.Model):
 
     # New fields for onboarding data
     bio = db.Column(db.String(500), nullable=True)
-    # REMOVED: instagram, facebook, x, soundcloud columns
     
     # Tracks if user has finished onboarding
     onboarding_complete = db.Column(db.String(5), nullable=False, default='No')
 
     def __repr__(self):
-        return f"User('{self.email}', '{self.cities}')"
+        return f"User('{self.email}', '{self.first_name}', '{self.last_name}')"
 
 # ==========================================
 # 3. EXISTING AMADEUS & FLIGHT LOGIC
@@ -123,13 +125,13 @@ def health_check():
 def signup():
     print("DB:", db.engine.url)
     """
-    Creates a user with basic info. Username, Photo, DOB added later.
+    Creates a user with basic info.
     """
     # 1. Get Text Data
-    name = request.form.get('name') # Combined First + Last Name
+    first_name = request.form.get('first_name')
+    last_name = request.form.get('last_name')
     email = request.form.get('email')
     password = request.form.get('password')
-    # dob = request.form.get('dob') # Removed from step 1
     
     # 2. Validation
     if User.query.filter_by(email=email).first():
@@ -138,9 +140,8 @@ def signup():
     # 3. Save to Database
     try:
         new_user = User(
-            name=name,
-            # username is None initially
-            # dob is None initially (defaults to '')
+            first_name=first_name,
+            last_name=last_name,
             email=email,
             password=password,
             onboarding_complete='No' 
@@ -153,7 +154,7 @@ def signup():
     # 4. Send Email
     try:
         msg = Message('Welcome to SetJet!', sender='noreply@setjet.com', recipients=[email])
-        msg.body = f"Welcome {name}! Please complete your profile in the app."
+        msg.body = f"Welcome {first_name}! Please complete your profile in the app."
         mail.send(msg)
     except Exception as e:
         print(f"Email failed (expected if creds are empty): {e}")
@@ -194,7 +195,6 @@ def update_profile():
     user.dob = request.form.get('dob') # Now received here
     user.bio = request.form.get('bio')
     user.cities = request.form.get('home_city')
-    # REMOVED: assignments for instagram, facebook, x, soundcloud
     
     # Mark Complete
     user.onboarding_complete = 'Yes'
@@ -223,7 +223,7 @@ def login():
     if user and user.password == password:
         return jsonify({
             'message': 'Login successful',
-            'username': user.username,
+            'first_name': user.first_name,
             'onboarding_complete': user.onboarding_complete 
         }), 200
     else:

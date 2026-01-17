@@ -10,7 +10,9 @@ import {
   Check,
   UserRound,
   X,
-  UserRoundPlus
+  UserRoundPlus,
+  Eye, 
+  EyeOff
 } from 'lucide-react';
 import './LoginSignup.css';
 
@@ -26,6 +28,9 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
 
   const [errors, setErrors] = useState({});
   const [focusedField, setFocusedField] = useState(null);
+  
+  // State for password toggle in Login mode
+  const [showPassword, setShowPassword] = useState(false);
   
   // State for password strength
   const [passwordStrength, setPasswordStrength] = useState({
@@ -112,13 +117,13 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
       if (!formData.firstName) { tempErrors.firstName = "First Name is required"; isValid = false; }
       if (!formData.lastName) { tempErrors.lastName = "Last Name is required"; isValid = false; }
       
-      // Email Validation (Required + Format Check)
+      // Email Validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
       if (!formData.email) { 
         tempErrors.email = "Email is required"; 
         isValid = false; 
       } else if (!emailRegex.test(formData.email)) {
-        tempErrors.email = "Email must be a valid email address";
+        tempErrors.email = "Please enter a valid email address (e.g. name@site.com)";
         isValid = false;
       }
 
@@ -154,9 +159,9 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
       payload.append('password', formData.password);
 
       if (mode === 'signup') {
-        // Concatenate Name for backend compatibility
-        const fullName = `${formData.firstName} ${formData.lastName}`.trim();
-        payload.append('name', fullName);
+        // ✅ CHANGED: Send split First and Last name
+        payload.append('first_name', formData.firstName);
+        payload.append('last_name', formData.lastName);
       }
 
       const endpoint = mode === 'signup' 
@@ -198,6 +203,7 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
     setErrors({});
     setFocusedField(null);
     setFormData({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '' });
+    setShowPassword(false); // Reset password visibility
   };
 
   const getStrengthColor = () => {
@@ -370,10 +376,29 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
               </div>
               {errors.email && <span className="error-msg">{errors.email}</span>}
             </div>
+            
+            {/* Login Password with Toggle */}
             <div className="form-group">
               <div className={`auth-input-wrapper ${errors.password ? 'error' : ''}`}>
                 <Lock className="auth-icon" size={22} {...getIconProps('password')} />
-                <input type="password" id="password" name="password" value={formData.password} onChange={handleChange} onFocus={() => handleFocus('password')} onBlur={handleBlur} placeholder="Password" className="auth-input" />
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  id="password" 
+                  name="password" 
+                  value={formData.password} 
+                  onChange={handleChange} 
+                  onFocus={() => handleFocus('password')} 
+                  onBlur={handleBlur} 
+                  placeholder="Password" 
+                  className="auth-input" 
+                />
+                <button 
+                  type="button" 
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
               {errors.password && <span className="error-msg">{errors.password}</span>}
             </div>

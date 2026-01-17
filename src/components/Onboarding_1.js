@@ -319,7 +319,7 @@ function Onboarding_1({ onComplete }) {
 
   // Otherwise render Step 1 (Pic and Socials/Bio)
   return (
-    <div className="login-container">
+    <div className="login-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '600px' }}>
       
       {/* STEPPER PROGRESS BAR */}
       <div className="stepper-container">
@@ -350,7 +350,12 @@ function Onboarding_1({ onComplete }) {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="auth-form" noValidate>
+      <form 
+        onSubmit={handleSubmit} 
+        className="auth-form" 
+        noValidate 
+        style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
+      >
         
         <div className="fade-in" style={{ position: 'relative' }}>
           
@@ -379,7 +384,7 @@ function Onboarding_1({ onComplete }) {
             </p>
           </div>
 
-          {/* --- CHANGED: Flex Container for Side-by-Side Inputs --- */}
+          {/* USERNAME AND DOB SIDE-BY-SIDE CONTAINER */}
           <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
             
             {/* USERNAME INPUT */}
@@ -512,6 +517,7 @@ function Onboarding_1({ onComplete }) {
           type="submit" 
           className="auth-button"
           disabled={!file} 
+          style={{ marginTop: 'auto' }}
         >
           <span>Continue</span>
           <ArrowRight size={20} />
