@@ -1,0 +1,116 @@
+City,State,state_code,Country,Region,Type
+Oranjestad,Aruba,,Aruba,,City
+Nassau,New Providence,,Bahamas,,City
+Alajuela (San José),Alajuela,,Costa Rica,,City
+Punta Cana,La Altagracia,,Dominican Republic,,City
+Santiago de los Caballeros,Santiago,,Dominican Republic,,City
+Santo Domingo,Santo Domingo,,Dominican Republic,,City
+San Salvador,La Paz,,El Salvador,,City
+Guatemala City,Guatemala,,Guatemala,,City
+San Pedro Sula,Cortés,,Honduras,,City
+Montego Bay,Saint James,,Jamaica,,City
+Aguascalientes,Aguascalientes,,Mexico,,City
+Tijuana,Baja California,,Mexico,,City
+San José del Cabo,Baja California Sur,,Mexico,,City
+Chihuahua,Chihuahua,,Mexico,,City
+Durango,Durango,,Mexico,,City
+Silao (León/Guanajuato),Guanajuato,,Mexico,,City
+Guadalajara,Jalisco,,Mexico,,City
+Puerto Vallarta,Jalisco,,Mexico,,City
+Mexico City,Mexico City,,Mexico,,City
+Morelia,Michoacán,,Mexico,,City
+Uruapan,Michoacán,,Mexico,,City
+Toluca,México,,Mexico,,City
+Zumpango (Mexico City),México,,Mexico,,City
+Monterrey,Nuevo León,,Mexico,,City
+Huatulco,Oaxaca,,Mexico,,City
+Oaxaca,Oaxaca,,Mexico,,City
+Santiago de Querétaro,Querétaro,,Mexico,,City
+Cancún,Quintana Roo,,Mexico,,City
+Zacatecas,Zacatecas,,Mexico,,City
+Philipsburg,Sint Maarten,,Sint Maarten,,City
+Providenciales,Turks and Caicos,,United Kingdom,,City
+Phoenix,Arizona,AZ,United States,West,City
+Tucson,Arizona,AZ,United States,West,City
+Bentonville / Fayetteville,Arkansas,AR,United States,South,City
+Little Rock,Arkansas,AR,United States,South,City
+Burbank,California,CA,United States,West,City
+Los Angeles,California,CA,United States,West,City
+Ontario,California,CA,United States,West,City
+Palm Springs,California,CA,United States,West,City
+Sacramento,California,CA,United States,West,City
+San Diego,California,CA,United States,West,City
+San Francisco,California,CA,United States,West,City
+San Jose,California,CA,United States,West,City
+Santa Ana,California,CA,United States,West,City
+Denver,Colorado,CO,United States,West,City
+Hartford / Springfield,Connecticut,CT,United States,Northeast,City
+Washington,District of Columbia,DC,United States,South,City
+Fort Lauderdale,Florida,FL,United States,South,City
+Fort Myers,Florida,FL,United States,South,City
+Jacksonville,Florida,FL,United States,South,City
+Miami,Florida,FL,United States,South,City
+Orlando,Florida,FL,United States,South,City
+Pensacola,Florida,FL,United States,South,City
+Sarasota / Bradenton,Florida,FL,United States,South,City
+Tampa,Florida,FL,United States,South,City
+West Palm Beach,Florida,FL,United States,South,City
+Boise,Idaho,ID,United States,West,City
+Chicago,Illinois,IL,United States,Midwest,City
+Indianapolis,Indiana,IN,United States,Midwest,City
+Cedar Rapids,Iowa,IA,United States,Midwest,City
+Des Moines,Iowa,IA,United States,Midwest,City
+Hebron (Cincinnati),Kentucky,KY,United States,South,City
+New Orleans,Louisiana,LA,United States,South,City
+Baltimore,Maryland,MD,United States,South,City
+Boston,Massachusetts,MA,United States,Northeast,City
+Detroit,Michigan,MI,United States,Midwest,City
+Grand Rapids,Michigan,MI,United States,Midwest,City
+Minneapolis / St. Paul,Minnesota,MN,United States,Midwest,City
+Kansas City,Missouri,MO,United States,Midwest,City
+St. Louis,Missouri,MO,United States,Midwest,City
+Missoula,Montana,MT,United States,West,City
+Omaha,Nebraska,NE,United States,Midwest,City
+Las Vegas,Nevada,NV,United States,West,City
+Reno,Nevada,NV,United States,West,City
+Newark,New Jersey,NJ,United States,Northeast,City
+Trenton,New Jersey,NJ,United States,Northeast,City
+Buffalo,New York,NY,United States,Northeast,City
+Islip,New York,NY,United States,Northeast,City
+New York,New York,NY,United States,Northeast,City
+Syracuse,New York,NY,United States,Northeast,City
+Charlotte,North Carolina,NC,United States,South,City
+Raleigh / Durham,North Carolina,NC,United States,South,City
+Fargo,North Dakota,ND,United States,Midwest,City
+Cleveland,Ohio,OH,United States,Midwest,City
+Columbus,Ohio,OH,United States,Midwest,City
+Oklahoma City,Oklahoma,OK,United States,South,City
+Tulsa,Oklahoma,OK,United States,South,City
+Portland,Oregon,OR,United States,West,City
+Harrisburg,Pennsylvania,PA,United States,Northeast,City
+Philadelphia,Pennsylvania,PA,United States,Northeast,City
+Pittsburgh,Pennsylvania,PA,United States,Northeast,City
+Aguadilla,Puerto Rico,PR,United States,,City
+Ponce,Puerto Rico,PR,United States,,City
+San Juan,Puerto Rico,PR,United States,,City
+Charleston,South Carolina,SC,United States,South,City
+Myrtle Beach,South Carolina,SC,United States,South,City
+Sioux Falls,South Dakota,SD,United States,Midwest,City
+Memphis,Tennessee,TN,United States,South,City
+Nashville,Tennessee,TN,United States,South,City
+Austin,Texas,TX,United States,South,City
+Corpus Christi,Texas,TX,United States,South,City
+Dallas / Fort Worth,Texas,TX,United States,South,City
+El Paso,Texas,TX,United States,South,City
+Houston,Texas,TX,United States,South,City
+San Antonio,Texas,TX,United States,South,City
+Salt Lake City,Utah,UT,United States,West,City
+Burlington,Vermont,VT,United States,Northeast,City
+"Dulles (Washington, D.C.)",Virginia,VA,United States,South,City
+Norfolk,Virginia,VA,United States,South,City
+Richmond,Virginia,VA,United States,South,City
+Everett (Seattle),Washington,WA,United States,West,City
+Seattle / Tacoma,Washington,WA,United States,West,City
+Spokane,Washington,WA,United States,West,City
+Madison,Wisconsin,WI,United States,Midwest,City
+Milwaukee,Wisconsin,WI,United States,Midwest,City

@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from amadeus_api import AmadeusFlightSearch
 from trip_planner import find_optimal_trips
 from gowild_blackout import GoWildBlackoutDates
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dotenv import load_dotenv
 import json
 import os
@@ -44,24 +44,42 @@ app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'your-app-password
 db = SQLAlchemy(app)
 mail = Mail(app)
 
+# Helper Dictionary for State Codes -> Full Names
+US_STATES = {
+    'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
+    'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
+    'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
+    'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+    'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi', 'MO': 'Missouri',
+    'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey',
+    'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio',
+    'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+    'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah', 'VT': 'Vermont',
+    'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming',
+    'DC': 'District of Columbia'
+}
+
 # ==========================================
 # 2. UPDATED USER MODELS
 # ==========================================
 
-# ✅ NEW: Join Table for User <-> Cities (Many-to-Many)
-user_favorite_cities = db.Table('user_favorite_cities',
+# Join Table for User <-> Locations (Many-to-Many for Favorite Cities)
+user_favorite_locations = db.Table('user_favorite_locations',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
-    db.Column('city_id', db.Integer, db.ForeignKey('cities.id', ondelete='CASCADE'), primary_key=True)
+    db.Column('location_id', db.Integer, db.ForeignKey('locations.id', ondelete='CASCADE'), primary_key=True)
 )
 
-# ✅ NEW: Normalized City Model
-class City(db.Model):
-    __tablename__ = 'cities'
+class Location(db.Model):
+    __tablename__ = 'locations'
+    
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False) # e.g. "Atlanta, GA"
+    city = db.Column(db.String(100), nullable=False) # e.g. "Atlanta"
+    state = db.Column(db.String(100), nullable=True) # e.g. "Georgia"
+    state_code = db.Column(db.String(10), nullable=True) # e.g. "GA"
 
     def __repr__(self):
-        return f"City('{self.name}')"
+        return f"Location('{self.name}')"
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -70,32 +88,28 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False) 
     
-    # Split Name into First and Last
     first_name = db.Column(db.String(50), nullable=False, default='')
     last_name = db.Column(db.String(50), nullable=False, default='')
-    
-    # Username is nullable (added in later steps)
     username = db.Column(db.String(50), unique=True, nullable=True)
     
-    dob = db.Column(db.String(20), nullable=False, default='')
+    # Store Date of Birth as SQL Date
+    dob = db.Column(db.Date, nullable=True)
+    
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
     
-    # Field is 'home_city'
-    home_city = db.Column(db.String(200), nullable=True) 
+    # Foreign Key to 'locations' table for Home City
+    home_location_id = db.Column(db.Integer, db.ForeignKey('locations.id'), nullable=True)
+    home_location = db.relationship('Location', foreign_keys=[home_location_id])
 
-    # New fields for onboarding data
     bio = db.Column(db.String(500), nullable=True)
-    
-    # Tracks if user has finished onboarding
     onboarding_complete = db.Column(db.String(5), nullable=False, default='No')
 
-    # ✅ NEW: Relationship to City via join table
-    fav_cities = db.relationship('City', secondary=user_favorite_cities, backref=db.backref('users', lazy='dynamic'))
+    # Relationship to Favorite Locations via join table
+    fav_cities = db.relationship('Location', secondary=user_favorite_locations, backref=db.backref('users', lazy='dynamic'))
 
     def __repr__(self):
         return f"User('{self.email}', '{self.first_name}', '{self.last_name}')"
 
-# ✅ Table for Favorite Artists (Still string-based list for now)
 class FavoriteArtists(db.Model):
     __tablename__ = 'favorite_artists'
 
@@ -107,7 +121,51 @@ class FavoriteArtists(db.Model):
         return f"FavoriteArtists('User {self.user_id}', '{self.artists_list}')"
 
 # ==========================================
-# 3. EXISTING AMADEUS & FLIGHT LOGIC
+# 3. HELPER FUNCTIONS
+# ==========================================
+
+def get_or_create_location(location_str):
+    """
+    Parses a string like "Atlanta, GA" or "London, UK".
+    Splits into City, State Code, looks up Full State Name.
+    Finds or creates the record in 'locations' table.
+    """
+    if not location_str:
+        return None
+    
+    # Clean input
+    clean_str = location_str.strip()
+    
+    # Logic to split "City, Code"
+    if ',' in clean_str:
+        parts = clean_str.split(',')
+        city_val = parts[0].strip()
+        code_val = parts[1].strip()
+    else:
+        city_val = clean_str
+        code_val = None
+    
+    # Map Code to Full Name (e.g. GA -> Georgia) if it exists in US_STATES
+    # If not in US_STATES (e.g. international), just use the code as state or None
+    full_state = US_STATES.get(code_val, code_val) if code_val else None
+
+    # Check existence
+    loc = Location.query.filter_by(name=clean_str).first()
+    
+    if not loc:
+        loc = Location(
+            name=clean_str, 
+            city=city_val, 
+            state=full_state, 
+            state_code=code_val
+        )
+        db.session.add(loc)
+        db.session.commit()
+        
+    return loc
+
+# ==========================================
+# 4. EXISTING AMADEUS & FLIGHT LOGIC
 # ==========================================
 
 # Initialize Amadeus API client
@@ -122,26 +180,21 @@ except ValueError as e:
     amadeus_client = None
     AMADEUS_ENABLED = False
 
-# Development mode configuration
 DEV_MODE = os.environ.get('DEV_MODE', 'false' if AMADEUS_ENABLED else 'true').lower() == 'true'
-
-# Simple in-memory cache
 cache = {}
 CACHE_DURATION = timedelta(hours=1)
 
 def get_cache_key(origins, destinations, departure_date, return_date, trip_type):
-    """Generate a unique cache key for the search parameters"""
     return f"{','.join(sorted(origins))}_{','.join(sorted(destinations))}_{departure_date}_{return_date}_{trip_type}"
 
 def is_cache_valid(cache_entry):
-    """Check if cached entry is still valid"""
     if not cache_entry:
         return False
     cache_time = datetime.fromisoformat(cache_entry['timestamp'])
     return datetime.now() - cache_time < CACHE_DURATION
 
 # ==========================================
-# 4. API ROUTES
+# 5. API ROUTES
 # ==========================================
 
 @app.route('/api/health', methods=['GET'])
@@ -154,24 +207,18 @@ def health_check():
         'dev_mode': DEV_MODE
     })
 
-# --- SIGNUP ENDPOINT (STEP 1) ---
+# --- SIGNUP ---
 @app.route('/api/signup', methods=['POST'])
 def signup():
-    print("DB:", db.engine.url)
-    """
-    Creates a user with basic info.
-    """
-    # 1. Get Text Data
+    print("DB:", db.engine.url) # ✅ Restored
     first_name = request.form.get('first_name')
     last_name = request.form.get('last_name')
     email = request.form.get('email')
     password = request.form.get('password')
     
-    # 2. Validation
     if User.query.filter_by(email=email).first():
         return jsonify({'error': 'Email already taken.'}), 400
 
-    # 3. Save to Database
     try:
         new_user = User(
             first_name=first_name,
@@ -185,23 +232,19 @@ def signup():
     except Exception as e:
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
-    # 4. Send Email
     try:
         msg = Message('Welcome to SetJet!', sender='noreply@setjet.com', recipients=[email])
         msg.body = f"Welcome {first_name}! Please complete your profile in the app."
         mail.send(msg)
     except Exception as e:
-        print(f"Email failed (expected if creds are empty): {e}")
+        print(f"Email failed (expected if creds are empty): {e}") # ✅ Restored
 
     return jsonify({'message': 'User created successfully!'}), 201
 
 
-# --- GET USER INFO ENDPOINT ---
+# --- GET USER INFO ---
 @app.route('/api/get_user_info', methods=['POST'])
 def get_user_info():
-    """
-    Retrieves user details to pre-fill the onboarding form.
-    """
     data = request.get_json()
     email = data.get('email')
 
@@ -209,24 +252,26 @@ def get_user_info():
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
+    # Convert Date object -> String for frontend
+    dob_str = user.dob.strftime('%m/%d/%Y') if user.dob else ""
+    
+    # Get Home City Name from relationship
+    home_city_str = user.home_location.name if user.home_location else ""
+
     return jsonify({
         'first_name': user.first_name,
         'last_name': user.last_name,
         'username': user.username,
-        'dob': user.dob,
+        'dob': dob_str, 
         'bio': user.bio,
-        'home_city': user.home_city,
+        'home_city': home_city_str, 
         'image_file': user.image_file
     }), 200
 
 
-# --- UPDATE PROFILE ENDPOINT (STEP 2: Onboarding Part 1) ---
+# --- UPDATE PROFILE (Onboarding Step 1) ---
 @app.route('/api/update_profile', methods=['POST'])
 def update_profile():
-    """
-    Updates user with Username, DOB, Bio, Home City, and Profile Pic.
-    Does NOT set onboarding_complete to 'Yes' yet.
-    """
     email = request.form.get('email')
     username = request.form.get('username')
     
@@ -234,12 +279,10 @@ def update_profile():
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
-    # Check username uniqueness
     existing_user_with_name = User.query.filter_by(username=username).first()
     if existing_user_with_name and existing_user_with_name.id != user.id:
         return jsonify({'error': 'Username already taken'}), 400
 
-    # Handle File Upload
     if 'profile_photo' in request.files:
         file = request.files['profile_photo']
         if file.filename != '':
@@ -248,11 +291,22 @@ def update_profile():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             user.image_file = filename
 
-    # Update Text Fields
     user.username = username
-    user.dob = request.form.get('dob')
     user.bio = request.form.get('bio')
-    user.home_city = request.form.get('home_city')
+    
+    # Handle DOB String -> Date conversion
+    dob_input = request.form.get('dob') # 'mm/dd/yyyy'
+    if dob_input:
+        try:
+            user.dob = datetime.strptime(dob_input, '%m/%d/%Y').date()
+        except ValueError:
+            pass 
+
+    # Handle Home City String -> Location Relation
+    home_city_input = request.form.get('home_city') # "Atlanta, GA"
+    if home_city_input:
+        location = get_or_create_location(home_city_input)
+        user.home_location = location
     
     try:
         db.session.commit()
@@ -261,17 +315,12 @@ def update_profile():
         return jsonify({'error': f'Database update failed: {str(e)}'}), 500
 
 
-# --- SAVE FAVORITE CITIES ENDPOINT (STEP 3: Onboarding Part 2) ---
+# --- SAVE FAVORITE CITIES (Onboarding Step 2) ---
 @app.route('/api/save_favorite_cities', methods=['POST'])
 def save_favorite_cities():
-    """
-    Saves the user's favorite cities into the normalized schema.
-    Expects 'cities' as a pipe-separated string from frontend (e.g., "Denver, CO|Austin, TX").
-    Does NOT complete onboarding yet.
-    """
     data = request.get_json()
     email = data.get('email')
-    cities_str = data.get('cities', '')  # Expecting pipe-separated string
+    cities_str = data.get('cities', '') 
 
     if not email:
         return jsonify({'error': 'Email required'}), 400
@@ -281,22 +330,16 @@ def save_favorite_cities():
         return jsonify({'error': 'User not found'}), 404
 
     try:
-        # Split string into list of city names
-        city_names = [c.strip() for c in cities_str.split('|') if c.strip()]
+        raw_items = [c.strip() for c in cities_str.split('|') if c.strip()]
         
-        # 1. Clear existing favorites for this user (to handle updates/removals)
+        # Reset current favorites
         user.fav_cities = []
         
-        # 2. Add new favorites
-        for name in city_names:
-            # Find existing city or create new one
-            city = City.query.filter_by(name=name).first()
-            if not city:
-                city = City(name=name)
-                db.session.add(city)
-            
-            # Append to user's list (SQLAlchemy handles the join table insert)
-            user.fav_cities.append(city)
+        for item in raw_items:
+            # Parse & Link
+            loc = get_or_create_location(item)
+            if loc:
+                user.fav_cities.append(loc)
         
         db.session.commit()
         return jsonify({'message': 'Favorite cities saved', 'onboarding_complete': 'No'}), 200
@@ -306,16 +349,12 @@ def save_favorite_cities():
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
 
-# --- SAVE FAVORITE ARTISTS ENDPOINT (STEP 4: Onboarding Part 3) ---
+# --- SAVE FAVORITE ARTISTS (Onboarding Step 3) ---
 @app.route('/api/save_favorite_artists', methods=['POST'])
 def save_favorite_artists():
-    """
-    Saves the user's favorite artists AND marks onboarding as complete.
-    (Still using string list for Artists as requested)
-    """
     data = request.get_json()
     email = data.get('email')
-    artists_str = data.get('artists')  # Expecting pipe-separated string
+    artists_str = data.get('artists') 
 
     if not email:
         return jsonify({'error': 'Email required'}), 400
@@ -325,7 +364,6 @@ def save_favorite_artists():
         return jsonify({'error': 'User not found'}), 404
 
     try:
-        # Check if entry exists, update if so, else create new
         fav_entry = FavoriteArtists.query.filter_by(user_id=user.id).first()
         
         if fav_entry:
@@ -334,7 +372,7 @@ def save_favorite_artists():
             new_fav = FavoriteArtists(user_id=user.id, artists_list=artists_str)
             db.session.add(new_fav)
         
-        # ✅ Mark Onboarding as Complete NOW
+        # Mark Onboarding as Complete
         user.onboarding_complete = 'Yes'
         
         db.session.commit()
@@ -344,20 +382,15 @@ def save_favorite_artists():
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
 
-# --- LOGIN ENDPOINT ---
+# --- LOGIN ---
 @app.route('/api/login', methods=['POST'])
 def login():
-    print("DB:", db.engine.url)
-    """
-    Verifies user and returns onboarding status.
-    """
+    print("DB:", db.engine.url) # ✅ Restored
     email = request.form.get('email')
     password = request.form.get('password')
 
-    # Find user by email
     user = User.query.filter_by(email=email).first()
 
-    # Verify password (Simple check for now)
     if user and user.password == password:
         return jsonify({
             'message': 'Login successful',
@@ -366,13 +399,11 @@ def login():
         }), 200
     else:
         return jsonify({'error': 'Invalid email or password'}), 401
-# ---------------------------
 
 @app.route('/api/locations', methods=['GET'])
 def search_locations():
     """Search for airports and cities by keyword for autocomplete"""
     keyword = request.args.get('keyword')
-    
     if not keyword or len(keyword) < 2:
         return jsonify([])
 
@@ -380,7 +411,6 @@ def search_locations():
         if AMADEUS_ENABLED and amadeus_client:
             results = amadeus_client.search_locations(keyword)
             return jsonify(results)
-        
         elif DEV_MODE:
             mock_results = [
                 {'label': f"Mock City - {keyword.title()} (MCK)", 'value': "MCK", 'type': "City", 'country': "United States"},
@@ -389,9 +419,8 @@ def search_locations():
             return jsonify(mock_results)
         else:
             return jsonify([])
-            
     except Exception as e:
-        print(f"Error in search_locations: {str(e)}")
+        print(f"Error in search_locations: {str(e)}") # ✅ Restored
         return jsonify([])
 
 def generate_mock_flights(origins, destinations, departure_date, return_date=None):
@@ -444,7 +473,7 @@ def search_flights():
         cache_key = get_cache_key(origins, destinations, departure_date, return_date, trip_type)
 
         if cache_key in cache and is_cache_valid(cache[cache_key]):
-            print(f"Returning cached results for {cache_key}")
+            print(f"Returning cached results for {cache_key}") # ✅ Restored
             return jsonify({
                 'flights': cache[cache_key]['flights'],
                 'cached': True,
@@ -453,10 +482,10 @@ def search_flights():
             })
 
         if DEV_MODE:
-            print(f"[DEV MODE] Generating mock flights for {origins} -> {destinations}")
+            print(f"[DEV MODE] Generating mock flights for {origins} -> {destinations}") # ✅ Restored
             flights = generate_mock_flights(origins, destinations, departure_date, return_date)
         elif AMADEUS_ENABLED:
-            print(f"[AMADEUS API] Searching flights for {origins} -> {destinations}")
+            print(f"[AMADEUS API] Searching flights for {origins} -> {destinations}") # ✅ Restored
             search_return_date = None if trip_type == 'one-way' else (departure_date if trip_type == 'day-trip' else return_date)
             
             flights = amadeus_client.search_flights(
@@ -467,7 +496,7 @@ def search_flights():
                 adults=1
             )
         else:
-            print(f"ERROR: Neither Amadeus API nor scraper is available")
+            print(f"ERROR: Neither Amadeus API nor scraper is available") # ✅ Restored
             return jsonify({'error': 'Flight search unavailable', 'devMode': DEV_MODE}), 503
 
         cache[cache_key] = {'flights': flights, 'timestamp': datetime.now().isoformat()}
@@ -481,7 +510,7 @@ def search_flights():
         })
 
     except Exception as e:
-        print(f"Error in search_flights: {str(e)}")
+        print(f"Error in search_flights: {str(e)}") # ✅ Restored
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/search/stream', methods=['POST'])
@@ -548,7 +577,7 @@ def search_flights_stream():
         return Response(stream_with_context(generate()), mimetype='text/event-stream', headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
     except Exception as e:
-        print(f"Error in search_flights_stream: {str(e)}")
+        print(f"Error in search_flights_stream: {str(e)}") # ✅ Restored
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/destinations', methods=['GET'])
@@ -587,7 +616,7 @@ def trip_planner():
                 (target_return + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(-2, 3)
             ]
 
-            print(f"Searching departure date: {current_date_str}")
+            print(f"Searching departure date: {current_date_str}") # ✅ Restored
             
             if AMADEUS_ENABLED:
                 for r_date in return_dates:
@@ -615,7 +644,7 @@ def trip_planner():
         })
 
     except Exception as e:
-        print(f"Error in trip_planner: {str(e)}")
+        print(f"Error in trip_planner: {str(e)}") # ✅ Restored
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/cache/clear', methods=['POST'])
@@ -633,11 +662,10 @@ def cache_stats():
         'expired_entries': len(cache) - valid_entries
     })
 
-# ✅ MOVED: DB creation is now outside of 'if __main__' to ensure it runs when using 'flask run'
+# ✅ MOVED: DB creation
 with app.app_context():
     db.create_all()
     print("Database initialized successfully.")
 
 if __name__ == '__main__':
-    # Run on port 5001 (5000 is often used by macOS AirPlay)
     app.run(debug=True, port=5001, host='127.0.0.1')
