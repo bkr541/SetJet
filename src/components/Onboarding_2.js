@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+// Onboarding_2.js
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowRight,
   ArrowLeft,
@@ -8,8 +9,6 @@ import {
   Check
 } from 'lucide-react';
 import './Onboarding_2.css';
-// Ensure this path matches your project structure
-import cityData from '../data/FrontierDestinationInfo_numeric.json';
 
 function Onboarding_2({ onNext, onBack, homeCity }) {
   const [inputValue, setInputValue] = useState('');
@@ -18,45 +17,48 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
   const [focusedField, setFocusedField] = useState(null);
   const [error, setError] = useState(null);
 
+  // ✅ NEW: Suggestions from DB locations table
+  const [citySuggestions, setCitySuggestions] = useState([]);
+
   // Maximum number of selectable cities
   const MAX_SELECTION = 5;
 
-  // Filter Logic (Distinct City, State)
-  const filteredCities = useMemo(() => {
-    if (!inputValue || inputValue.length < 2) return [];
-    
-    const lowerInput = inputValue.toLowerCase();
-    const uniqueCities = new Set();
-    const distinctResults = [];
-
-    // Filter out cities already selected
-    const selectedLabels = new Set(selectedCities.map(c => c.displayLabel));
-
-    for (const item of cityData) {
-      if (item.City && item.City.toLowerCase().includes(lowerInput)) {
-        const locationStr = item['State Abbreviation'] 
-          ? `${item.City}, ${item['State Abbreviation']}`
-          : `${item.City}, ${item.Country}`;
-
-        // Add if unique and not already selected
-        if (!uniqueCities.has(locationStr) && !selectedLabels.has(locationStr)) {
-          uniqueCities.add(locationStr);
-          distinctResults.push({
-            ...item,
-            displayLabel: locationStr
-          });
-        }
-      }
+  // ✅ NEW: Fetch favorite city suggestions from DB when user types
+  useEffect(() => {
+    if (!inputValue || inputValue.length < 2) {
+      setCitySuggestions([]);
+      return;
     }
-    
-    return distinctResults;
+
+    const t = setTimeout(async () => {
+      try {
+        const url = `http://127.0.0.1:5001/api/db_locations?keyword=${encodeURIComponent(inputValue)}&limit=25`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const selectedLabels = new Set(selectedCities.map(c => c.displayLabel));
+        const filtered = (Array.isArray(data) ? data : []).filter(d => {
+          const label = d.displayLabel || d.name;
+          return label && !selectedLabels.has(label);
+        });
+
+        setCitySuggestions(filtered);
+      } catch (e) {
+        console.error("Error fetching locations:", e);
+        setCitySuggestions([]);
+      }
+    }, 150);
+
+    return () => clearTimeout(t);
   }, [inputValue, selectedCities]);
 
   const handleAddCity = (cityRecord) => {
     setError(null); // Clear previous errors
 
+    const label = cityRecord?.displayLabel || cityRecord?.name || '';
+
     // Check if the city is the user's Home City
-    if (homeCity && cityRecord.displayLabel.toLowerCase() === homeCity.toLowerCase()) {
+    if (homeCity && label && label.toLowerCase() === homeCity.toLowerCase()) {
         setError("A Favorite City cannot be your Home City");
         setInputValue('');
         setIsSearchFocused(false);
@@ -64,7 +66,7 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
     }
 
     if (selectedCities.length < MAX_SELECTION) {
-      setSelectedCities(prev => [...prev, cityRecord]);
+      setSelectedCities(prev => [...prev, { ...cityRecord, displayLabel: label }]);
       setInputValue(''); // Clear input after selection
       setIsSearchFocused(false);
     }
@@ -203,17 +205,17 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
             )}
 
             {/* FLOATING DROPDOWN */}
-            {isSearchFocused && filteredCities.length > 0 && (
+            {isSearchFocused && citySuggestions.length > 0 && (
               <div className="city-dropdown">
-                {filteredCities.map((city, index) => (
+                {citySuggestions.map((loc) => (
                   <div 
-                    key={index} 
+                    key={loc.id || (loc.displayLabel || loc.name)} 
                     className="city-dropdown-item"
-                    onMouseDown={() => handleAddCity(city)}
+                    onMouseDown={() => handleAddCity({ ...loc, displayLabel: loc.displayLabel || loc.name })}
                   >
                     <MapPin size={16} className="city-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
                     <div className="city-main">
-                      {city.displayLabel}
+                      {loc.displayLabel || loc.name}
                     </div>
                   </div>
                 ))}

@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
+// Onboarding_1.js
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowRight,
   Upload,
@@ -9,7 +10,6 @@ import {
   ChevronLeft 
 } from 'lucide-react';
 import './Onboarding_1.css';
-import cityData from '../data/FrontierDestinationInfo_numeric.json';
 import Onboarding_2 from './Onboarding_2'; 
 import Onboarding_3 from './Onboarding_3'; // ✅ ADDED
 
@@ -69,6 +69,9 @@ function Onboarding_1({ onComplete }) {
   
   const [isHomeSearchFocused, setIsHomeSearchFocused] = useState(false);
 
+  // ✅ NEW: Suggestions from DB locations table
+  const [homeSuggestions, setHomeSuggestions] = useState([]);
+
   // Disable background scrolling when modal is open
   useEffect(() => {
     if (showModal) {
@@ -117,6 +120,30 @@ function Onboarding_1({ onComplete }) {
     fetchUserData();
   }, []);
 
+  // ✅ NEW: Fetch home city suggestions from DB when user types
+  useEffect(() => {
+    const q = formData.homeAirport;
+
+    if (!q || q.length < 2) {
+      setHomeSuggestions([]);
+      return;
+    }
+
+    const t = setTimeout(async () => {
+      try {
+        const url = `http://127.0.0.1:5001/api/db_locations?keyword=${encodeURIComponent(q)}&limit=25`;
+        const res = await fetch(url);
+        const data = await res.json();
+        setHomeSuggestions(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error("Error fetching locations:", e);
+        setHomeSuggestions([]);
+      }
+    }, 150);
+
+    return () => clearTimeout(t);
+  }, [formData.homeAirport]);
+
   // Handle Modal Primary Button
   const handleModalPrimary = () => {
     if (modalStep < MODAL_IMAGES.length - 1) {
@@ -137,32 +164,6 @@ function Onboarding_1({ onComplete }) {
       setModalStep(prev => prev - 1);
     }
   };
-
-  const filteredHomeAirports = useMemo(() => {
-    if (!formData.homeAirport || formData.homeAirport.length < 2) return [];
-    
-    const lowerInput = formData.homeAirport.toLowerCase();
-    const uniqueCities = new Set();
-    const distinctResults = [];
-
-    for (const item of cityData) {
-      if (item.City && item.City.toLowerCase().includes(lowerInput)) {
-        const locationStr = item['State Abbreviation'] 
-          ? `${item.City}, ${item['State Abbreviation']}`
-          : `${item.City}, ${item.Country}`;
-
-        if (!uniqueCities.has(locationStr)) {
-          uniqueCities.add(locationStr);
-          distinctResults.push({
-            ...item,
-            displayLabel: locationStr
-          });
-        }
-      }
-    }
-    
-    return distinctResults;
-  }, [formData.homeAirport]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -207,10 +208,9 @@ function Onboarding_1({ onComplete }) {
     }
   };
 
-  const handleSelectHomeAirport = (cityRecord) => {
-    const locationStr = cityRecord.displayLabel || (cityRecord['State Abbreviation'] 
-      ? `${cityRecord.City}, ${cityRecord['State Abbreviation']}`
-      : `${cityRecord.City}, ${cityRecord.Country}`);
+  // ✅ UPDATED: Works with DB rows
+  const handleSelectHomeAirport = (loc) => {
+    const locationStr = (loc && (loc.displayLabel || loc.name)) ? (loc.displayLabel || loc.name) : '';
     
     setFormData(prev => ({ ...prev, homeAirport: locationStr }));
     setIsHomeSearchFocused(false);
@@ -533,17 +533,17 @@ function Onboarding_1({ onComplete }) {
             )}
 
             {/* FLOATING DROPDOWN */}
-            {isHomeSearchFocused && filteredHomeAirports.length > 0 && (
+            {isHomeSearchFocused && homeSuggestions.length > 0 && (
               <div className="city-dropdown">
-                {filteredHomeAirports.map((city, index) => (
+                {homeSuggestions.map((loc) => (
                   <div 
-                    key={index} 
+                    key={loc.id || (loc.displayLabel || loc.name)} 
                     className="city-dropdown-item"
-                    onMouseDown={() => handleSelectHomeAirport(city)}
+                    onMouseDown={() => handleSelectHomeAirport(loc)}
                   >
                     <MapPin size={16} className="city-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
                     <div className="city-main">
-                      {city.displayLabel}
+                      {loc.displayLabel || loc.name}
                     </div>
                   </div>
                 ))}

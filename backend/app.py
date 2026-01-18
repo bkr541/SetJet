@@ -20,7 +20,16 @@ load_dotenv()
 app = Flask(__name__)
 
 # ✅ UPDATED CORS: Explicitly allow all origins to prevent blocking
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(
+    app,
+    resources={r"/api/*": {
+        "origins": [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000"
+        ]
+    }},
+    supports_credentials=True
+)
 
 # ==========================================
 # 1. NEW CONFIGURATION (Database & Email)
@@ -206,6 +215,38 @@ def health_check():
         'amadeus_enabled': AMADEUS_ENABLED,
         'dev_mode': DEV_MODE
     })
+
+# --- GET RECORDS FROM LOCATIONS TABLE ---
+@app.route('/api/db_locations', methods=['GET'])
+def db_locations():
+    keyword = request.args.get('keyword', '').strip()
+    limit = int(request.args.get('limit', 25))
+
+    if len(keyword) < 2:
+        return jsonify([])
+
+    like = f"%{keyword}%"
+
+    # Search both "name" ("Atlanta, GA") and "city" ("Atlanta")
+    rows = (Location.query
+            .filter(db.or_(Location.name.ilike(like), Location.city.ilike(like)))
+            .order_by(Location.city.asc())
+            .limit(limit)
+            .all())
+
+    # Frontend only needs a label. Use Location.name as the display label.
+    return jsonify([
+        {
+            "id": r.id,
+            "name": r.name,
+            "city": r.city,
+            "state": r.state,
+            "state_code": r.state_code,
+            "displayLabel": r.name
+        }
+        for r in rows
+    ])
+
 
 # --- SIGNUP ---
 @app.route('/api/signup', methods=['POST'])
