@@ -86,6 +86,8 @@ class Location(db.Model):
     city = db.Column(db.String(100), nullable=False) # e.g. "Atlanta"
     state = db.Column(db.String(100), nullable=True) # e.g. "Georgia"
     state_code = db.Column(db.String(10), nullable=True) # e.g. "GA"
+    region = db.Column(db.String(100), nullable=True) # e.g. "Northeast"
+    country = db.Column(db.String(100), nullable=False) # e.g. "United States of America"
 
     def __repr__(self):
         return f"Location('{self.name}')"
