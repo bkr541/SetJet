@@ -95,7 +95,7 @@ class Location(db.Model):
 
     # Classification
     region = db.Column(db.String(100), nullable=True)     # "South"
-    country = db.Column(db.String(100), nullable=True)   # "United States of America"
+    country = db.Column(db.String(100), nullable=True)    # "United States of America"
 
     # External reference
     edmtrain_location_id = db.Column(db.Integer, nullable=True, index=True)
@@ -108,17 +108,17 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(60), nullable=False) 
-    
+    password = db.Column(db.String(60), nullable=False)
+
     first_name = db.Column(db.String(50), nullable=False, default='')
     last_name = db.Column(db.String(50), nullable=False, default='')
     username = db.Column(db.String(50), unique=True, nullable=True)
-    
+
     # Store Date of Birth as SQL Date
     dob = db.Column(db.Date, nullable=True)
-    
+
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
-    
+
     # Foreign Key to 'locations' table for Home City
     home_location_id = db.Column(db.Integer, db.ForeignKey('locations.id'), nullable=True)
     home_location = db.relationship('Location', foreign_keys=[home_location_id])
@@ -171,10 +171,10 @@ def get_or_create_location(location_str):
     """
     if not location_str:
         return None
-    
+
     # Clean input
     clean_str = location_str.strip()
-    
+
     # Logic to split "City, Code"
     if ',' in clean_str:
         parts = clean_str.split(',')
@@ -183,24 +183,24 @@ def get_or_create_location(location_str):
     else:
         city_val = clean_str
         code_val = None
-    
+
     # Map Code to Full Name (e.g. GA -> Georgia) if it exists in US_STATES
     # If not in US_STATES (e.g. international), just use the code as state or None
     full_state = US_STATES.get(code_val, code_val) if code_val else None
 
     # Check existence
     loc = Location.query.filter_by(name=clean_str).first()
-    
+
     if not loc:
         loc = Location(
-            name=clean_str, 
-            city=city_val, 
-            state=full_state, 
+            name=clean_str,
+            city=city_val,
+            state=full_state,
             state_code=code_val
         )
         db.session.add(loc)
         db.session.commit()
-        
+
     return loc
 
 # ==========================================
@@ -277,6 +277,35 @@ def db_locations():
         for r in rows
     ])
 
+# --- GET RECORDS FROM ARTISTS TABLE ---
+@app.route('/api/db_artists', methods=['GET'])
+def db_artists():
+    keyword = request.args.get('keyword', '').strip()
+    limit = int(request.args.get('limit', 25))
+
+    if len(keyword) < 2:
+        return jsonify([])
+
+    like = f"%{keyword}%"
+
+    rows = (Artist.query
+            .filter(db.or_(Artist.display_name.ilike(like), Artist.normalized_name.ilike(like)))
+            .order_by(Artist.display_name.asc())
+            .limit(limit)
+            .all())
+
+    return jsonify([
+        {
+            "id": a.id,
+            "display_name": a.display_name,
+            "edmtrain_id": a.edmtrain_id,
+            "normalized_name": a.normalized_name,
+            "genres": a.genres,
+            "image_url": a.image_url,
+            "displayLabel": a.display_name
+        }
+        for a in rows
+    ])
 
 # --- SIGNUP ---
 @app.route('/api/signup', methods=['POST'])
@@ -286,7 +315,7 @@ def signup():
     last_name = request.form.get('last_name')
     email = request.form.get('email')
     password = request.form.get('password')
-    
+
     if User.query.filter_by(email=email).first():
         return jsonify({'error': 'Email already taken.'}), 400
 
@@ -296,7 +325,7 @@ def signup():
             last_name=last_name,
             email=email,
             password=password,
-            onboarding_complete='No' 
+            onboarding_complete='No'
         )
         db.session.add(new_user)
         db.session.commit()
@@ -312,7 +341,6 @@ def signup():
 
     return jsonify({'message': 'User created successfully!'}), 201
 
-
 # --- GET USER INFO ---
 @app.route('/api/get_user_info', methods=['POST'])
 def get_user_info():
@@ -325,7 +353,7 @@ def get_user_info():
 
     # Convert Date object -> String for frontend
     dob_str = user.dob.strftime('%m/%d/%Y') if user.dob else ""
-    
+
     # Get Home City Name from relationship
     home_city_str = user.home_location.name if user.home_location else ""
 
@@ -333,19 +361,18 @@ def get_user_info():
         'first_name': user.first_name,
         'last_name': user.last_name,
         'username': user.username,
-        'dob': dob_str, 
+        'dob': dob_str,
         'bio': user.bio,
-        'home_city': home_city_str, 
+        'home_city': home_city_str,
         'image_file': user.image_file
     }), 200
-
 
 # --- UPDATE PROFILE (Onboarding Step 1) ---
 @app.route('/api/update_profile', methods=['POST'])
 def update_profile():
     email = request.form.get('email')
     username = request.form.get('username')
-    
+
     user = User.query.filter_by(email=email).first()
     if not user:
         return jsonify({'error': 'User not found'}), 404
@@ -364,34 +391,33 @@ def update_profile():
 
     user.username = username
     user.bio = request.form.get('bio')
-    
+
     # Handle DOB String -> Date conversion
     dob_input = request.form.get('dob') # 'mm/dd/yyyy'
     if dob_input:
         try:
             user.dob = datetime.strptime(dob_input, '%m/%d/%Y').date()
         except ValueError:
-            pass 
+            pass
 
     # Handle Home City String -> Location Relation
     home_city_input = request.form.get('home_city') # "Atlanta, GA"
     if home_city_input:
         location = get_or_create_location(home_city_input)
         user.home_location = location
-    
+
     try:
         db.session.commit()
         return jsonify({'message': 'Profile updated successfully', 'onboarding_complete': 'No'}), 200
     except Exception as e:
         return jsonify({'error': f'Database update failed: {str(e)}'}), 500
 
-
 # --- SAVE FAVORITE CITIES (Onboarding Step 2) ---
 @app.route('/api/save_favorite_cities', methods=['POST'])
 def save_favorite_cities():
     data = request.get_json()
     email = data.get('email')
-    cities_str = data.get('cities', '') 
+    cities_str = data.get('cities', '')
 
     if not email:
         return jsonify({'error': 'Email required'}), 400
@@ -402,16 +428,16 @@ def save_favorite_cities():
 
     try:
         raw_items = [c.strip() for c in cities_str.split('|') if c.strip()]
-        
+
         # Reset current favorites
         user.fav_cities = []
-        
+
         for item in raw_items:
             # Parse & Link
             loc = get_or_create_location(item)
             if loc:
                 user.fav_cities.append(loc)
-        
+
         db.session.commit()
         return jsonify({'message': 'Favorite cities saved', 'onboarding_complete': 'No'}), 200
 
@@ -419,13 +445,12 @@ def save_favorite_cities():
         db.session.rollback()
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
-
 # --- SAVE FAVORITE ARTISTS (Onboarding Step 3) ---
 @app.route('/api/save_favorite_artists', methods=['POST'])
 def save_favorite_artists():
     data = request.get_json()
     email = data.get('email')
-    artists_str = data.get('artists') 
+    artists_str = data.get('artists')
 
     if not email:
         return jsonify({'error': 'Email required'}), 400
@@ -436,22 +461,21 @@ def save_favorite_artists():
 
     try:
         fav_entry = FavoriteArtists.query.filter_by(user_id=user.id).first()
-        
+
         if fav_entry:
             fav_entry.artists_list = artists_str
         else:
             new_fav = FavoriteArtists(user_id=user.id, artists_list=artists_str)
             db.session.add(new_fav)
-        
+
         # Mark Onboarding as Complete
         user.onboarding_complete = 'Yes'
-        
+
         db.session.commit()
         return jsonify({'message': 'Favorite artists saved', 'onboarding_complete': 'Yes'}), 200
 
     except Exception as e:
         return jsonify({'error': f'Database error: {str(e)}'}), 500
-
 
 # --- LOGIN ---
 @app.route('/api/login', methods=['POST'])
@@ -466,7 +490,7 @@ def login():
         return jsonify({
             'message': 'Login successful',
             'first_name': user.first_name,
-            'onboarding_complete': user.onboarding_complete 
+            'onboarding_complete': user.onboarding_complete
         }), 200
     else:
         return jsonify({'error': 'Invalid email or password'}), 401
@@ -508,7 +532,7 @@ def generate_mock_flights(origins, destinations, departure_date, return_date=Non
                 minute = random.choice(['00', '15', '30', '45'])
                 duration_hours = random.randint(2, 6)
                 duration_mins = random.choice([0, 15, 30, 45])
-                
+
                 flights.append({
                     'origin': origin,
                     'destination': destination,
@@ -558,7 +582,7 @@ def search_flights():
         elif AMADEUS_ENABLED:
             print(f"[AMADEUS API] Searching flights for {origins} -> {destinations}") # ✅ Restored
             search_return_date = None if trip_type == 'one-way' else (departure_date if trip_type == 'day-trip' else return_date)
-            
+
             flights = amadeus_client.search_flights(
                 origins=origins,
                 destinations=destinations,
@@ -625,7 +649,7 @@ def search_flights_stream():
                                 'stops': 0, 'blackout_dates': blackout_info
                             }
                             route_flights.append(flight)
-                        
+
                         all_flights.extend(route_flights)
                         event_data = {'route': f"{origin}->{destination}", 'flights': route_flights, 'count': len(route_flights)}
                         yield f"data: {json.dumps(event_data)}\n\n"
@@ -633,7 +657,7 @@ def search_flights_stream():
 
             elif AMADEUS_ENABLED:
                 search_return_date = None if trip_type == 'one-way' else (departure_date if trip_type == 'day-trip' else return_date)
-                
+
                 all_flights = amadeus_client.search_flights(
                     origins=origins, destinations=destinations,
                     departure_date=departure_date, return_date=search_return_date,
@@ -665,7 +689,7 @@ def trip_planner():
         destinations = data.get('destinations', [])
         departure_date = data.get('departureDate')
         trip_length = data.get('tripLength')
-        
+
         if not origins or not destinations or not departure_date or not trip_length:
             return jsonify({'error': 'Missing required fields'}), 400
 
@@ -673,22 +697,22 @@ def trip_planner():
         # (Shortened for brevity in display, but logic is functionally identical to original)
         depart_dt = datetime.strptime(departure_date, '%Y-%m-%d')
         trip_hours = float(trip_length) * (24 if data.get('tripLengthUnit', 'days') == 'days' else 1)
-        
+
         all_flights = []
         optimal_trips = []
         days_searched = 0
-        
+
         while len(optimal_trips) == 0 and days_searched < 30:
             current_depart_dt = depart_dt + timedelta(days=days_searched)
             current_date_str = current_depart_dt.strftime('%Y-%m-%d')
             target_return = current_depart_dt + timedelta(hours=trip_hours)
-            
+
             return_dates = [
                 (target_return + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(-2, 3)
             ]
 
             print(f"Searching departure date: {current_date_str}") # ✅ Restored
-            
+
             if AMADEUS_ENABLED:
                 for r_date in return_dates:
                     flights = amadeus_client.search_flights(
@@ -704,7 +728,7 @@ def trip_planner():
                 max_duration=data.get('maxTripDuration'),
                 max_duration_unit=data.get('maxTripDurationUnit', 'days')
             )
-            
+
             if len(optimal_trips) > 0: break
             days_searched += 1
 
