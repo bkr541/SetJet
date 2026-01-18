@@ -80,14 +80,25 @@ user_favorite_locations = db.Table('user_favorite_locations',
 
 class Location(db.Model):
     __tablename__ = 'locations'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False) # e.g. "Atlanta, GA"
-    city = db.Column(db.String(100), nullable=False) # e.g. "Atlanta"
-    state = db.Column(db.String(100), nullable=True) # e.g. "Georgia"
-    state_code = db.Column(db.String(10), nullable=True) # e.g. "GA"
-    region = db.Column(db.String(100), nullable=True) # e.g. "Northeast"
-    country = db.Column(db.String(100), nullable=False) # e.g. "United States of America"
+
+    # Display / identity
+    name = db.Column(db.String(100), nullable=False)      # "Atlanta, GA"
+    city = db.Column(db.String(100), nullable=True)       # "Atlanta" (nullable for state-level rows)
+    state = db.Column(db.String(100), nullable=True)      # "Georgia"
+    state_code = db.Column(db.String(10), nullable=True)  # "GA"
+
+    # Geography
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
+
+    # Classification
+    region = db.Column(db.String(100), nullable=True)     # "South"
+    country = db.Column(db.String(100), nullable=True)   # "United States of America"
+
+    # External reference
+    edmtrain_location_id = db.Column(db.Integer, nullable=True, index=True)
 
     def __repr__(self):
         return f"Location('{self.name}')"
@@ -120,6 +131,23 @@ class User(db.Model):
 
     def __repr__(self):
         return f"User('{self.email}', '{self.first_name}', '{self.last_name}')"
+
+class Artist(db.Model):
+    __tablename__ = "artists"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # From spreadsheet
+    display_name = db.Column(db.String(255), nullable=False)
+    edmtrain_id = db.Column(db.Integer, unique=True, index=True, nullable=False)
+    normalized_name = db.Column(db.String(255), index=True, nullable=False)
+
+    # Nullable for now (future expansion)
+    genres = db.Column(db.Text, nullable=True)
+    image_url = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f"<Artist {self.display_name}>"
 
 class FavoriteArtists(db.Model):
     __tablename__ = 'favorite_artists'
