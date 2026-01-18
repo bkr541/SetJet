@@ -5,7 +5,8 @@ import {
   Music,
   X,
   Search,
-  Check
+  Check,
+  CircleUserRound
 } from 'lucide-react';
 import './Onboarding_3.css';
 
@@ -224,7 +225,7 @@ function Onboarding_3({ onNext, onBack }) {
                       className="artist-dropdown-item"
                       onMouseDown={() => handleAddArtist({ ...artist, displayLabel: label })}
                     >
-                      <Music size={16} className="artist-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
+                      <CircleUserRound size={16} className="artist-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
                       <div className="artist-main">
                         {label}
                       </div>

@@ -25,19 +25,19 @@ const MODAL_IMAGES = [
 const MODAL_CONTENT = [
   {
     title: "Welcome to SetJet",
-    subtitle: "SetJet is made to simplify doing one thing - find a set you can't miss, then get you there."
+    subtitle: "SetJet is made to simplify doing one thing - find a set you can't miss, then get you there"
   },
   {
-    title: "Discover New Places",
-    subtitle: "Explore destinations you've never seen before with our curated flight lists."
+    title: "Designed For You",
+    subtitle: "Give SetJet some information about you and watch it tailor your experiences"
   },
   {
-    title: "Track Your Adventures",
-    subtitle: "Keep a log of your favorite cities and get notified when prices drop."
+    title: "Explore New Sets In New Places",
+    subtitle: "Get detailed information on thousands of sets, with custom itineraries on how to get there."
   },
   {
-    title: "Plan Your Journey",
-    subtitle: "Organize your upcoming trips and keep all your travel details in one place."
+    title: "Your Music, Your Style",
+    subtitle: "Customize your music taste with your favorite artists, genres, and more."
   },
   {
     title: "Ready for Takeoff?",

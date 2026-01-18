@@ -202,12 +202,12 @@
   justify-content: center;
   align-items: center;
   padding: 1rem;
-  backdrop-filter: blur(4px);
-  animation: fadeIn 0.3s ease-out forwards;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 1.0s ease-out forwards;
 }
 
 .welcome-modal-overlay.closing {
-  animation: fadeOut 0.3s forwards;
+  animation: fadeOut 1.0s forwards;
 }
 
 .welcome-modal-content {
@@ -232,15 +232,16 @@
 }
 
 .welcome-modal-content.closing {
-  animation: scaleDown 0.3s forwards;
+  animation: scaleDown 1.0s forwards;
 }
 
 /* Gradient overlay to make text readable on any image */
 .welcome-modal-gradient {
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.85) 0%,
-    rgba(0, 0, 0, 0.5) 40%,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 0.75) 65%,
+    rgba(0, 0, 0, 0.3) 85%,
     transparent 100%
   );
   width: 100%;
