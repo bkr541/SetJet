@@ -47,7 +47,25 @@ mail = Mail(app)
 # ==========================================
 # 2. UPDATED USER MODELS
 # ==========================================
+
+# ✅ NEW: Join Table for User <-> Cities (Many-to-Many)
+user_favorite_cities = db.Table('user_favorite_cities',
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('city_id', db.Integer, db.ForeignKey('cities.id', ondelete='CASCADE'), primary_key=True)
+)
+
+# ✅ NEW: Normalized City Model
+class City(db.Model):
+    __tablename__ = 'cities'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f"City('{self.name}')"
+
 class User(db.Model):
+    __tablename__ = 'users'
+
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False) 
@@ -71,24 +89,18 @@ class User(db.Model):
     # Tracks if user has finished onboarding
     onboarding_complete = db.Column(db.String(5), nullable=False, default='No')
 
+    # ✅ NEW: Relationship to City via join table
+    fav_cities = db.relationship('City', secondary=user_favorite_cities, backref=db.backref('users', lazy='dynamic'))
+
     def __repr__(self):
         return f"User('{self.email}', '{self.first_name}', '{self.last_name}')"
 
-# Table for Favorite Cities
-class FavoriteCities(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    # Stores the pipe-separated string of favorite cities
-    cities_list = db.Column(db.String(500), nullable=False)
-
-    def __repr__(self):
-        return f"FavoriteCities('User {self.user_id}', '{self.cities_list}')"
-
-# ✅ NEW TABLE: Favorite Artists
+# ✅ Table for Favorite Artists (Still string-based list for now)
 class FavoriteArtists(db.Model):
+    __tablename__ = 'favorite_artists'
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    # Stores the pipe-separated string of favorite artists
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     artists_list = db.Column(db.String(500), nullable=False)
 
     def __repr__(self):
@@ -253,12 +265,13 @@ def update_profile():
 @app.route('/api/save_favorite_cities', methods=['POST'])
 def save_favorite_cities():
     """
-    Saves the user's favorite cities.
+    Saves the user's favorite cities into the normalized schema.
+    Expects 'cities' as a pipe-separated string from frontend (e.g., "Denver, CO|Austin, TX").
     Does NOT complete onboarding yet.
     """
     data = request.get_json()
     email = data.get('email')
-    cities_str = data.get('cities')  # Expecting pipe-separated string
+    cities_str = data.get('cities', '')  # Expecting pipe-separated string
 
     if not email:
         return jsonify({'error': 'Email required'}), 400
@@ -268,22 +281,28 @@ def save_favorite_cities():
         return jsonify({'error': 'User not found'}), 404
 
     try:
-        # Check if entry exists, update if so, else create new
-        fav_entry = FavoriteCities.query.filter_by(user_id=user.id).first()
+        # Split string into list of city names
+        city_names = [c.strip() for c in cities_str.split('|') if c.strip()]
         
-        if fav_entry:
-            fav_entry.cities_list = cities_str
-        else:
-            new_fav = FavoriteCities(user_id=user.id, cities_list=cities_str)
-            db.session.add(new_fav)
+        # 1. Clear existing favorites for this user (to handle updates/removals)
+        user.fav_cities = []
         
-        # ✅ REMOVED: Do NOT mark complete here. Step 3 (Artists) will do it.
-        # user.onboarding_complete = 'Yes'
+        # 2. Add new favorites
+        for name in city_names:
+            # Find existing city or create new one
+            city = City.query.filter_by(name=name).first()
+            if not city:
+                city = City(name=name)
+                db.session.add(city)
+            
+            # Append to user's list (SQLAlchemy handles the join table insert)
+            user.fav_cities.append(city)
         
         db.session.commit()
         return jsonify({'message': 'Favorite cities saved', 'onboarding_complete': 'No'}), 200
 
     except Exception as e:
+        db.session.rollback()
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
 
@@ -292,6 +311,7 @@ def save_favorite_cities():
 def save_favorite_artists():
     """
     Saves the user's favorite artists AND marks onboarding as complete.
+    (Still using string list for Artists as requested)
     """
     data = request.get_json()
     email = data.get('email')
@@ -613,11 +633,11 @@ def cache_stats():
         'expired_entries': len(cache) - valid_entries
     })
 
-if __name__ == '__main__':
-    # Initialize the database file if it doesn't exist
-    with app.app_context():
-        db.create_all()
-        print("Database initialized successfully.")
+# ✅ MOVED: DB creation is now outside of 'if __main__' to ensure it runs when using 'flask run'
+with app.app_context():
+    db.create_all()
+    print("Database initialized successfully.")
 
+if __name__ == '__main__':
     # Run on port 5001 (5000 is often used by macOS AirPlay)
     app.run(debug=True, port=5001, host='127.0.0.1')
