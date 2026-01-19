@@ -20,16 +20,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # ✅ UPDATED CORS: Explicitly allow all origins to prevent blocking
-CORS(
-    app,
-    resources={r"/api/*": {
-        "origins": [
-            "http://localhost:3000",
-            "http://127.0.0.1:3000"
-        ]
-    }},
-    supports_credentials=True
-)
+CORS(app)
 
 # ==========================================
 # 1. NEW CONFIGURATION (Database & Email)
