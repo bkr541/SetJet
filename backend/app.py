@@ -110,8 +110,8 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
 
-    first_name = db.Column(db.String(50), nullable=False, default='')
-    last_name = db.Column(db.String(50), nullable=False, default='')
+    first_name = db.Column(db.String(50), nullable=True, default='')
+    last_name = db.Column(db.String(50), nullable=True, default='')
     username = db.Column(db.String(50), unique=True, nullable=True)
 
     # Store Date of Birth as SQL Date
