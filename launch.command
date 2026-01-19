@@ -10,8 +10,14 @@ echo "🚀 Starting SetJetter GoWild..."
 echo "--- Starting Backend ---"
 cd backend
 source venv/bin/activate
-python3 app.py &
-BACKEND_PID=$! # Save the Process ID so we can kill it later
+
+# Create logs directory if it doesn't exist
+mkdir -p logs
+
+# Run app and redirect all output (errors & info) to backend/logs/backend.log
+python3 app.py > logs/backend.log 2>&1 &
+BACKEND_PID=$!
+# Save the Process ID so we can kill it later
 
 # 3. Give the backend a second to wake up
 sleep 2

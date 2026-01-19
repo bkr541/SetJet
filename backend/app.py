@@ -761,4 +761,5 @@ with app.app_context():
     print("Database initialized successfully.")
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001, host='127.0.0.1')
+    app.run(debug=True, port=5001, host='0.0.0.0', use_reloader=False)
+    
