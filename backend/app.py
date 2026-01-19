@@ -748,6 +748,13 @@ def cache_stats():
         'expired_entries': len(cache) - valid_entries
     })
 
+@app.after_request
+def add_cors_headers(resp):
+    resp.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    resp.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+    resp.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    return resp
+
 # ✅ MOVED: DB creation
 with app.app_context():
     db.create_all()
