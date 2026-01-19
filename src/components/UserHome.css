@@ -3,7 +3,6 @@
   display: flex;
   width: 100%;
   min-height: 100vh;
-  
 }
 
 /* SIDEBAR */
@@ -68,7 +67,13 @@
   width: 100%;
 }
 
-/* SECTION */
+/* SECTION CONTAINER */
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
+}
+
 .sidebar-section h4 {
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -88,25 +93,39 @@
   color: white;
   cursor: pointer;
   border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .sidebar-section button:hover {
   background: #1e293b;
 }
 
+/* ✅ NEW: Active State for Sidebar Buttons */
+.sidebar-section button.active {
+  background: rgba(45, 212, 191, 0.15); /* Low opacity teal */
+  color: #2dd4bf; /* Bright teal text */
+}
+
 /* MAIN CONTENT */
 .user-home-content {
-  margin-left: 160px;
+  margin-left: 260px;
   padding: 32px;
   width: calc(100% - 260px);
-
-  background: #f8fafc;     /* same as root */
-  border: 1px solid #e2e8f0;
-  border-radius: 24px;
-  box-shadow: none;
+  background: #f8fafc;
+  transition: margin-left 0.25s ease, width 0.25s ease;
 }
 
 .user-home-content.collapsed {
   margin-left: 72px;
   width: calc(100% - 72px);
+}
+
+/* ✅ NEW: Animation for content switching */
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
