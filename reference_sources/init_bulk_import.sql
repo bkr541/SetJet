@@ -1,5 +1,5 @@
 --------------------------------------
--- Locations Import                    --
+-- Locations Import                 --
 --------------------------------------
 INSERT INTO locations (name, city, state, state_code, region, country)
 VALUES (
@@ -14304,4 +14304,800 @@ VALUES (
   'brooks',
   NULL,
   NULL
+);
+
+--------------------------------------
+-- Airports Import                  --
+--------------------------------------
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Hartsfield-Jackson Atlanta International Airport',
+  'ATL',
+  'KATL',
+  33.6407,
+  -84.4277,
+  NULL,
+  2
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Austin–Bergstrom International Airport',
+  'AUS',
+  'KAUS',
+  30.1945,
+  -97.6699,
+  NULL,
+  3
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Nashville International Airport',
+  'BNA',
+  'KBNA',
+  36.1264,
+  -86.6811,
+  NULL,
+  54
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Boise Airport',
+  'BOI',
+  'KBOI',
+  43.5658,
+  -116.2223,
+  NULL,
+  9
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Logan International Airport',
+  'BOS',
+  'KBOS',
+  42.3643,
+  -71.0052,
+  NULL,
+  10
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Burlington International Airport',
+  'BTV',
+  'KBTV',
+  44.4719,
+  -73.1532,
+  NULL,
+  12
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Buffalo Niagara International Airport',
+  'BUF',
+  'KBUF',
+  42.9405,
+  -78.7322,
+  NULL,
+  11
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Hollywood Burbank Airport',
+  'BUR',
+  'KBUR',
+  34.2007,
+  -118.3582,
+  NULL,
+  44
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Baltimore/Washington Int''l Airport',
+  'BWI',
+  'KBWI',
+  39.1774,
+  -76.6684,
+  NULL,
+  4
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Charleston International Airport',
+  'CHS',
+  'KCHS',
+  32.8986,
+  -80.0401,
+  NULL,
+  14
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'The Eastern Iowa Airport',
+  'CID',
+  'KCID',
+  41.8841,
+  -91.7161,
+  NULL,
+  13
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Cleveland Hopkins International Airport',
+  'CLE',
+  'KCLE',
+  41.4116,
+  -81.8499,
+  NULL,
+  18
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Charlotte Douglas International Airport',
+  'CLT',
+  'KCLT',
+  35.2144,
+  -80.9431,
+  NULL,
+  15
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'John Glenn Columbus Int''l Airport',
+  'CMH',
+  'KCMH',
+  40.0031,
+  -82.8916,
+  NULL,
+  19
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Corpus Christi International Airport',
+  'CRP',
+  'KCRP',
+  27.7709,
+  -97.5029,
+  NULL,
+  20
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Ronald Reagan Washington National Airport',
+  'DCA',
+  'KDCA',
+  38.851,
+  -77.0401,
+  NULL,
+  104
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Denver International Airport',
+  'DEN',
+  'KDEN',
+  39.8561,
+  -104.6737,
+  NULL,
+  23
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Des Moines International Airport',
+  'DSM',
+  'KDSM',
+  41.5332,
+  -93.6633,
+  NULL,
+  24
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Detroit Metropolitan Wayne County Airport',
+  'DTW',
+  'KDTW',
+  42.2163,
+  -83.3537,
+  NULL,
+  25
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'El Paso International Airport',
+  'ELP',
+  'KELP',
+  31.8078,
+  -106.3761,
+  NULL,
+  26
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Newark Liberty International Airport',
+  'EWR',
+  'KEWR',
+  40.6925,
+  -74.1687,
+  NULL,
+  58
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Hector International Airport',
+  'FAR',
+  'KFAR',
+  46.9208,
+  -96.7802,
+  NULL,
+  27
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Fort Lauderdale–Hollywood Int''l Airport',
+  'FLL',
+  'KFLL',
+  26.0742,
+  -80.1498,
+  NULL,
+  29
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Sioux Falls Regional Airport',
+  'FSD',
+  'KFSD',
+  43.5828,
+  -96.741,
+  NULL,
+  92
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Spokane International Airport',
+  'GEG',
+  'KGEG',
+  47.618,
+  -117.5338,
+  NULL,
+  93
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Gerald R. Ford International Airport',
+  'GRR',
+  'KGRR',
+  42.8808,
+  -85.5222,
+  NULL,
+  31
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'George Bush Intercontinental Airport',
+  'IAH',
+  'KIAH',
+  29.9844,
+  -95.3414,
+  NULL,
+  35
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Indianapolis International Airport',
+  'IND',
+  'KIND',
+  39.7173,
+  -86.2952,
+  NULL,
+  37
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Long Island MacArthur Airport',
+  'ISP',
+  'KISP',
+  40.7951,
+  -73.1002,
+  NULL,
+  57
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Jacksonville International Airport',
+  'JAX',
+  'KJAX',
+  30.494,
+  -81.6879,
+  NULL,
+  38
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'John F. Kennedy International Airport',
+  'JFK',
+  'KJFK',
+  40.6413,
+  -73.7781,
+  NULL,
+  56
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Harry Reid International Airport',
+  'LAS',
+  'KLAS',
+  36.084,
+  -115.1537,
+  NULL,
+  41
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Los Angeles International Airport',
+  'LAX',
+  'KLAX',
+  33.9416,
+  -118.4085,
+  NULL,
+  43
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'LaGuardia Airport',
+  'LGA',
+  'KLGA',
+  40.7772,
+  -73.8726,
+  NULL,
+  56
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Bill and Hillary Clinton National Airport',
+  'LIT',
+  'KLIT',
+  34.7297,
+  -92.2272,
+  NULL,
+  42
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Kansas City International Airport',
+  'MCI',
+  'KMCI',
+  39.2976,
+  -94.7139,
+  NULL,
+  39
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Orlando International Airport',
+  'MCO',
+  'KMCO',
+  28.4294,
+  -81.3089,
+  NULL,
+  65
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Harrisburg International Airport',
+  'MDT',
+  'KMDT',
+  40.1932,
+  -76.7533,
+  NULL,
+  33
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Chicago Midway International Airport',
+  'MDW',
+  'KMDW',
+  41.7858,
+  -87.7524,
+  NULL,
+  16
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Memphis International Airport',
+  'MEM',
+  'KMEM',
+  35.0423,
+  -89.9766,
+  NULL,
+  47
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Miami International Airport',
+  'MIA',
+  'KMIA',
+  25.7959,
+  -80.2871,
+  NULL,
+  48
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Milwaukee Mitchell International Airport',
+  'MKE',
+  'KMKE',
+  42.9472,
+  -87.8966,
+  NULL,
+  49
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Dane County Regional Airport',
+  'MSN',
+  'KMSN',
+  43.1368,
+  -89.3375,
+  NULL,
+  45
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Missoula Montana Airport',
+  'MSO',
+  'KMSO',
+  46.9168,
+  -114.095,
+  NULL,
+  52
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Louis Armstrong New Orleans Int''l Airport',
+  'MSY',
+  'KMSY',
+  29.9935,
+  -90.258,
+  NULL,
+  55
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Myrtle Beach International Airport',
+  'MYR',
+  'KMYR',
+  33.6796,
+  -78.9284,
+  NULL,
+  53
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Will Rogers World Airport',
+  'OKC',
+  'KOKC',
+  35.3942,
+  -97.6007,
+  NULL,
+  61
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Eppley Airfield',
+  'OMA',
+  'KOMA',
+  41.3021,
+  -95.8943,
+  NULL,
+  62
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Ontario International Airport',
+  'ONT',
+  'KONT',
+  34.056,
+  -117.6,
+  NULL,
+  63
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'O''Hare International Airport',
+  'ORD',
+  'KORD',
+  41.9742,
+  -87.9073,
+  NULL,
+  16
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Norfolk International Airport',
+  'ORF',
+  'KORF',
+  36.8946,
+  -76.2023,
+  NULL,
+  59
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Portland International Airport',
+  'PDX',
+  'KPDX',
+  45.5878,
+  -122.5976,
+  NULL,
+  72
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Philadelphia International Airport',
+  'PHL',
+  'KPHL',
+  39.8745,
+  -75.2424,
+  NULL,
+  69
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Phoenix Sky Harbor International Airport',
+  'PHX',
+  'KPHX',
+  33.4343,
+  -112.0103,
+  NULL,
+  70
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Pittsburgh International Airport',
+  'PIT',
+  'KPIT',
+  40.4844,
+  -80.2163,
+  NULL,
+  71
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Pensacola International Airport',
+  'PNS',
+  'KPNS',
+  30.4735,
+  -87.1865,
+  NULL,
+  68
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Palm Springs International Airport',
+  'PSP',
+  'KPSP',
+  33.8297,
+  -116.5057,
+  NULL,
+  67
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Richmond International Airport',
+  'RIC',
+  'KRIC',
+  37.5052,
+  -77.3204,
+  NULL,
+  79
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Reno–Tahoe International Airport',
+  'RNO',
+  'KRNO',
+  39.4975,
+  -119.7686,
+  NULL,
+  77
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Southwest Florida International Airport',
+  'RSW',
+  'KRSW',
+  26.5325,
+  -81.7554,
+  NULL,
+  28
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'San Diego International Airport',
+  'SAN',
+  'KSAN',
+  32.7336,
+  -117.1897,
+  NULL,
+  83
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'San Antonio International Airport',
+  'SAT',
+  'KSAT',
+  29.5367,
+  -98.4697,
+  NULL,
+  82
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'San Francisco International Airport',
+  'SFO',
+  'KSFO',
+  37.6213,
+  -122.379,
+  NULL,
+  84
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Norman Y. Mineta San José Int''l Airport',
+  'SJC',
+  'KSJC',
+  37.3626,
+  -121.929,
+  NULL,
+  85
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Salt Lake City International Airport',
+  'SLC',
+  'KSLC',
+  40.7899,
+  -111.9791,
+  NULL,
+  81
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Sacramento International Airport',
+  'SMF',
+  'KSMF',
+  38.6954,
+  -121.5907,
+  NULL,
+  80
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'St. Louis Lambert International Airport',
+  'STL',
+  'KSTL',
+  38.7479,
+  -90.3601,
+  NULL,
+  94
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Syracuse Hancock International Airport',
+  'SYR',
+  'KSYR',
+  43.1112,
+  -76.106,
+  NULL,
+  95
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Tampa International Airport',
+  'TPA',
+  'KTPA',
+  27.9755,
+  -82.5332,
+  NULL,
+  96
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Trenton–Mercer Airport',
+  'TTN',
+  'KTTN',
+  40.2766,
+  -74.8139,
+  NULL,
+  97
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Tulsa International Airport',
+  'TUL',
+  'KTUL',
+  36.1983,
+  -95.8887,
+  NULL,
+  100
+);
+
+INSERT INTO airports (name, iata_code, icao_code, latitude, longitude, timezone, location_id)
+VALUES (
+  'Tucson International Airport',
+  'TUS',
+  'KTUS',
+  32.1162,
+  -110.941,
+  NULL,
+  99
 );

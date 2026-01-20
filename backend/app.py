@@ -86,27 +86,60 @@ user_favorite_artists = db.Table('user_favorite_artists',
 class Location(db.Model):
     __tablename__ = 'locations'
 
+    # Columns matching your screenshot exactly
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    city = db.Column(db.String(100))
+    state = db.Column(db.String(100))
+    state_code = db.Column(db.String(10))
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
+    region = db.Column(db.String(100))
+    country = db.Column(db.String(100))
 
-    # Display / identity
-    name = db.Column(db.String(100), nullable=False)      # "Atlanta, GA"
-    city = db.Column(db.String(100), nullable=True)       # "Atlanta" (nullable for state-level rows)
-    state = db.Column(db.String(100), nullable=True)      # "Georgia"
-    state_code = db.Column(db.String(10), nullable=True)  # "GA"
-
-    # Geography
-    latitude = db.Column(db.Float, nullable=True)
-    longitude = db.Column(db.Float, nullable=True)
-
-    # Classification
-    region = db.Column(db.String(100), nullable=True)     # "South"
-    country = db.Column(db.String(100), nullable=True)    # "United States of America"
-
-    # External reference
-    edmtrain_location_id = db.Column(db.Integer, nullable=True, index=True)
+    # ✅ Relationship: location.airports
+    # Uses Airport.location_id -> Location.id
+    airports = db.relationship(
+        'Airport',
+        back_populates='location',
+        cascade='all, delete-orphan',
+        lazy=True
+    )
 
     def __repr__(self):
-        return f"Location('{self.name}')"
+        return f'<Location {self.name}>'
+
+
+class Airport(db.Model):
+    __tablename__ = 'airports'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+
+    # NOTE:
+    # Your screenshot shows iata_code as VARCHAR(3) but does NOT show uniqueness.
+    # Keeping unique=True is usually correct in real airport data, but if you already
+    # have duplicates in your DB this can break inserts/migrations.
+    iata_code = db.Column(db.String(3), nullable=False, unique=True)  # e.g., "ATL"
+
+    icao_code = db.Column(db.String(4))                               # e.g., "KATL"
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
+    timezone = db.Column(db.String(50))                               # e.g., "America/New_York"
+
+    # ✅ Foreign key link to locations.id (your screenshot shows INTEGER location_id)
+    # If you want airports to always belong to a location, set nullable=False.
+    location_id = db.Column(
+        db.Integer,
+        db.ForeignKey('locations.id', ondelete='CASCADE'),
+        nullable=True
+    )
+
+    # ✅ Back-populated relationship: airport.location
+    location = db.relationship('Location', back_populates='airports')
+
+    def __repr__(self):
+        return f'<Airport {self.iata_code}>'
 
 class Artist(db.Model):
     __tablename__ = "artists"
@@ -274,6 +307,60 @@ def db_locations():
         }
         for r in rows
     ])
+
+
+
+# --- GET RECORDS FROM AIRPORTS + LOCATIONS (JOINED) ---
+@app.route('/api/db_airports', methods=['GET'])
+def db_airports():
+    """Search local Airports table (joined to Locations) for autocomplete.
+
+    Returns objects shaped like:
+      { id, iata_code, airport_name, location_label }
+
+    This is used by UserHome's Departing/Arrival airport dropdowns.
+    """
+    keyword = request.args.get('keyword', '').strip()
+    limit = int(request.args.get('limit', 25))
+
+    if len(keyword) < 2:
+        return jsonify([])
+
+    like = f"%{keyword}%"
+
+    rows = (db.session.query(Airport, Location)
+            .outerjoin(Location, Airport.location_id == Location.id)
+            .filter(
+                db.or_(
+                    Airport.iata_code.ilike(like),
+                    Airport.name.ilike(like),
+                    Location.name.ilike(like),
+                    Location.city.ilike(like)
+                )
+            )
+            .order_by(Airport.iata_code.asc())
+            .limit(limit)
+            .all())
+
+    payload = []
+    for a, loc in rows:
+        # Friendly label like: "Denver, CO" (or fallback to loc.name)
+        location_label = None
+        if loc:
+            if loc.city and loc.state_code:
+                location_label = f"{loc.city}, {loc.state_code}"
+            else:
+                location_label = loc.name
+
+        payload.append({
+            'id': a.id,
+            'iata_code': a.iata_code,
+            'airport_name': a.name,
+            'location_label': location_label
+        })
+
+    return jsonify(payload)
+
 
 # --- GET RECORDS FROM ARTISTS TABLE ---
 @app.route('/api/db_artists', methods=['GET'])

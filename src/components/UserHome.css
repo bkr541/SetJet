@@ -15,13 +15,13 @@
   top: 0;
   height: 100vh;
   width: 260px;
-  background: #0f172a; /* Dark Blue */
+  background: #0f172a;
   color: white;
   display: flex;
   flex-direction: column;
   padding: 16px;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 200; 
+  z-index: 200;
 }
 
 .sidebar.collapsed {
@@ -41,7 +41,7 @@
   padding: 24px;
 }
 
-/* Sidebar Search (Original) */
+/* Sidebar Search */
 .sidebar-search {
   display: flex;
   align-items: center;
@@ -101,7 +101,7 @@
   color: #2dd4bf;
 }
 
-/* --- MAIN WRAPPER (Header + Content) --- */
+/* --- MAIN WRAPPER --- */
 .main-wrapper {
   flex: 1;
   display: flex;
@@ -118,20 +118,20 @@
 
 /* --- HEADER --- */
 .main-header {
-  height: 80px; 
+  height: 80px;
   background-color: #ffffff;
   border-top-left-radius: 24px;
   display: flex;
   align-items: center;
-  justify-content: space-between; 
+  justify-content: space-between;
   padding: 0 32px;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03); 
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 
-/* Header Left (Menu Button) */
+/* Header Left */
 .header-left {
   display: flex;
   align-items: center;
@@ -156,17 +156,22 @@
   color: #0f172a;
 }
 
-/* Header Center (Search Input) */
+/* Header Center */
 .header-center {
   flex: 1;
   max-width: 500px;
   margin: 0 24px;
 }
 
+/* Header search uses the same input styling as airport inputs */
+.header-airport-search {
+  width: 100%;
+}
+
 .header-search-wrapper {
   display: flex;
   align-items: center;
-  padding: 0.5rem 0.75rem; 
+  padding: 0.5rem 0.75rem;
   border: 1px solid #e2e8f0;
   border-radius: 18px;
   background: #ffffff;
@@ -211,7 +216,7 @@
   font-weight: 500;
 }
 
-/* Header Right (Profile Pic) */
+/* Header Right */
 .header-right {
   display: flex;
   align-items: center;
@@ -226,11 +231,17 @@
   object-fit: cover;
   border: 2px solid #e2e8f0;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .header-profile-pic:hover {
   border-color: #0096a6;
+  transform: scale(1.05);
+}
+
+.header-profile-pic.active {
+  border-color: #0096a6;
+  box-shadow: 0 0 0 4px rgba(0, 150, 166, 0.2);
 }
 
 /* --- CONTENT AREA --- */
@@ -252,16 +263,16 @@
   margin-bottom: 2rem;
 }
 
-/* --- YOUR HEADLINERS SECTION --- */
+/* --- HEADLINERS SECTION --- */
 .headliners-section {
   margin-top: 12px;
 }
 
 .section-title {
   font-size: 1.5rem;
-  font-weight: 300; 
+  font-weight: 300;
   text-transform: uppercase;
-  color: #2c4f63; 
+  color: #2c4f63;
   letter-spacing: 0.05em;
 }
 
@@ -271,14 +282,11 @@
   overflow-x: auto;
   padding-bottom: 16px;
   padding-top: 16px;
-  /* Hide Scrollbar */
-  scrollbar-width: none; 
+  scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-.headliners-scroll::-webkit-scrollbar {
-  display: none;
-}
+.headliners-scroll::-webkit-scrollbar { display: none; }
 
 .headliner-card {
   flex-shrink: 0;
@@ -288,15 +296,13 @@
   transition: transform 0.2s;
 }
 
-.headliner-card:hover {
-  transform: translateY(-5px);
-}
+.headliner-card:hover { transform: translateY(-5px); }
 
 .headliner-image-wrapper {
   width: 124px;
   height: 124px;
   border-radius: 50%;
-  border: 4px solid #235a76; /* Thick Blue/Teal Border */
+  border: 4px solid #235a76;
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
@@ -309,25 +315,18 @@
   transition: transform 0.3s;
 }
 
-.headliner-card:hover img {
-  transform: scale(1.1);
-}
+.headliner-card:hover img { transform: scale(1.1); }
 
-/* Overlay for text readability */
 .headliner-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3); /* Darken image */
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
   z-index: 1;
 }
 
 .headliner-name {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   color: white;
   font-weight: 700;
@@ -345,7 +344,529 @@
   font-style: italic;
 }
 
-/* ANIMATIONS */
+/* Trip Type label */
+.trip-type-label {
+  margin-top: 12px;
+  margin-bottom: 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* =========================================
+   PLACES: TRIP MODE TOGGLE
+   ========================================= */
+
+.trip-mode-toggle {
+  display: flex;
+  align-items: stretch;
+  background-color: #f1f5f9;
+  padding: 4px;
+  border-radius: 50px;
+  border: 1px solid #e2e8f0;
+  margin-top: 8px;
+  width: 100%;
+  max-width: none;
+}
+
+.trip-mode-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0.7rem 1rem;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  background: transparent;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  user-select: none;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.trip-mode-option svg { flex-shrink: 0; }
+
+.trip-mode-option:hover:not(.active) {
+  color: #64748b;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.trip-mode-option.active {
+  background: #004e5a;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 78, 90, 0.3),
+    0 2px 4px -1px rgba(0, 78, 90, 0.15);
+  transform: translateY(-1px);
+  z-index: 1;
+}
+
+@media (max-width: 520px) {
+  .trip-mode-toggle {
+    border-radius: 22px;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .trip-mode-option {
+    flex: 1 1 calc(50% - 6px);
+    border-radius: 18px;
+    font-size: 0.95rem;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .trip-mode-option.active { transform: none; }
+}
+
+/* =========================================
+   PLACES: AIRPORT INPUT ROW + DROPDOWNS
+   Mirrors Onboarding_1 dropdown behavior
+   ========================================= */
+
+.places-airport-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.places-airport-field {
+  flex: 1;
+  position: relative; /* needed for dropdown positioning */
+}
+
+.places-field-label {
+  margin-bottom: 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.places-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 12px 14px;
+  transition: all 0.2s ease;
+}
+
+.places-input-wrap:focus-within {
+  border-color: #0096a6;
+  box-shadow: 0 0 0 1px #0096a6;
+}
+
+.places-input-icon {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.places-airport-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #161616;
+}
+
+.places-airport-input::placeholder {
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+/* Dropdown styled like Onboarding_1 */
+.places-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  z-index: 60;
+  max-height: 200px;
+  overflow-y: auto;
+  animation: slideDown 0.15s ease-out;
+}
+
+.places-dropdown-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.places-dropdown-item:last-child { border-bottom: none; }
+.places-dropdown-item:hover { background-color: #f8fafc; }
+
+.places-dropdown-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.places-dropdown-main {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+
+/* Airport dropdown: IATA code + airport name */
+.places-dropdown-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* NEW: Horizontal row for IATA Code and City */
+.places-dropdown-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.places-dropdown-code {
+  font-weight: 800;
+  color: #1e293b;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+/* NEW: Style for the City, State next to the code */
+.places-dropdown-city {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.places-dropdown-sub {
+  font-weight: 500;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  line-height: 1.15;
+}
+
+/* =========================================
+   PLACES: AIRPORT INPUT ROW
+   ========================================= */
+
+.places-input-wrap {
+  display: flex;
+  flex-direction: row;        
+  align-items: center;        
+  gap: 12px;
+  
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;        
+  
+  height: 56px;               /* Fixed height */
+  padding: 0 16px;            
+  
+  transition: all 0.2s ease;
+  position: relative;         
+  overflow: hidden;           
+}
+
+.places-input-wrap:focus-within {
+  border-color: #0096a6;
+  box-shadow: 0 0 0 1px #0096a6;
+}
+
+.places-input-icon {
+  color: #64748b;
+  flex-shrink: 0;             
+}
+
+/* NEW: Inner scroll wrapper for Chips + Input */
+.places-input-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;                    /* Take remaining width */
+  height: 100%;
+  overflow-x: auto;           /* Scroll horizontally if too many chips */
+  overflow-y: hidden;
+  scrollbar-width: none;      /* Hide scrollbar Firefox */
+  -ms-overflow-style: none;   /* Hide scrollbar IE/Edge */
+  white-space: nowrap;
+}
+
+.places-input-scroll::-webkit-scrollbar {
+  display: none;              /* Hide scrollbar Chrome/Safari */
+}
+
+.places-airport-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #161616;
+  height: 100%;               
+  padding: 0;
+  margin: 0;
+  min-width: 60px;            /* Ensure it's clickable even with many chips */
+  flex-shrink: 0;             /* Don't let chips squash the input completely */
+}
+
+.places-airport-input::placeholder {
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+/* =========================================
+   CHIPS (Fixed Layout)
+   ========================================= */
+
+.places-chip {
+  display: flex;              
+  flex-direction: row;        
+  align-items: center;        
+  flex-wrap: nowrap;          
+  gap: 8px;
+  
+  background-color: #f0f9fa;
+  border: 1px solid #cce8eb;
+  
+  height: 36px;               
+  padding: 0 6px 0 14px;      
+  border-radius: 999px;       
+  
+  flex-shrink: 0;             /* Chips should not shrink */
+  margin-right: 0;            /* Gap handles spacing now */
+  
+  animation: fadeIn 0.2s ease-out;
+}
+
+.places-chip:hover {
+  background-color: #e6f7f9;
+  border-color: #0096a6;
+}
+
+.places-chip-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #004e5a;
+  white-space: nowrap;        
+  line-height: 1;
+}
+
+.places-chip-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  background: #ffffff;
+  border: 1px solid transparent; 
+  border-radius: 50%;
+  
+  width: 24px;                
+  height: 24px;
+  
+  cursor: pointer;
+  color: #64748b;
+  padding: 0;
+  flex-shrink: 0;             
+  transition: all 0.2s;
+  
+  margin: 0;
+  line-height: 0;
+}
+
+.places-chip-remove:hover {
+  background-color: #fee2e2;
+  color: #ef4444;
+  border-color: #fecaca;
+}
+
+/* =========================================
+   DROPDOWN: Grouping & Layout
+   ========================================= */
+
+.places-dropdown-group-label {
+  padding: 0.75rem 1rem 0.25rem 1rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 800;
+  color: #64748b;
+  background: #f8fafc;
+  
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Space between Name and "Select All" */
+  
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer; /* Key: clickable cursor */
+  transition: background-color 0.2s;
+}
+
+.places-dropdown-group-label:hover {
+  background-color: #e2e8f0;
+  color: #334155;
+}
+
+/* "Select All" text */
+.places-group-action {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #0096a6;
+  background: rgba(0, 150, 166, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  padding-bottom: 6px;
+}
+
+/* Disabled Input Wrapper */
+.places-input-wrap.disabled {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.places-input-wrap.disabled input {
+  cursor: not-allowed;
+  color: #94a3b8;
+}
+
+/* =========================================
+   TOGGLE SWITCH: All Destinations
+   ========================================= */
+
+.places-destination-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* Right align the entire row */
+  margin-top: 10px;
+  gap: 12px; 
+  padding-right: 4px;
+}
+
+.places-toggle-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+/* 1. The Container */
+.switch-container {
+  position: relative;
+  display: inline-block;
+  width: 44px;  /* Width of the toggle track */
+  height: 24px; /* Height of the toggle track */
+  flex-shrink: 0;
+}
+
+/* 2. Hide the default HTML checkbox visually */
+.switch-container input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0; /* Remove default margins */
+}
+
+/* 3. The Slider Track (Gray background) */
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1; /* Default Gray (Off) */
+  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 34px; /* Makes it pill-shaped */
+}
+
+/* 4. The Knob (White Circle) */
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 5. Active State (Teal background when On) */
+.switch-container input:checked + .switch-slider {
+  background-color: #0096a6; /* Theme Teal */
+}
+
+/* 6. Move Knob when Active */
+.switch-container input:checked + .switch-slider:before {
+  transform: translateX(20px); /* Slide to the right */
+}
+
+/* Date input specific styling */
+input[type="date"].places-airport-input {
+  font-family: inherit;
+  font-weight: 700;
+  color: #161616;
+  text-transform: uppercase; /* Optional: Makes date stand out */
+  cursor: pointer;
+}
+
+/* Fix for disabled date input opacity */
+.places-input-wrap.disabled input[type="date"] {
+  cursor: not-allowed;
+  color: #94a3b8;
+  background: transparent;
+}
+
+/* --- DATE INPUT CLEANUP --- */
+
+/* Hide the native calendar icon in Chrome/Safari/Edge */
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+/* Ensure the input text is comfortably spaced */
+input[type="date"] {
+  -moz-appearance: textfield; /* Firefox */
+  appearance: none;
+}
+
+/* Dropdown animation */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Fade-in */
 .fade-in {
   animation: fadeIn 0.3s ease-out;
 }
@@ -355,20 +876,157 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* MOBILE RESPONSIVE */
+/* =========================================
+   NEW PROFILE VIEW STYLES
+   ========================================= */
+
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* 1. Header Card (Image + Name) */
+.profile-header-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.profile-avatar-large {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  padding: 5px;
+  border: 4px solid #f1f5f9;
+  margin-bottom: 16px;
+  background: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.profile-avatar-large img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-name {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* 2. Menu Groups */
+.profile-menu-group {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 16px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  color: #334155;
+  text-align: left;
+}
+
+.profile-menu-item:hover {
+  background-color: #f8fafc;
+}
+
+.profile-menu-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  margin-right: 16px;
+  transition: all 0.2s ease;
+}
+
+.profile-menu-item:hover .profile-menu-icon-wrap {
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
+
+.profile-menu-text {
+  flex: 1;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.profile-menu-arrow {
+  color: #cbd5e1;
+}
+
+/* 3. Divider */
+.profile-divider {
+  width: 100%;
+  max-width: 400px;
+  border: 0;
+  height: 1px;
+  background-color: #e2e8f0;
+  margin: 24px 0;
+}
+
+/* 4. Special Logout Styling */
+.profile-menu-item.logout .profile-menu-icon-wrap {
+  background-color: #fef2f2;
+  color: #ef4444;
+}
+
+.profile-menu-item.logout .profile-menu-text {
+  color: #ef4444;
+}
+
+.profile-menu-item.logout:hover {
+  background-color: #fef2f2;
+}
+
+.profile-menu-item.logout:hover .profile-menu-icon-wrap {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* Mobile */
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); }
   .sidebar.mobile-open { transform: translateX(0); }
   .main-wrapper { margin-left: 0 !important; width: 100% !important; }
-  
+
   .main-header {
     padding: 0 16px;
     height: auto;
     min-height: 80px;
-    flex-wrap: wrap; 
+    flex-wrap: wrap;
   }
-  
+
   .header-center {
     margin: 0 12px;
+  }
+
+  .places-airport-row {
+    flex-direction: column;
+    gap: 12px;
   }
 }
