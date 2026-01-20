@@ -6,6 +6,11 @@ cd "$DIR"
 
 echo "🚀 Starting SetJetter GoWild..."
 
+# 1.5 CLEANUP: Kill any old backend processes holding onto port 5001
+# The '2>/dev/null' part hides errors if nothing is running (which is good)
+echo "🧹 Cleaning up old processes..."
+lsof -ti :5001 | xargs kill -9 2>/dev/null || true
+
 # 2. Start the Backend in the background
 echo "--- Starting Backend ---"
 cd backend

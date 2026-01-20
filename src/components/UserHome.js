@@ -6,19 +6,42 @@ import {
   Menu,
   Map,
   Users,
-  Home
+  Home,
+  PanelLeftClose, 
+  PanelLeftOpen   
 } from 'lucide-react';
 import './UserHome.css';
 
 // --- Dashboard Sub-Views ---
-const HomeView = ({ userFirstName }) => (
+const HomeView = ({ userFirstName, favoriteArtists }) => (
   <div className="dashboard-panel fade-in">
-    <h2>
-      {userFirstName ? `${userFirstName}'s Home` : 'Your Home'}
-    </h2>
-    <p>
-      Welcome back to SetJet ✈️
-    </p>
+    {/* Removed "<User>'s Home" title + "Welcome back to SetJet" text */}
+
+    {/* ✅ YOUR HEADLINERS SECTION */}
+    <div className="headliners-section">
+      <h3 className="section-title">YOUR HEADLINERS</h3>
+      
+      <div className="headliners-scroll">
+        {favoriteArtists && favoriteArtists.length > 0 ? (
+          favoriteArtists.map((artist, index) => (
+            <div key={index} className="headliner-card">
+              <div className="headliner-image-wrapper">
+                {/* Fallback to placeholder if image is missing */}
+                <img 
+                  src={artist.image || "https://via.placeholder.com/150/1e293b/ffffff?text=SJ"} 
+                  alt={artist.name} 
+                  onError={(e) => { e.target.src = "https://via.placeholder.com/150/1e293b/ffffff?text=SJ"; }}
+                />
+                <div className="headliner-overlay"></div>
+                <span className="headliner-name">{artist.name}</span>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="no-data-msg">No favorite artists added yet.</p>
+        )}
+      </div>
+    </div>
   </div>
 );
 
@@ -43,7 +66,7 @@ const FriendsView = () => (
   </div>
 );
 
-function UserHome({ onNavigate, userFirstName, userProfilePic }) {
+function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists }) {
   // Sidebar State
   const [collapsed, setCollapsed] = useState(false); 
   const [activeView, setActiveView] = useState('home'); 
@@ -54,7 +77,7 @@ function UserHome({ onNavigate, userFirstName, userProfilePic }) {
       case 'events': return <EventsView />;
       case 'plan': return <PlanView />;
       case 'friends': return <FriendsView />;
-      default: return <HomeView userFirstName={userFirstName} />;
+      default: return <HomeView userFirstName={userFirstName} favoriteArtists={favoriteArtists} />;
     }
   };
 
@@ -73,7 +96,7 @@ function UserHome({ onNavigate, userFirstName, userProfilePic }) {
           />
         </div>
 
-        {/* Sidebar Search (Optional to keep or remove, keeping per layout structure) */}
+        {/* Sidebar Search */}
         <div className="sidebar-search">
           <Search size={18} />
           <input type="text" placeholder="Search" />
@@ -137,18 +160,22 @@ function UserHome({ onNavigate, userFirstName, userProfilePic }) {
               className="header-toggle-btn"
               onClick={() => setCollapsed(!collapsed)}
             >
-              <Menu size={24} />
+              {collapsed ? <PanelLeftOpen size={24} /> : <PanelLeftClose size={24} />}
             </button>
           </div>
 
-          {/* Center: Search Field (Styled like Onboarding_1) */}
+          {/* Center: Search Field */}
           <div className="header-center">
             <div className={`header-search-wrapper ${isSearchFocused ? 'focused' : ''}`}>
-              <Search className="header-search-icon" size={22} color={isSearchFocused ? '#0096a6' : '#161616'} />
+              <Search
+                className="header-search-icon"
+                size={22}
+                color={isSearchFocused ? '#0096a6' : '#161616'}
+              />
               <div className="header-input-stack">
                 <input
                   type="text"
-                  placeholder="Search Anything"
+                  placeholder="Artists, venues..."
                   className="header-search-input"
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setIsSearchFocused(false)}
@@ -163,7 +190,7 @@ function UserHome({ onNavigate, userFirstName, userProfilePic }) {
               src={`http://127.0.0.1:5001/static/profile_pics/${userProfilePic || 'default.jpg'}`} 
               alt="Profile" 
               className="header-profile-pic"
-              onError={(e) => {e.target.src = "https://via.placeholder.com/40"}} 
+              onError={(e) => { e.target.src = "https://via.placeholder.com/40"; }} 
             />
           </div>
 

@@ -17,7 +17,10 @@ function App() {
   // ✅ New View State ('home' or 'search')
   const [currentView, setCurrentView] = useState('home');
   const [userFirstName, setUserFirstName] = useState('');
-  const [userProfilePic, setUserProfilePic] = useState('default.jpg'); // ✅ NEW State
+  const [userProfilePic, setUserProfilePic] = useState('default.jpg');
+  
+  // ✅ Artists state
+  const [favoriteArtists, setFavoriteArtists] = useState([]); 
 
   // Search State
   const [searchParams, setSearchParams] = useState(null);
@@ -34,7 +37,7 @@ function App() {
   const [returnFlights, setReturnFlights] = useState([]);
   const [buildYourOwnStep, setBuildYourOwnStep] = useState('outbound');
 
-  // ✅ Fetch User Name & Pic when entering main app
+  // ✅ Fetch User Info
   useEffect(() => {
     if (!showAuth && !showOnboarding) {
         const email = localStorage.getItem('current_email');
@@ -47,7 +50,10 @@ function App() {
             .then(res => res.json())
             .then(data => {
                 setUserFirstName(data.first_name || '');
-                if (data.image_file) setUserProfilePic(data.image_file); // ✅ Set Pic
+                if (data.image_file) setUserProfilePic(data.image_file);
+
+                // ✅ UPDATED: Always set; backend now returns favorite_artists
+                setFavoriteArtists(Array.isArray(data.favorite_artists) ? data.favorite_artists : []);
             })
             .catch(err => console.error("Failed to fetch user info:", err));
         }
@@ -81,7 +87,6 @@ function App() {
     setCurrentView('home'); 
   };
 
-  // ✅ Navigation Handler
   const handleNavigate = (view) => {
     if (view === 'search' || view === 'planner') {
         setCurrentView('search');
@@ -229,7 +234,8 @@ function App() {
             <UserHome 
                 onNavigate={handleNavigate} 
                 userFirstName={userFirstName}
-                userProfilePic={userProfilePic} // ✅ Pass Pic
+                userProfilePic={userProfilePic}
+                favoriteArtists={favoriteArtists}
             />
           )}
 
@@ -257,7 +263,6 @@ function App() {
 
               <SearchForm onSearch={handleSearch} loading={loading} />
 
-              {/* ... Existing Search UI ... */}
               {error && (
                 <div className="error-message"><p>⚠️ {error}</p></div>
               )}

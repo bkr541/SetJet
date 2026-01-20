@@ -357,6 +357,17 @@ def get_user_info():
     # Get Home City Name from relationship
     home_city_str = user.home_location.name if user.home_location else ""
 
+    # ✅ NEW: Include favorite artists for UserHome headliners
+    # Shape matches what UserHome expects: { name, image }
+    favorite_artists_payload = [
+        {
+            "id": a.id,
+            "name": a.display_name,
+            "image": a.image_url
+        }
+        for a in (user.fav_artists or [])
+    ]
+
     return jsonify({
         'first_name': user.first_name,
         'last_name': user.last_name,
@@ -364,7 +375,10 @@ def get_user_info():
         'dob': dob_str,
         'bio': user.bio,
         'home_city': home_city_str,
-        'image_file': user.image_file
+        'image_file': user.image_file,
+
+        # ✅ NEW FIELD
+        'favorite_artists': favorite_artists_payload
     }), 200
 
 # --- UPDATE PROFILE (Onboarding Step 1) ---
