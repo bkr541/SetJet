@@ -6,7 +6,7 @@ import {
   Menu,
   Map,
   Users,
-  Home // ✅ Added Home Icon
+  Home
 } from 'lucide-react';
 import './UserHome.css';
 
@@ -19,7 +19,6 @@ const HomeView = ({ userFirstName }) => (
     <p>
       Welcome back to SetJet ✈️
     </p>
-    {/* Add home dashboard widgets here later */}
   </div>
 );
 
@@ -45,10 +44,11 @@ const FriendsView = () => (
 );
 
 function UserHome({ onNavigate, userFirstName }) {
-  const [collapsed, setCollapsed] = useState(false);
-  const [activeView, setActiveView] = useState('home'); // Default view
+  // Desktop State: false = Open (Default), true = Collapsed
+  // Using "collapsed" to mean hidden/mini depending on your preference
+  const [collapsed, setCollapsed] = useState(false); 
+  const [activeView, setActiveView] = useState('home'); 
 
-  // Helper to render the correct component based on state
   const renderContent = () => {
     switch (activeView) {
       case 'events': return <EventsView />;
@@ -60,53 +60,42 @@ function UserHome({ onNavigate, userFirstName }) {
 
   return (
     <div className="user-home-root">
-      {/* SIDEBAR */}
+      
+      {/* SIDEBAR (Dark Theme Restored) */}
       <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-top">
-          <button
-            className="collapse-btn"
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            <Menu size={20} />
-          </button>
-
           <img
             src="/logos/Logo5.png"
             alt="SetJet"
             className="sidebar-logo"
-            onClick={() => setActiveView('home')} // Logo also goes home
+            onClick={() => setActiveView('home')}
             style={{ cursor: 'pointer' }}
           />
         </div>
 
         <div className="sidebar-search">
           <Search size={18} />
-          {!collapsed && (
-            <input
-              type="text"
-              placeholder="Search"
-            />
-          )}
+          <input
+            type="text"
+            placeholder="Search"
+          />
         </div>
 
-        {/* ✅ NEW: Home Option (Above Explore) */}
         <div className="sidebar-section">
           <button 
             onClick={() => setActiveView('home')}
             className={activeView === 'home' ? 'active' : ''}
           >
             <Home size={20} />
-            {!collapsed && <span>Home</span>}
+            <span>Home</span>
           </button>
         </div>
 
-        {/* Explore Section */}
         <div className="sidebar-section">
-          {!collapsed && <h4>Explore</h4>}
-
+          <h4>Explore</h4>
           <button onClick={() => onNavigate('search')}>
             <Plane size={20} />
-            {!collapsed && <span>Flights</span>}
+            <span>Flights</span>
           </button>
 
           <button 
@@ -114,20 +103,18 @@ function UserHome({ onNavigate, userFirstName }) {
             className={activeView === 'events' ? 'active' : ''}
           >
             <Calendar size={20} />
-            {!collapsed && <span>Events</span>}
+            <span>Events</span>
           </button>
         </div>
 
-        {/* Tools Section */}
         <div className="sidebar-section">
-          {!collapsed && <h4>Tools</h4>}
-
+          <h4>Tools</h4>
           <button 
             onClick={() => setActiveView('plan')}
             className={activeView === 'plan' ? 'active' : ''}
           >
             <Map size={20} />
-            {!collapsed && <span>Plan</span>}
+            <span>Plan</span>
           </button>
 
           <button 
@@ -135,16 +122,30 @@ function UserHome({ onNavigate, userFirstName }) {
             className={activeView === 'friends' ? 'active' : ''}
           >
             <Users size={20} />
-            {!collapsed && <span>Friends</span>}
+            <span>Friends</span>
           </button>
         </div>
-
       </aside>
 
-      {/* MAIN CONTENT */}
-      <main className={`user-home-content ${collapsed ? 'collapsed' : ''}`}>
-        {renderContent()}
-      </main>
+      {/* MAIN LAYOUT WRAPPER */}
+      <div className={`main-wrapper ${collapsed ? 'collapsed' : ''}`}>
+        
+        {/* FULL WIDTH HEADER */}
+        <header className="main-header">
+          <button 
+            className="header-toggle-btn"
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            <Menu size={24} />
+          </button>
+        </header>
+
+        {/* CONTENT AREA */}
+        <main className="user-home-content">
+          {renderContent()}
+        </main>
+
+      </div>
     </div>
   );
 }

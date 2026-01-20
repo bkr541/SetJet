@@ -3,58 +3,55 @@
   display: flex;
   width: 100%;
   min-height: 100vh;
+  
+  overflow-x: hidden;
+  font-family: 'Nunito', sans-serif;
 }
 
-/* SIDEBAR */
+/* --- SIDEBAR (Dark Theme) --- */
 .sidebar {
   position: fixed;
   left: 0;
   top: 0;
   height: 100vh;
   width: 260px;
-  background: #0f172a;
+  background: #0f172a; /* Dark Blue */
   color: white;
   display: flex;
   flex-direction: column;
   padding: 16px;
-  transition: width 0.25s ease;
-  z-index: 100;
+  
+  /* Transition for sliding (Push effect) */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 200; 
 }
 
+/* Slide sidebar off-screen when collapsed */
 .sidebar.collapsed {
-  width: 72px;
+  transform: translateX(-100%);
 }
 
 /* TOP AREA */
 .sidebar-top {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  height: 64px; /* Matches header height */
+  margin-bottom: 8px;
 }
 
 .sidebar-logo {
   width: 120px;
+  object-fit: contain;
+  padding: 24px;
 }
 
-.sidebar.collapsed .sidebar-logo {
-  display: none;
-}
-
-.collapse-btn {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-}
-
-/* SEARCH */
+/* SEARCH (Dark Theme) */
 .sidebar-search {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #1e293b;
-  padding: 10px;
+  background: #1e293b; /* Darker Blue */
+  padding: 10px 12px;
   border-radius: 8px;
   margin-bottom: 24px;
 }
@@ -65,6 +62,10 @@
   color: white;
   outline: none;
   width: 100%;
+}
+
+.sidebar-search input::placeholder {
+  color: #94a3b8;
 }
 
 /* SECTION CONTAINER */
@@ -80,8 +81,10 @@
   letter-spacing: 0.08em;
   color: #94a3b8;
   margin-bottom: 12px;
+  padding-left: 10px; /* Aligned with buttons */
 }
 
+/* SIDEBAR BUTTONS */
 .sidebar-section button {
   display: flex;
   align-items: center;
@@ -94,33 +97,89 @@
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.2s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .sidebar-section button:hover {
   background: #1e293b;
 }
 
-/* ✅ NEW: Active State for Sidebar Buttons */
+/* Active State (Teal Accent) */
 .sidebar-section button.active {
   background: rgba(45, 212, 191, 0.15); /* Low opacity teal */
   color: #2dd4bf; /* Bright teal text */
 }
 
-/* MAIN CONTENT */
+/* --- MAIN WRAPPER (Header + Content) --- */
+.main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  
+  /* Push logic: Margin matches sidebar width */
+  margin-left: 160px;
+  width: calc(100% - 88px);
+  
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* When sidebar is closed, margin becomes 0 (Content takes full width) */
+.main-wrapper.collapsed {
+  margin-left: 0;
+  width: 100%;
+}
+
+/* --- HEADER --- */
+.main-header {
+  height: 64px; 
+  background-color: #ffffff;
+  /* Optional: Add bottom border if desired, removing for seamless look */
+  /* border-bottom: 1px solid #e2e8f0; */
+  display: flex;
+  align-items: center;
+  padding: 0 24px; /* Reduced from 32px to match content */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.header-toggle-btn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* --- CONTENT AREA --- */
 .user-home-content {
-  margin-left: 260px;
-  padding: 32px;
-  width: calc(100% - 260px);
-  background: #f8fafc;
-  transition: margin-left 0.25s ease, width 0.25s ease;
+  padding: 24px; /* Reduced padding to fix "too big gap" */
+  flex: 1;
+  background-color: #ffffff;
 }
 
-.user-home-content.collapsed {
-  margin-left: 72px;
-  width: calc(100% - 72px);
+.user-home-content h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #1e293b;
 }
 
-/* ✅ NEW: Animation for content switching */
+.user-home-content p {
+  color: #64748b;
+}
+
+/* ANIMATIONS */
 .fade-in {
   animation: fadeIn 0.3s ease-out;
 }
@@ -128,4 +187,18 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.mobile-open { /* Use JS to toggle this class if implementing mobile overlay later */
+    transform: translateX(0);
+  }
+  .main-wrapper {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
 }
