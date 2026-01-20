@@ -43,11 +43,11 @@ const FriendsView = () => (
   </div>
 );
 
-function UserHome({ onNavigate, userFirstName }) {
-  // Desktop State: false = Open (Default), true = Collapsed
-  // Using "collapsed" to mean hidden/mini depending on your preference
+function UserHome({ onNavigate, userFirstName, userProfilePic }) {
+  // Sidebar State
   const [collapsed, setCollapsed] = useState(false); 
   const [activeView, setActiveView] = useState('home'); 
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const renderContent = () => {
     switch (activeView) {
@@ -61,7 +61,7 @@ function UserHome({ onNavigate, userFirstName }) {
   return (
     <div className="user-home-root">
       
-      {/* SIDEBAR (Dark Theme Restored) */}
+      {/* SIDEBAR */}
       <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-top">
           <img
@@ -73,12 +73,10 @@ function UserHome({ onNavigate, userFirstName }) {
           />
         </div>
 
+        {/* Sidebar Search (Optional to keep or remove, keeping per layout structure) */}
         <div className="sidebar-search">
           <Search size={18} />
-          <input
-            type="text"
-            placeholder="Search"
-          />
+          <input type="text" placeholder="Search" />
         </div>
 
         <div className="sidebar-section">
@@ -132,12 +130,43 @@ function UserHome({ onNavigate, userFirstName }) {
         
         {/* FULL WIDTH HEADER */}
         <header className="main-header">
-          <button 
-            className="header-toggle-btn"
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            <Menu size={24} />
-          </button>
+          
+          {/* Left: Menu Toggle */}
+          <div className="header-left">
+            <button 
+              className="header-toggle-btn"
+              onClick={() => setCollapsed(!collapsed)}
+            >
+              <Menu size={24} />
+            </button>
+          </div>
+
+          {/* Center: Search Field (Styled like Onboarding_1) */}
+          <div className="header-center">
+            <div className={`header-search-wrapper ${isSearchFocused ? 'focused' : ''}`}>
+              <Search className="header-search-icon" size={22} color={isSearchFocused ? '#0096a6' : '#161616'} />
+              <div className="header-input-stack">
+                <input
+                  type="text"
+                  placeholder="Search Anything"
+                  className="header-search-input"
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Right: User Profile Pic */}
+          <div className="header-right">
+            <img 
+              src={`http://127.0.0.1:5001/static/profile_pics/${userProfilePic || 'default.jpg'}`} 
+              alt="Profile" 
+              className="header-profile-pic"
+              onError={(e) => {e.target.src = "https://via.placeholder.com/40"}} 
+            />
+          </div>
+
         </header>
 
         {/* CONTENT AREA */}

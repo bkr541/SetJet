@@ -13,6 +13,7 @@ import json
 import os
 import random
 import time
+import traceback  # ✅ ADDED: Required for printing error logs
 
 # Load environment variables from .env file
 load_dotenv()
@@ -26,8 +27,15 @@ CORS(app)
 # 1. NEW CONFIGURATION (Database & Email)
 # ==========================================
 
-# Database: Looks for 'site.db' in your project folder
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+# Determine the absolute path to the backend folder
+basedir = os.path.abspath(os.path.dirname(__file__))
+instance_path = os.path.join(basedir, 'instance')
+
+# ✅ Create 'instance' folder if it doesn't exist
+os.makedirs(instance_path, exist_ok=True)
+
+# Database: Store in 'backend/instance/site.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(instance_path, 'site.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Uploads: Where profile photos will be saved
@@ -69,6 +77,12 @@ user_favorite_locations = db.Table('user_favorite_locations',
     db.Column('location_id', db.Integer, db.ForeignKey('locations.id', ondelete='CASCADE'), primary_key=True)
 )
 
+# ✅ NEW: Join Table for User <-> Artists (Many-to-Many)
+user_favorite_artists = db.Table('user_favorite_artists',
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('artist_id', db.Integer, db.ForeignKey('artists.id', ondelete='CASCADE'), primary_key=True)
+)
+
 class Location(db.Model):
     __tablename__ = 'locations'
 
@@ -93,6 +107,23 @@ class Location(db.Model):
 
     def __repr__(self):
         return f"Location('{self.name}')"
+
+class Artist(db.Model):
+    __tablename__ = "artists"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # From spreadsheet
+    display_name = db.Column(db.String(255), nullable=False)
+    edmtrain_id = db.Column(db.Integer, unique=True, index=True, nullable=False)
+    normalized_name = db.Column(db.String(255), index=True, nullable=False)
+
+    # Nullable for now (future expansion)
+    genres = db.Column(db.Text, nullable=True)
+    image_url = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f"<Artist {self.display_name}>"
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -120,35 +151,11 @@ class User(db.Model):
     # Relationship to Favorite Locations via join table
     fav_cities = db.relationship('Location', secondary=user_favorite_locations, backref=db.backref('users', lazy='dynamic'))
 
+    # ✅ NEW: Relationship to Favorite Artists via join table
+    fav_artists = db.relationship('Artist', secondary=user_favorite_artists, backref=db.backref('users', lazy='dynamic'))
+
     def __repr__(self):
         return f"User('{self.email}', '{self.first_name}', '{self.last_name}')"
-
-class Artist(db.Model):
-    __tablename__ = "artists"
-
-    id = db.Column(db.Integer, primary_key=True)
-
-    # From spreadsheet
-    display_name = db.Column(db.String(255), nullable=False)
-    edmtrain_id = db.Column(db.Integer, unique=True, index=True, nullable=False)
-    normalized_name = db.Column(db.String(255), index=True, nullable=False)
-
-    # Nullable for now (future expansion)
-    genres = db.Column(db.Text, nullable=True)
-    image_url = db.Column(db.Text, nullable=True)
-
-    def __repr__(self):
-        return f"<Artist {self.display_name}>"
-
-class FavoriteArtists(db.Model):
-    __tablename__ = 'favorite_artists'
-
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    artists_list = db.Column(db.String(500), nullable=False)
-
-    def __repr__(self):
-        return f"FavoriteArtists('User {self.user_id}', '{self.artists_list}')"
 
 # ==========================================
 # 3. HELPER FUNCTIONS
@@ -301,7 +308,7 @@ def db_artists():
 # --- SIGNUP ---
 @app.route('/api/signup', methods=['POST'])
 def signup():
-    print("DB:", db.engine.url) # ✅ Restored
+    print(f"Connecting to DB at: {app.config['SQLALCHEMY_DATABASE_URI']}")
     first_name = request.form.get('first_name')
     last_name = request.form.get('last_name')
     email = request.form.get('email')
@@ -321,6 +328,8 @@ def signup():
         db.session.add(new_user)
         db.session.commit()
     except Exception as e:
+        print("!!!!! CRASH DETECTED !!!!!")
+        traceback.print_exc()  # ✅ This will print the exact error to your terminal
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
     try:
@@ -328,7 +337,7 @@ def signup():
         msg.body = f"Welcome {first_name}! Please complete your profile in the app."
         mail.send(msg)
     except Exception as e:
-        print(f"Email failed (expected if creds are empty): {e}") # ✅ Restored
+        print(f"Email failed (expected if creds are empty): {e}")
 
     return jsonify({'message': 'User created successfully!'}), 201
 
@@ -401,6 +410,8 @@ def update_profile():
         db.session.commit()
         return jsonify({'message': 'Profile updated successfully', 'onboarding_complete': 'No'}), 200
     except Exception as e:
+        print("!!!!! PROFILE UPDATE CRASH !!!!!")
+        traceback.print_exc()
         return jsonify({'error': f'Database update failed: {str(e)}'}), 500
 
 # --- SAVE FAVORITE CITIES (Onboarding Step 2) ---
@@ -434,14 +445,17 @@ def save_favorite_cities():
 
     except Exception as e:
         db.session.rollback()
+        print("!!!!! CITY SAVE CRASH !!!!!")
+        traceback.print_exc()
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
 # --- SAVE FAVORITE ARTISTS (Onboarding Step 3) ---
+# ✅ UPDATED: Now receives IDs and links to Artist table rows
 @app.route('/api/save_favorite_artists', methods=['POST'])
 def save_favorite_artists():
     data = request.get_json()
     email = data.get('email')
-    artists_str = data.get('artists')
+    artist_ids = data.get('artist_ids', []) # Expected List of Integers
 
     if not email:
         return jsonify({'error': 'Email required'}), 400
@@ -451,13 +465,14 @@ def save_favorite_artists():
         return jsonify({'error': 'User not found'}), 404
 
     try:
-        fav_entry = FavoriteArtists.query.filter_by(user_id=user.id).first()
+        # Clear existing favorites (so we can handle removals/updates clean)
+        user.fav_artists = []
 
-        if fav_entry:
-            fav_entry.artists_list = artists_str
-        else:
-            new_fav = FavoriteArtists(user_id=user.id, artists_list=artists_str)
-            db.session.add(new_fav)
+        if artist_ids:
+            # Fetch all artist objects that match the provided IDs
+            # This ensures only valid, existing artists are linked
+            artists_to_add = Artist.query.filter(Artist.id.in_(artist_ids)).all()
+            user.fav_artists.extend(artists_to_add)
 
         # Mark Onboarding as Complete
         user.onboarding_complete = 'Yes'
@@ -466,12 +481,14 @@ def save_favorite_artists():
         return jsonify({'message': 'Favorite artists saved', 'onboarding_complete': 'Yes'}), 200
 
     except Exception as e:
+        db.session.rollback()
+        print("!!!!! ARTIST SAVE CRASH !!!!!")
+        traceback.print_exc()
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
 # --- LOGIN ---
 @app.route('/api/login', methods=['POST'])
 def login():
-    print("DB:", db.engine.url) # ✅ Restored
     email = request.form.get('email')
     password = request.form.get('password')
 
@@ -506,7 +523,7 @@ def search_locations():
         else:
             return jsonify([])
     except Exception as e:
-        print(f"Error in search_locations: {str(e)}") # ✅ Restored
+        print(f"Error in search_locations: {str(e)}")
         return jsonify([])
 
 def generate_mock_flights(origins, destinations, departure_date, return_date=None):
@@ -559,7 +576,7 @@ def search_flights():
         cache_key = get_cache_key(origins, destinations, departure_date, return_date, trip_type)
 
         if cache_key in cache and is_cache_valid(cache[cache_key]):
-            print(f"Returning cached results for {cache_key}") # ✅ Restored
+            print(f"Returning cached results for {cache_key}")
             return jsonify({
                 'flights': cache[cache_key]['flights'],
                 'cached': True,
@@ -568,10 +585,10 @@ def search_flights():
             })
 
         if DEV_MODE:
-            print(f"[DEV MODE] Generating mock flights for {origins} -> {destinations}") # ✅ Restored
+            print(f"[DEV MODE] Generating mock flights for {origins} -> {destinations}")
             flights = generate_mock_flights(origins, destinations, departure_date, return_date)
         elif AMADEUS_ENABLED:
-            print(f"[AMADEUS API] Searching flights for {origins} -> {destinations}") # ✅ Restored
+            print(f"[AMADEUS API] Searching flights for {origins} -> {destinations}")
             search_return_date = None if trip_type == 'one-way' else (departure_date if trip_type == 'day-trip' else return_date)
 
             flights = amadeus_client.search_flights(
@@ -582,7 +599,7 @@ def search_flights():
                 adults=1
             )
         else:
-            print(f"ERROR: Neither Amadeus API nor scraper is available") # ✅ Restored
+            print(f"ERROR: Neither Amadeus API nor scraper is available")
             return jsonify({'error': 'Flight search unavailable', 'devMode': DEV_MODE}), 503
 
         cache[cache_key] = {'flights': flights, 'timestamp': datetime.now().isoformat()}
@@ -596,7 +613,7 @@ def search_flights():
         })
 
     except Exception as e:
-        print(f"Error in search_flights: {str(e)}") # ✅ Restored
+        print(f"Error in search_flights: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/search/stream', methods=['POST'])
@@ -663,7 +680,7 @@ def search_flights_stream():
         return Response(stream_with_context(generate()), mimetype='text/event-stream', headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
     except Exception as e:
-        print(f"Error in search_flights_stream: {str(e)}") # ✅ Restored
+        print(f"Error in search_flights_stream: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/destinations', methods=['GET'])
@@ -702,7 +719,7 @@ def trip_planner():
                 (target_return + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(-2, 3)
             ]
 
-            print(f"Searching departure date: {current_date_str}") # ✅ Restored
+            print(f"Searching departure date: {current_date_str}")
 
             if AMADEUS_ENABLED:
                 for r_date in return_dates:
@@ -730,7 +747,7 @@ def trip_planner():
         })
 
     except Exception as e:
-        print(f"Error in trip_planner: {str(e)}") # ✅ Restored
+        print(f"Error in trip_planner: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/cache/clear', methods=['POST'])
@@ -759,7 +776,7 @@ def add_cors_headers(resp):
 with app.app_context():
     db.create_all()
     print("Database initialized successfully.")
+    print(f"DB Location: {os.path.join(instance_path, 'site.db')}")
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001, host='0.0.0.0', use_reloader=False)
-    

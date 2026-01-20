@@ -97,14 +97,15 @@ function Onboarding_3({ onNext, onBack }) {
 
     const email = localStorage.getItem('current_email');
 
-    // Create pipe-separated string of artists (same format you already save)
-    const artistsString = selectedArtists.map(a => a.name).join('|');
+    // ✅ CHANGED: Send list of Artist IDs instead of string name
+    // The "artistRecord" from handleAddArtist comes from DB, so it includes 'id'
+    const artistIds = selectedArtists.map(a => a.id);
 
     try {
       const response = await fetch('http://127.0.0.1:5001/api/save_favorite_artists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, artists: artistsString })
+        body: JSON.stringify({ email, artist_ids: artistIds })
       });
 
       if (response.ok) {

@@ -4,9 +4,9 @@ import SearchForm from './components/SearchForm';
 import FlightResults from './components/FlightResults';
 import LoginSignup from './components/LoginSignup';
 import Onboarding_1 from './components/Onboarding_1';
-import UserHome from './components/UserHome'; // ✅ 1. Import New Component
+import UserHome from './components/UserHome'; 
 import { searchFlightsStreaming, clearLocalCache, planTrip } from './services/api';
-import { ArrowLeft } from 'lucide-react'; // Icon for back button
+import { ArrowLeft } from 'lucide-react'; 
 
 function App() {
   // ✅ Auth & Onboarding State
@@ -17,6 +17,7 @@ function App() {
   // ✅ New View State ('home' or 'search')
   const [currentView, setCurrentView] = useState('home');
   const [userFirstName, setUserFirstName] = useState('');
+  const [userProfilePic, setUserProfilePic] = useState('default.jpg'); // ✅ NEW State
 
   // Search State
   const [searchParams, setSearchParams] = useState(null);
@@ -33,7 +34,7 @@ function App() {
   const [returnFlights, setReturnFlights] = useState([]);
   const [buildYourOwnStep, setBuildYourOwnStep] = useState('outbound');
 
-  // ✅ Fetch User Name when entering main app
+  // ✅ Fetch User Name & Pic when entering main app
   useEffect(() => {
     if (!showAuth && !showOnboarding) {
         const email = localStorage.getItem('current_email');
@@ -44,7 +45,10 @@ function App() {
                 body: JSON.stringify({ email })
             })
             .then(res => res.json())
-            .then(data => setUserFirstName(data.first_name || ''))
+            .then(data => {
+                setUserFirstName(data.first_name || '');
+                if (data.image_file) setUserProfilePic(data.image_file); // ✅ Set Pic
+            })
             .catch(err => console.error("Failed to fetch user info:", err));
         }
     }
@@ -56,7 +60,7 @@ function App() {
     setTimeout(() => {
       setShowAuth(false);
       setShowOnboarding(false);
-      setCurrentView('home'); // ✅ Start at Home
+      setCurrentView('home'); 
       setIsAuthCollapsing(false);
     }, 250);
   };
@@ -74,14 +78,13 @@ function App() {
   // 3. Handle Onboarding Completion
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
-    setCurrentView('home'); // ✅ Go to Home after onboarding
+    setCurrentView('home'); 
   };
 
   // ✅ Navigation Handler
   const handleNavigate = (view) => {
     if (view === 'search' || view === 'planner') {
         setCurrentView('search');
-        // Optional: Pre-fill planner mode if 'planner' was clicked
     } else {
         console.log("Navigating to:", view);
     }
@@ -225,7 +228,8 @@ function App() {
           {currentView === 'home' && (
             <UserHome 
                 onNavigate={handleNavigate} 
-                userFirstName={userFirstName} 
+                userFirstName={userFirstName}
+                userProfilePic={userProfilePic} // ✅ Pass Pic
             />
           )}
 
