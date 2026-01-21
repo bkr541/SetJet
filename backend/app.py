@@ -473,6 +473,8 @@ def get_user_info():
 def update_profile():
     email = request.form.get('email')
     username = request.form.get('username')
+    first_name = request.form.get('first_name')
+    last_name = request.form.get('last_name')
 
     user = User.query.filter_by(email=email).first()
     if not user:
@@ -492,6 +494,12 @@ def update_profile():
 
     user.username = username
     user.bio = request.form.get('bio')
+
+    # Optional: allow profile edits to update first/last name as well
+    if first_name is not None:
+        user.first_name = first_name
+    if last_name is not None:
+        user.last_name = last_name
 
     # Handle DOB String -> Date conversion
     dob_input = request.form.get('dob') # 'mm/dd/yyyy'
