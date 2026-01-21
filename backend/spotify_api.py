@@ -1,3 +1,12 @@
+"""
+Spotify API integration
+Supports:
+- searchArtist
+- getArtist
+
+Uses Client Credentials Flow
+"""
+
 import os
 import time
 import base64
@@ -5,143 +14,120 @@ import requests
 
 
 class SpotifyAPI:
-    """
-    Spotify API wrapper using Client Credentials flow.
-    Safe to import even if Spotify env vars are missing.
-    """
-
-    TOKEN_URL = "https://accounts.spotify.com/api/token"
-    API_BASE = "https://api.spotify.com/v1"
-
     def __init__(self):
         self.client_id = os.getenv("SPOTIFY_CLIENT_ID")
         self.client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
 
-        self.access_token = None
+        if not self.client_id or not self.client_secret:
+            raise ValueError("Missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET")
+
+        self.token = None
         self.token_expires_at = 0
 
-    # ----------------------------------------------------
-    # INTERNAL HELPERS
-    # ----------------------------------------------------
+        self.accounts_url = "https://accounts.spotify.com/api/token"
+        self.api_base = "https://api.spotify.com/v1"
 
-    def _require_credentials(self):
-        if not self.client_id or not self.client_secret:
-            raise RuntimeError(
-                "Spotify API credentials missing. "
-                "Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET."
-            )
-
-    def _get_access_token(self):
-        """
-        Fetches or reuses a valid Spotify access token
-        """
-        self._require_credentials()
-
+    # ------------------------------------------------------------------
+    # Token Handling (Client Credentials)
+    # ------------------------------------------------------------------
+    def _get_token(self):
         now = int(time.time())
-        if self.access_token and now < self.token_expires_at:
-            return self.access_token
 
-        auth_string = f"{self.client_id}:{self.client_secret}"
-        auth_base64 = base64.b64encode(auth_string.encode("utf-8")).decode("utf-8")
+        # Reuse token if still valid
+        if self.token and now < self.token_expires_at - 30:
+            return self.token
+
+        auth_header = base64.b64encode(
+            f"{self.client_id}:{self.client_secret}".encode()
+        ).decode()
 
         headers = {
-            "Authorization": f"Basic {auth_base64}",
+            "Authorization": f"Basic {auth_header}",
             "Content-Type": "application/x-www-form-urlencoded",
         }
 
         data = {"grant_type": "client_credentials"}
 
-        response = requests.post(
-            self.TOKEN_URL,
-            headers=headers,
-            data=data,
-            timeout=15,
-        )
-
-        if response.status_code != 200:
-            raise RuntimeError(f"Spotify token error: {response.text}")
+        response = requests.post(self.accounts_url, headers=headers, data=data)
+        response.raise_for_status()
 
         payload = response.json()
-        self.access_token = payload.get("access_token")
-        expires_in = int(payload.get("expires_in", 3600))
+        self.token = payload["access_token"]
+        self.token_expires_at = now + payload.get("expires_in", 3600)
 
-        self.token_expires_at = now + expires_in - 60
-        return self.access_token
+        return self.token
 
     def _headers(self):
         return {
-            "Authorization": f"Bearer {self._get_access_token()}"
+            "Authorization": f"Bearer {self._get_token()}",
+            "Content-Type": "application/json",
         }
 
-    # ----------------------------------------------------
-    # PUBLIC API METHODS
-    # ----------------------------------------------------
-
+    # ------------------------------------------------------------------
+    # Spotify: Search Artist
+    # GET /v1/search?q=&type=artist&limit=
+    # ------------------------------------------------------------------
     def search_artist(self, query, limit=1):
-        """
-        GET /v1/search
-        """
         if not query:
             return []
 
         params = {
             "q": query,
             "type": "artist",
-            "limit": limit
+            "limit": limit,
         }
 
         response = requests.get(
-            f"{self.API_BASE}/search",
+            f"{self.api_base}/search",
             headers=self._headers(),
             params=params,
-            timeout=15,
         )
+        response.raise_for_status()
 
-        if response.status_code != 200:
-            raise RuntimeError(f"Spotify search error: {response.text}")
+        data = response.json()
+        artists = data.get("artists", {}).get("items", [])
 
-        items = response.json().get("artists", {}).get("items", [])
+        # Bubble-friendly, flattened output
         results = []
-
-        for artist in items:
-            image_url = artist["images"][0]["url"] if artist.get("images") else None
-
-            results.append({
-                "id": artist.get("id"),
-                "name": artist.get("name"),
-                "genres": artist.get("genres", []),
-                "popularity": artist.get("popularity"),
-                "followers": artist.get("followers", {}).get("total"),
-                "image_url": image_url,
-            })
+        for artist in artists:
+            images = artist.get("images", [])
+            results.append(
+                {
+                    "artist_id": artist.get("id"),
+                    "name": artist.get("name"),
+                    "genres": artist.get("genres", []),
+                    "popularity": artist.get("popularity"),
+                    "followers": artist.get("followers", {}).get("total"),
+                    "image_url": images[0]["url"] if images else None,
+                    "spotify_url": artist.get("external_urls", {}).get("spotify"),
+                }
+            )
 
         return results
 
-    def get_artist_info(self, artist_id):
-        """
-        GET /v1/artists/{artist_id}
-        """
+    # ------------------------------------------------------------------
+    # Spotify: Get Artist Info
+    # GET /v1/artists/{artist_id}
+    # ------------------------------------------------------------------
+    def get_artist(self, artist_id):
         if not artist_id:
-            raise ValueError("artist_id is required")
+            return None
 
         response = requests.get(
-            f"{self.API_BASE}/artists/{artist_id}",
+            f"{self.api_base}/artists/{artist_id}",
             headers=self._headers(),
-            timeout=15,
         )
-
-        if response.status_code != 200:
-            raise RuntimeError(f"Spotify artist error: {response.text}")
+        response.raise_for_status()
 
         artist = response.json()
-        image_url = artist["images"][0]["url"] if artist.get("images") else None
+        images = artist.get("images", [])
 
         return {
-            "id": artist.get("id"),
+            "artist_id": artist.get("id"),
             "name": artist.get("name"),
             "genres": artist.get("genres", []),
             "popularity": artist.get("popularity"),
             "followers": artist.get("followers", {}).get("total"),
-            "image_url": image_url,
+            "image_url": images[0]["url"] if images else None,
             "spotify_url": artist.get("external_urls", {}).get("spotify"),
         }
