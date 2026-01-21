@@ -190,7 +190,7 @@ class Artist(db.Model):
     # Nullable for now (future expansion)
     genres = db.Column(db.Text, nullable=True)
     image_url = db.Column(db.Text, nullable=True)
-    spotify_id = db.Column(db.Integer, unique=True, index=True, nullable=True)
+    spotify_id = db.Column(db.String(64), unique=True, index=True, nullable=True)
 
     def __repr__(self):
         return f"<Artist {self.display_name}>"

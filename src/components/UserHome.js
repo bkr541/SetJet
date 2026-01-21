@@ -39,24 +39,24 @@ const HomeView = ({ favoriteArtists }) => (
       <div className="headliners-scroll">
         {favoriteArtists && favoriteArtists.length > 0 ? (
           favoriteArtists.map((artist, index) => (
-            <div key={index} className="headliner-card">
-              <div className="headliner-image-wrapper">
-                <img
-                  // 1. Try artist image first, fallback to your local file
-                  src={artist.image || "/artifacts/defaultprofileillenium.png"}
-                  alt={artist.name}
-                  // 2. If artist.image fails (404), switch to local file
-                  onError={(e) => {
-                    // Prevent infinite loop if the local file is missing
-                    if (e.target.src !== "/artifacts/defaultprofileillenium.png") {
-                       e.target.src = "/artifacts/defaultprofileillenium.png";
-                    }
-                  }}
-                />
+          <div key={index} className="headliner-card">
+              <div 
+                className="headliner-image-wrapper"
+                style={{
+                  // Use the artist image, or fallback to your default if null/empty
+                  backgroundImage: `url(${artist.image || "/artifacts/defaultprofileillenium.png"})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat'
+                }}
+              >
+                {/* We removed the <img> tag. 
+                   The overlay and name sit on top of the background image.
+                */}
                 <div className="headliner-overlay"></div>
                 <span className="headliner-name">{artist.name}</span>
               </div>
-            </div>
+            </div>  
           ))
         ) : (
           <p className="no-data-msg">No favorite artists added yet.</p>
