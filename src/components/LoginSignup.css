@@ -442,7 +442,7 @@ input:-webkit-autofill:active{
     min-height: 100vh; /* I am taking the full height */
     border-radius: 0;  /* I am no longer a rounded card */
     box-shadow: none;  /* I am flat */
-    padding: 1.5rem; /* Reduce from desktop's 2.5rem */
+    padding: 2rem; /* Reduce from desktop's 2.5rem */
     
     /* Ensure content is centered if needed, or let it flow */
     display: flex;

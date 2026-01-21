@@ -298,6 +298,91 @@
   transform: translateY(0);
 }
 
+/* =========================================
+   MOBILE RESPONSIVENESS
+   ========================================= */
+@media (max-width: 600px) {
+  
+  /* --- WELCOME MODAL --- */
+  .welcome-modal-content {
+    /* Allow it to shrink naturally on short screens */
+    height: auto; 
+    min-height: 500px; /* Ensure it's still tall enough */
+    max-height: 85vh; /* slightly less than 90vh to account for browser bars */
+  }
+
+  .welcome-modal-gradient {
+    /* Reduce the massive padding */
+    padding: 1.5rem; 
+  }
+
+  .welcome-title {
+    font-size: 1.5rem; /* Smaller title */
+  }
+
+  .welcome-subtitle {
+    font-size: 0.9rem; /* Smaller subtitle */
+    margin-bottom: 1.5rem;
+  }
+
+  /* --- STEPPER --- */
+  .stepper-container {
+    padding: 0 2rem; /* Adds side space so the "1" isn't cut off */
+    margin-top: 2rem; /* Pushes it down from the very top of the screen */
+    margin-left: 1rem; /* Pushes it down from the very top of the screen */
+    margin-right: 1rem; /* Pushes it down from the very top of the screen */
+  }
+
+  .step-label {
+    font-size: 0.6rem; /* Make labels smaller to prevent overlap */
+    top: 30px; /* Bring them slightly closer to the circle */
+  }
+
+  .auth-screen {
+    /* This pushes EVERYTHING (inputs and button) away from the edges */
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    box-sizing: border-box; /* Ensures padding doesn't break the width */
+    padding-top: 2rem;
+  }
+
+  /* 2. Fix the Bottom: Push the button up */
+  .auth-button {
+    width: 100%; 
+    /* Remove the 6rem padding you added! */
+    padding-left: 0; 
+    padding-right: 0;
+  }
+
+  /* 3. Safety Check: Ensure the middle content has side padding too */
+  /* Since we removed global padding, we need to add it back for the form content */
+  .profile-upload-section,
+  .form-group,
+  .bio-wrapper {
+     padding-left: 0;
+     padding-right: 0;
+  }
+
+  .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
+  }
+  
+  /* --- PROFILE --- */
+  .profile-pic-wrapper {
+    width: 100px; /* Slightly smaller profile pic */
+    height: 100px;
+  }
+  
+  .upload-btn {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Animations */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }

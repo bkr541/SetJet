@@ -235,7 +235,7 @@
 
 /* --- SELECTED ARTISTS CHIPS --- */
 .selected-artists-group {
-  margin-top: 1.5rem;
+  margin-top: 0.5rem;
 }
 
 .section-label {
@@ -251,7 +251,7 @@
 .chips-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  
 }
 
 .artist-chip {
