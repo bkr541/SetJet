@@ -642,22 +642,36 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and user.password == password:
+        # Defaults
         spotify_ready = False
+        access_token = None
+        # Use the spotify_client instance (from your spotify_api.py)
         if spotify_client:
             try:
-                # Some Spotify wrappers implement token prefetch; if not, we still consider configured
-                token_data = getattr(spotify_client, 'prefetch_token', lambda: None)()
-                spotify_ready = True if token_data is None else bool(token_data)
-                app.logger.info('Spotify readiness checked on login (ready=%s)', spotify_ready)
+                # prefetch_token returns a dict: {'access_token': '...', 'ready': True}
+                token_data = spotify_client.prefetch_token()
+
+                # DEBUGGING: Print to console/logs
+                print("DEBUG: Spotify Prefetch Return Value:", token_data)
+                app.logger.info('token data: %s', token_data)
+                
+                if token_data and isinstance(token_data, dict):
+                    spotify_ready = token_data.get('ready', False)
+                    access_token = token_data.get('access_token')
+                    app.logger.info('Spotify readiness checked on login (ready=%s)', spotify_ready)
+                else:
+                    app.logger.warning('Spotify prefetch returned invalid data')
+
             except Exception as e:
                 app.logger.error('Spotify readiness check failed on login: %s', e)
                 spotify_ready = False
-
+    
         return jsonify({
             'message': 'Login successful',
             'first_name': user.first_name,
             'onboarding_complete': user.onboarding_complete,
-            'spotify_ready': spotify_ready
+            'spotify_ready': spotify_ready,
+            'spotify_token': access_token  # <--- Return the actual token here
         }), 200
     else:
         return jsonify({'error': 'Invalid email or password'}), 401

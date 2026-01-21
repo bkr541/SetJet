@@ -1,12 +1,3 @@
-"""
-Spotify API integration
-Supports:
-- searchArtist
-- getArtist
-
-Uses Client Credentials Flow
-"""
-
 import os
 import time
 import base64

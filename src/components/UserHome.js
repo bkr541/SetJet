@@ -42,9 +42,16 @@ const HomeView = ({ favoriteArtists }) => (
             <div key={index} className="headliner-card">
               <div className="headliner-image-wrapper">
                 <img
-                  src={artist.image || "https://via.placeholder.com/150/1e293b/ffffff?text=SJ"}
+                  // 1. Try artist image first, fallback to your local file
+                  src={artist.image || "/artifacts/defaultprofileillenium.png"}
                   alt={artist.name}
-                  onError={(e) => { e.target.src = "https://via.placeholder.com/150/1e293b/ffffff?text=SJ"; }}
+                  // 2. If artist.image fails (404), switch to local file
+                  onError={(e) => {
+                    // Prevent infinite loop if the local file is missing
+                    if (e.target.src !== "/artifacts/defaultprofileillenium.png") {
+                       e.target.src = "/artifacts/defaultprofileillenium.png";
+                    }
+                  }}
                 />
                 <div className="headliner-overlay"></div>
                 <span className="headliner-name">{artist.name}</span>
