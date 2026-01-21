@@ -259,7 +259,7 @@ input:-webkit-autofill:active{
   gap: 0.75rem;
   margin-top: 1rem;
   font-family: inherit;
-  box-shadow: 0 4px 12px rgba(0, 78, 90, 0.2);
+  box-shadow: 0 4px 12px #004e5a33;
 }
 
 .auth-button:hover {
@@ -276,10 +276,15 @@ input:-webkit-autofill:active{
 
 /* --- FOOTER & UTILS --- */
 .auth-footer {
-  margin-top: 1.5rem;
+  margin-top: 0.5rem; /* Reduced from 1.5rem */
   text-align: center;
   font-size: 0.95rem;
   color: #64748b;
+}
+
+/* Kill the default browser spacing on the text */
+.auth-footer p {
+  margin: 0;
 }
 
 .link-button {
@@ -433,17 +438,11 @@ input:-webkit-autofill:active{
     /* Counteract the parent container paddings 
        (Assuming App.css: .main has 2rem vertical, .container has 20px horizontal)
     */
-    margin: -2rem -20px;
-    width: calc(100% + 40px); /* 100% width + 20px left + 20px right */
-    max-width: none;
-    
-    /* Remove Card Styling for Full Screen feel */
-    border-radius: 0;
-    box-shadow: none;
-    min-height: 100vh;
-    
-    /* Reduce Padding as requested */
-    padding: 1.5rem;
+    width: 100%;       /* I am taking the full width */
+    min-height: 100vh; /* I am taking the full height */
+    border-radius: 0;  /* I am no longer a rounded card */
+    box-shadow: none;  /* I am flat */
+    padding: 1.5rem; /* Reduce from desktop's 2.5rem */
     
     /* Ensure content is centered if needed, or let it flow */
     display: flex;
