@@ -205,11 +205,33 @@
 .artist-dropdown-item:last-child { border-bottom: none; }
 .artist-dropdown-item:hover { background-color: #f8fafc; }
 
+.artist-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* The requested 6px gap */
+  justify-content: center;
+  flex: 1; /* Ensures it takes up remaining width next to the icon */
+}
+
 .artist-main {
   font-weight: 700;
   color: #1e293b;
   font-size: 0.95rem;
+  line-height: 1.1; /* Adjusted line height for better spacing */
 }
+
+/* Style for the Genre text */
+.artist-genres {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+  line-height: 1;
+  /* Truncate text if genres are too long */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+} 
 
 /* --- SELECTED ARTISTS CHIPS --- */
 .selected-artists-group {

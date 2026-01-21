@@ -195,6 +195,18 @@ class Artist(db.Model):
     def __repr__(self):
         return f"<Artist {self.display_name}>"
 
+class Genre(db.Model):
+    __tablename__ = "genres"
+
+    id = db.Column(db.Integer, primary_key=True)
+    genre_name = db.Column(db.String(64), unique=True,nullable=False)
+    parent_genre = db.Column(db.String(64), nullable=True)
+    energy = db.Column(db.Integer, index=True, nullable=True)
+    mood_tags = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f"<Genre {self.genre_name}>"
+
 class User(db.Model):
     __tablename__ = 'users'
 

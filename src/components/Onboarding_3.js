@@ -226,11 +226,21 @@ function Onboarding_3({ onNext, onBack }) {
                       className="artist-dropdown-item"
                       onMouseDown={() => handleAddArtist({ ...artist, displayLabel: label })}
                     >
-                      <CircleUserRound size={16} className="artist-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
-                      <div className="artist-main">
-                        {label}
-                      </div>
+                      <CircleUserRound size={24} className="artist-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
+                      
+                      {/* Wrap name and genre to stack them vertically */}
+                      <div className="artist-text-group">
+                        <div className="artist-main">
+                          {label}
+                        </div>
+                        {/* Conditionally render genre if it exists */}
+                        {artist.genres && (
+                          <div className="artist-genres">
+                            {artist.genres}
+                          </div>
+                        )}
                     </div>
+                  </div>
                   );
                 })}
               </div>
