@@ -14,11 +14,47 @@ import os
 import random
 import time
 import traceback  # ✅ ADDED: Required for printing error logs
+import logging
+from logging.handlers import RotatingFileHandler
+from spotify_api import SpotifyAPI
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
+
+# ==========================================
+# 0. LOGGING CONFIGURATION
+# ==========================================
+# Create 'logs' directory if it doesn't exist
+logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
+os.makedirs(logs_dir, exist_ok=True)
+
+# Set up rotating file logging
+log_file = os.path.join(logs_dir, 'setjet.log')
+file_handler = RotatingFileHandler(log_file, maxBytes=1_000_000, backupCount=3)
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(name)s: %(message)s'))
+app.logger.addHandler(file_handler)
+app.logger.setLevel(logging.INFO)
+app.logger.info('Logging initialized. Log file: %s', log_file)
+
+# ==========================================
+# 0b. OPTIONAL ENV DIAGNOSTICS (does not print secrets)
+# ==========================================
+app.logger.info('Spotify ID loaded = %s', os.environ.get('SPOTIFY_CLIENT_ID'))
+app.logger.info('Spotify Secret exists = %s', bool(os.environ.get('SPOTIFY_CLIENT_SECRET')))
+
+# ==========================================
+# 0c. SPOTIFY CLIENT INIT (safe if not configured)
+# ==========================================
+try:
+    spotify_client = SpotifyAPI()
+    app.logger.info('Spotify API initialized successfully.')
+except Exception as e:
+    app.logger.warning('Spotify API not configured: %s', e)
+    spotify_client = None
+
 
 # ✅ UPDATED CORS: Explicitly allow all origins to prevent blocking
 CORS(app)
@@ -148,12 +184,13 @@ class Artist(db.Model):
 
     # From spreadsheet
     display_name = db.Column(db.String(255), nullable=False)
-    edmtrain_id = db.Column(db.Integer, unique=True, index=True, nullable=False)
+    edmtrain_id = db.Column(db.Integer, unique=True, index=True, nullable=True)
     normalized_name = db.Column(db.String(255), index=True, nullable=False)
 
     # Nullable for now (future expansion)
     genres = db.Column(db.Text, nullable=True)
     image_url = db.Column(db.Text, nullable=True)
+    spotify_id = db.Column(db.Integer, unique=True, index=True, nullable=True)
 
     def __repr__(self):
         return f"<Artist {self.display_name}>"
@@ -274,7 +311,8 @@ def health_check():
         'status': 'ok',
         'message': 'Flight Search API is running',
         'amadeus_enabled': AMADEUS_ENABLED,
-        'dev_mode': DEV_MODE
+        'dev_mode': DEV_MODE,
+        'spotify_enabled': spotify_client is not None
     })
 
 # --- GET RECORDS FROM LOCATIONS TABLE ---
@@ -604,10 +642,22 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and user.password == password:
+        spotify_ready = False
+        if spotify_client:
+            try:
+                # Some Spotify wrappers implement token prefetch; if not, we still consider configured
+                token_data = getattr(spotify_client, 'prefetch_token', lambda: None)()
+                spotify_ready = True if token_data is None else bool(token_data)
+                app.logger.info('Spotify readiness checked on login (ready=%s)', spotify_ready)
+            except Exception as e:
+                app.logger.error('Spotify readiness check failed on login: %s', e)
+                spotify_ready = False
+
         return jsonify({
             'message': 'Login successful',
             'first_name': user.first_name,
-            'onboarding_complete': user.onboarding_complete
+            'onboarding_complete': user.onboarding_complete,
+            'spotify_ready': spotify_ready
         }), 200
     else:
         return jsonify({'error': 'Invalid email or password'}), 401
@@ -873,6 +923,27 @@ def cache_stats():
         'valid_entries': valid_entries,
         'expired_entries': len(cache) - valid_entries
     })
+
+
+# --- SPOTIFY: SEARCH ARTIST ---
+@app.route('/api/spotify/search-artist', methods=['GET'])
+def spotify_search_artist():
+    if not spotify_client:
+        return jsonify({'error': 'Spotify not configured'}), 503
+
+    query = request.args.get('q', '').strip()
+    limit = int(request.args.get('limit', 10))
+
+    if not query:
+        return jsonify([]), 200
+
+    try:
+        app.logger.info('Spotify Search: %s', query)
+        results = spotify_client.search_artist(query, limit)
+        return jsonify(results), 200
+    except Exception as e:
+        app.logger.error('Spotify Search Error: %s', e, exc_info=True)
+        return jsonify({'error': str(e)}), 500
 
 @app.after_request
 def add_cors_headers(resp):

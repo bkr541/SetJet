@@ -14,12 +14,14 @@ import requests
 
 
 class SpotifyAPI:
-    def __init__(self):
-        self.client_id = os.getenv("SPOTIFY_CLIENT_ID")
-        self.client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
+    def __init__(self, client_id=None, client_secret=None):
+        # ✅ CHANGED: Accept optional params, fallback to env vars
+        self.client_id = client_id or os.getenv("SPOTIFY_CLIENT_ID")
+        self.client_secret = client_secret or os.getenv("SPOTIFY_CLIENT_SECRET")
 
         if not self.client_id or not self.client_secret:
-            raise ValueError("Missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET")
+            # We don't raise error immediately to allow app to start even if credentials missing
+            print("Warning: Missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET")
 
         self.token = None
         self.token_expires_at = 0
@@ -31,6 +33,9 @@ class SpotifyAPI:
     # Token Handling (Client Credentials)
     # ------------------------------------------------------------------
     def _get_token(self):
+        if not self.client_id or not self.client_secret:
+            raise ValueError("Spotify credentials not configured.")
+
         now = int(time.time())
 
         # Reuse token if still valid
@@ -56,6 +61,19 @@ class SpotifyAPI:
         self.token_expires_at = now + payload.get("expires_in", 3600)
 
         return self.token
+
+    # ✅ ADDED: Public method to prefetch token
+    def prefetch_token(self):
+        try:
+            token = self._get_token()
+            return {
+                "access_token": token, 
+                "expires_at": self.token_expires_at,
+                "ready": True
+            }
+        except Exception as e:
+            print(f"Spotify Prefetch Error: {e}")
+            return False
 
     def _headers(self):
         return {
