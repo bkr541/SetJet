@@ -317,7 +317,7 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
               <div className="form-group">
                 <div className={`auth-input-wrapper ${errors.email ? 'error' : ''}`}>
                   <Mail className="auth-icon" size={22} {...getIconProps('email')} />
-                  <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} onFocus={() => handleFocus('email')} onBlur={handleBlur} placeholder="Your E-mail" className="auth-input" />
+                  <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} onFocus={() => handleFocus('email')} onBlur={handleBlur} placeholder="Email" className="auth-input" />
                 </div>
                 {errors.email && <span className="error-msg">{errors.email}</span>}
               </div>
@@ -372,7 +372,7 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
             <div className="form-group">
               <div className={`auth-input-wrapper ${errors.email ? 'error' : ''}`}>
                 <Mail className="auth-icon" size={22} {...getIconProps('email')} />
-                <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} onFocus={() => handleFocus('email')} onBlur={handleBlur} placeholder="Your E-mail" className="auth-input" />
+                <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} onFocus={() => handleFocus('email')} onBlur={handleBlur} placeholder="Email or Username" className="auth-input" />
               </div>
               {errors.email && <span className="error-msg">{errors.email}</span>}
             </div>

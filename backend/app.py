@@ -13,7 +13,7 @@ import json
 import os
 import random
 import time
-import traceback  # ✅ ADDED: Required for printing error logs
+import traceback
 import logging
 from logging.handlers import RotatingFileHandler
 from spotify_api import SpotifyAPI
@@ -26,11 +26,9 @@ app = Flask(__name__)
 # ==========================================
 # 0. LOGGING CONFIGURATION
 # ==========================================
-# Create 'logs' directory if it doesn't exist
 logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
 os.makedirs(logs_dir, exist_ok=True)
 
-# Set up rotating file logging
 log_file = os.path.join(logs_dir, 'setjet.log')
 file_handler = RotatingFileHandler(log_file, maxBytes=1_000_000, backupCount=3)
 file_handler.setLevel(logging.INFO)
@@ -40,13 +38,13 @@ app.logger.setLevel(logging.INFO)
 app.logger.info('Logging initialized. Log file: %s', log_file)
 
 # ==========================================
-# 0b. OPTIONAL ENV DIAGNOSTICS (does not print secrets)
+# 0b. OPTIONAL ENV DIAGNOSTICS
 # ==========================================
 app.logger.info('Spotify ID loaded = %s', os.environ.get('SPOTIFY_CLIENT_ID'))
 app.logger.info('Spotify Secret exists = %s', bool(os.environ.get('SPOTIFY_CLIENT_SECRET')))
 
 # ==========================================
-# 0c. SPOTIFY CLIENT INIT (safe if not configured)
+# 0c. SPOTIFY CLIENT INIT
 # ==========================================
 try:
     spotify_client = SpotifyAPI()
@@ -56,39 +54,31 @@ except Exception as e:
     spotify_client = None
 
 
-# ✅ UPDATED CORS: Explicitly allow all origins to prevent blocking
+# Explicitly allow all origins
 CORS(app)
 
 # ==========================================
 # 1. NEW CONFIGURATION (Database & Email)
 # ==========================================
 
-# Determine the absolute path to the backend folder
 basedir = os.path.abspath(os.path.dirname(__file__))
 instance_path = os.path.join(basedir, 'instance')
-
-# ✅ Create 'instance' folder if it doesn't exist
 os.makedirs(instance_path, exist_ok=True)
 
-# Database: Store in 'backend/instance/site.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(instance_path, 'site.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Uploads: Where profile photos will be saved
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/profile_pics')
 
-# Email Config (Replace with real credentials for production)
+# Email Config
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'your-email@gmail.com')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'your-app-password')
 
-# Initialize Extensions
 db = SQLAlchemy(app)
 mail = Mail(app)
 
-# Helper Dictionary for State Codes -> Full Names
 US_STATES = {
     'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
     'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
@@ -107,22 +97,27 @@ US_STATES = {
 # 2. UPDATED USER MODELS
 # ==========================================
 
-# Join Table for User <-> Locations (Many-to-Many for Favorite Cities)
+# Join Table for User <-> Locations
 user_favorite_locations = db.Table('user_favorite_locations',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
     db.Column('location_id', db.Integer, db.ForeignKey('locations.id', ondelete='CASCADE'), primary_key=True)
 )
 
-# ✅ NEW: Join Table for User <-> Artists (Many-to-Many)
+# Join Table for User <-> Artists
 user_favorite_artists = db.Table('user_favorite_artists',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
     db.Column('artist_id', db.Integer, db.ForeignKey('artists.id', ondelete='CASCADE'), primary_key=True)
 )
 
+# ✅ NEW: Join Table for User <-> Genres
+user_favorite_genres = db.Table('user_favorite_genres',
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('genre_id', db.Integer, db.ForeignKey('genres.id', ondelete='CASCADE'), primary_key=True)
+)
+
 class Location(db.Model):
     __tablename__ = 'locations'
 
-    # Columns matching your screenshot exactly
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     city = db.Column(db.String(100))
@@ -133,8 +128,6 @@ class Location(db.Model):
     region = db.Column(db.String(100))
     country = db.Column(db.String(100))
 
-    # ✅ Relationship: location.airports
-    # Uses Airport.location_id -> Location.id
     airports = db.relationship(
         'Airport',
         back_populates='location',
@@ -151,27 +144,17 @@ class Airport(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-
-    # NOTE:
-    # Your screenshot shows iata_code as VARCHAR(3) but does NOT show uniqueness.
-    # Keeping unique=True is usually correct in real airport data, but if you already
-    # have duplicates in your DB this can break inserts/migrations.
-    iata_code = db.Column(db.String(3), nullable=False, unique=True)  # e.g., "ATL"
-
-    icao_code = db.Column(db.String(4))                               # e.g., "KATL"
+    iata_code = db.Column(db.String(3), nullable=False, unique=True)
+    icao_code = db.Column(db.String(4))
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
-    timezone = db.Column(db.String(50))                               # e.g., "America/New_York"
+    timezone = db.Column(db.String(50))
 
-    # ✅ Foreign key link to locations.id (your screenshot shows INTEGER location_id)
-    # If you want airports to always belong to a location, set nullable=False.
     location_id = db.Column(
         db.Integer,
         db.ForeignKey('locations.id', ondelete='CASCADE'),
         nullable=True
     )
-
-    # ✅ Back-populated relationship: airport.location
     location = db.relationship('Location', back_populates='airports')
 
     def __repr__(self):
@@ -181,13 +164,9 @@ class Artist(db.Model):
     __tablename__ = "artists"
 
     id = db.Column(db.Integer, primary_key=True)
-
-    # From spreadsheet
     display_name = db.Column(db.String(255), nullable=False)
     edmtrain_id = db.Column(db.Integer, unique=True, index=True, nullable=True)
     normalized_name = db.Column(db.String(255), index=True, nullable=False)
-
-    # Nullable for now (future expansion)
     genres = db.Column(db.Text, nullable=True)
     image_url = db.Column(db.Text, nullable=True)
     spotify_id = db.Column(db.String(64), unique=True, index=True, nullable=True)
@@ -217,24 +196,21 @@ class User(db.Model):
     first_name = db.Column(db.String(50), nullable=True, default='')
     last_name = db.Column(db.String(50), nullable=True, default='')
     username = db.Column(db.String(50), unique=True, nullable=True)
-
-    # Store Date of Birth as SQL Date
     dob = db.Column(db.Date, nullable=True)
-
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
-
-    # Foreign Key to 'locations' table for Home City
+    
     home_location_id = db.Column(db.Integer, db.ForeignKey('locations.id'), nullable=True)
     home_location = db.relationship('Location', foreign_keys=[home_location_id])
 
     bio = db.Column(db.String(500), nullable=True)
     onboarding_complete = db.Column(db.String(5), nullable=False, default='No')
 
-    # Relationship to Favorite Locations via join table
+    # Relationships
     fav_cities = db.relationship('Location', secondary=user_favorite_locations, backref=db.backref('users', lazy='dynamic'))
-
-    # ✅ NEW: Relationship to Favorite Artists via join table
     fav_artists = db.relationship('Artist', secondary=user_favorite_artists, backref=db.backref('users', lazy='dynamic'))
+    
+    # ✅ NEW: Relationship to Favorite Genres
+    fav_genres = db.relationship('Genre', secondary=user_favorite_genres, backref=db.backref('users', lazy='dynamic'))
 
     def __repr__(self):
         return f"User('{self.email}', '{self.first_name}', '{self.last_name}')"
@@ -358,18 +334,10 @@ def db_locations():
         for r in rows
     ])
 
-
-
 # --- GET RECORDS FROM AIRPORTS + LOCATIONS (JOINED) ---
 @app.route('/api/db_airports', methods=['GET'])
 def db_airports():
-    """Search local Airports table (joined to Locations) for autocomplete.
-
-    Returns objects shaped like:
-      { id, iata_code, airport_name, location_label }
-
-    This is used by UserHome's Departing/Arrival airport dropdowns.
-    """
+    """Search local Airports table (joined to Locations) for autocomplete."""
     keyword = request.args.get('keyword', '').strip()
     limit = int(request.args.get('limit', 25))
 
@@ -411,7 +379,6 @@ def db_airports():
 
     return jsonify(payload)
 
-
 # --- GET RECORDS FROM ARTISTS TABLE ---
 @app.route('/api/db_artists', methods=['GET'])
 def db_artists():
@@ -442,6 +409,31 @@ def db_artists():
         for a in rows
     ])
 
+# --- ✅ NEW: GET GENRES ---
+@app.route('/api/db_genres', methods=['GET'])
+def db_genres():
+    keyword = request.args.get('keyword', '').strip()
+    limit = int(request.args.get('limit', 25))
+    if len(keyword) < 2: return jsonify([])
+    
+    like = f"%{keyword}%"
+    
+    rows = (Genre.query
+            .filter(Genre.genre_name.ilike(like))
+            .order_by(Genre.genre_name.asc())
+            .limit(limit)
+            .all())
+    
+    # Frontend expects { id, name }
+    return jsonify([
+        {
+            "id": g.id, 
+            "name": g.genre_name, 
+            "displayLabel": g.genre_name
+        }
+        for g in rows
+    ])
+
 # --- SIGNUP ---
 @app.route('/api/signup', methods=['POST'])
 def signup():
@@ -466,7 +458,7 @@ def signup():
         db.session.commit()
     except Exception as e:
         print("!!!!! CRASH DETECTED !!!!!")
-        traceback.print_exc()  # ✅ This will print the exact error to your terminal
+        traceback.print_exc()
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
     try:
@@ -495,7 +487,6 @@ def get_user_info():
     home_city_str = user.home_location.name if user.home_location else ""
 
     # ✅ NEW: Include favorite artists for UserHome headliners
-    # Shape matches what UserHome expects: { name, image }
     favorite_artists_payload = [
         {
             "id": a.id,
@@ -503,6 +494,15 @@ def get_user_info():
             "image": a.image_url
         }
         for a in (user.fav_artists or [])
+    ]
+    
+    # ✅ Include favorite genres in response if needed
+    favorite_genres_payload = [
+        {
+            "id": g.id, 
+            "name": g.genre_name
+        } 
+        for g in (user.fav_genres or [])
     ]
 
     return jsonify({
@@ -513,9 +513,8 @@ def get_user_info():
         'bio': user.bio,
         'home_city': home_city_str,
         'image_file': user.image_file,
-
-        # ✅ NEW FIELD
-        'favorite_artists': favorite_artists_payload
+        'favorite_artists': favorite_artists_payload,
+        'favorite_genres': favorite_genres_payload
     }), 200
 
 # --- UPDATE PROFILE (Onboarding Step 1) ---
@@ -608,13 +607,13 @@ def save_favorite_cities():
         traceback.print_exc()
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
-# --- SAVE FAVORITE ARTISTS (Onboarding Step 3) ---
-# ✅ UPDATED: Now receives IDs and links to Artist table rows
+# --- ✅ UPDATED: SAVE FAVORITE ARTISTS & GENRES ---
 @app.route('/api/save_favorite_artists', methods=['POST'])
 def save_favorite_artists():
     data = request.get_json()
     email = data.get('email')
     artist_ids = data.get('artist_ids', []) # Expected List of Integers
+    genre_ids = data.get('genre_ids', [])   # Expected List of Integers
 
     if not email:
         return jsonify({'error': 'Email required'}), 400
@@ -624,20 +623,24 @@ def save_favorite_artists():
         return jsonify({'error': 'User not found'}), 404
 
     try:
-        # Clear existing favorites (so we can handle removals/updates clean)
+        # Update Artists
         user.fav_artists = []
-
         if artist_ids:
             # Fetch all artist objects that match the provided IDs
-            # This ensures only valid, existing artists are linked
             artists_to_add = Artist.query.filter(Artist.id.in_(artist_ids)).all()
             user.fav_artists.extend(artists_to_add)
+            
+        # ✅ Update Genres
+        user.fav_genres = []
+        if genre_ids:
+            genres_to_add = Genre.query.filter(Genre.id.in_(genre_ids)).all()
+            user.fav_genres.extend(genres_to_add)
 
         # Mark Onboarding as Complete
         user.onboarding_complete = 'Yes'
 
         db.session.commit()
-        return jsonify({'message': 'Favorite artists saved', 'onboarding_complete': 'Yes'}), 200
+        return jsonify({'message': 'Favorite artists and genres saved', 'onboarding_complete': 'Yes'}), 200
 
     except Exception as e:
         db.session.rollback()
@@ -985,4 +988,4 @@ with app.app_context():
     print(f"DB Location: {os.path.join(instance_path, 'site.db')}")
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001, host='0.0.0.0', use_reloader=False)
+    app.run(debug=True, port=5001, host='0.0.0.0', use_reloader=False) 
