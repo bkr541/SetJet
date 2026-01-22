@@ -101,6 +101,15 @@
   color: #2dd4bf;
 }
 
+.sidebar-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.5);
+  z-index: 40;
+}
+.sidebar{ z-index: 50; }
+
+
 /* --- MAIN WRAPPER --- */
 .main-wrapper {
   flex: 1;
@@ -113,6 +122,9 @@
 
 .main-wrapper.collapsed {
   margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
   width: 100%;
 }
 
@@ -343,6 +355,179 @@
   color: #94a3b8;
   font-style: italic;
 }
+
+/* =========================================
+   DESTINATIONS SECTION (Styled like reference image)
+   ========================================= */
+
+.destinations-section {
+  margin-top: 22px;
+}
+
+.destinations-scroll {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding: 16px 2px 18px 2px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.destinations-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.destination-card {
+  position: relative;
+  flex-shrink: 0;
+  width: 340px;
+  height: 230px;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+  background: #0f172a; /* fallback if image missing */
+  transition: transform 0.2s ease;
+}
+
+.destination-card:hover {
+  transform: translateY(-4px);
+}
+
+.destination-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transform: scale(1.02);
+}
+
+.destination-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.25) 0%, rgba(15, 23, 42, 0.75) 100%),
+    rgba(0, 0, 0, 0.10);
+}
+
+.destination-top {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  right: 52px; /* leave room for chevron */
+  z-index: 2;
+}
+
+.destination-date {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.destination-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.02;
+  margin-bottom: 10px;
+  white-space: pre-line; /* allows Sonoma\nRaceway formatting */
+}
+
+.destination-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 700;
+}
+
+.destination-location span {
+  font-size: 1.05rem;
+}
+
+.destination-bottom {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 14px;
+  z-index: 2;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.destination-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.destination-metric-value {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.destination-metric-label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+}
+
+.destination-edit {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.destination-edit-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(6px);
+}
+
+.destination-chevron {
+  position: absolute;
+  top: 18px;
+  right: 16px;
+  z-index: 2;
+  color: rgba(255, 70, 90, 0.95);
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));
+}
+
+/* Mobile tune */
+@media (max-width: 640px) {
+  .destination-card {
+    width: 300px;
+    height: 210px;
+    border-radius: 18px;
+  }
+
+  .destination-title {
+    font-size: 1.7rem;
+  }
+
+  .destination-metric-value {
+    font-size: 1.2rem;
+  }
+}
+
 
 /* Trip Type label */
 .trip-type-label {

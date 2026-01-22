@@ -198,7 +198,7 @@
   padding: 0.75rem 1rem;
   cursor: pointer;
   border-bottom: 1px solid #f1f5f9;
-  display: flex; /* Allow icon alignment */
+  display: flex;
   align-items: center;
 }
 
@@ -208,25 +208,23 @@
 .artist-text-group {
   display: flex;
   flex-direction: column;
-  gap: 6px; /* The requested 6px gap */
+  gap: 6px; 
   justify-content: center;
-  flex: 1; /* Ensures it takes up remaining width next to the icon */
+  flex: 1; 
 }
 
 .artist-main {
   font-weight: 700;
   color: #1e293b;
   font-size: 0.95rem;
-  line-height: 1.1; /* Adjusted line height for better spacing */
+  line-height: 1.1; 
 }
 
-/* Style for the Genre text */
 .artist-genres {
   font-size: 0.8rem;
   color: #64748b;
   font-weight: 500;
   line-height: 1;
-  /* Truncate text if genres are too long */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -242,30 +240,30 @@
   font-size: 0.85rem;
   color: #64748b;
   font-weight: 700;
-  margin-bottom: 0; /* Reduced from 0.75rem */
   display: block;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 0px !important; /* Forces a small gap. Use 0 for no gap. */
-  line-height: 1;                /* Removes invisible vertical space in the text box */
-  display: block;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  /* --- FIX ENDS HERE --- */
+  /* UPDATED: Negative margin removes 'leading' white space from the font to ensure 0 gap visually */
+  margin-bottom: -2px !important;
+  padding-bottom: 0 !important;
+  line-height: 1;
 }
 
 .chips-container {
   display: flex;
   flex-wrap: wrap;
-  
+  gap: 0.4rem;
+  /* UPDATED: Ensure no top margin */
+  margin-top: 0 !important;
+  padding-top: 0 !important;
 }
 
 .artist-chip {
   display: flex;
   align-items: center;
-  background-color: #f0f9fa; /* Light teal tint */
+  background-color: #f0f9fa;
   border: 1px solid #cce8eb;
-  padding: 0.5rem 0.75rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 50px;
   transition: all 0.2s ease;
   animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -277,18 +275,18 @@
 }
 
 .chip-text {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #004e5a;
-  margin-right: 0.5rem;
+  margin-right: 0.4rem;
 }
 
 .chip-remove-btn {
   background: #ffffff;
   border: 1px solid transparent;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 16px; 
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -305,14 +303,12 @@
 
 /* --- BUTTONS --- */
 
-/* Container for Back + Continue buttons */
 .auth-button-group {
   display: flex;
   gap: 1rem;
   margin-top: auto;
 }
 
-/* Main Action Button */
 .auth-button {
   background: #004e5a;
   color: #ffffff;
@@ -344,7 +340,6 @@
   box-shadow: none;
 }
 
-/* Back Button */
 .auth-back-btn {
   background: #f1f5f9;
   color: #64748b;

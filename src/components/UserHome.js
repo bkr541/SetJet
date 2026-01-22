@@ -27,49 +27,163 @@ import {
   Camera,
   AtSign, // Added for Username
   Type,
-  UserRound
+  UserRound,
+  MicVocal
 } from 'lucide-react';
 import './UserHome.css';
 
 // --- Dashboard Sub-Views ---
-const HomeView = ({ favoriteArtists }) => (
-  <div className="dashboard-panel fade-in">
-    <div className="headliners-section">
-      <h3 className="section-title">YOUR HEADLINERS</h3>
-      <div className="headliners-scroll">
-        {favoriteArtists && favoriteArtists.length > 0 ? (
-          favoriteArtists.map((artist, index) => (
-          <div key={index} className="headliner-card">
-              <div 
-                className="headliner-image-wrapper"
-                style={{
-                  // Use the artist image, or fallback to your default if null/empty
-                  backgroundImage: `url(${artist.image || "/artifacts/defaultprofileillenium.png"})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat'
-                }}
-              >
-                {/* We removed the <img> tag. 
-                   The overlay and name sit on top of the background image.
-                */}
-                <div className="headliner-overlay"></div>
-                <span className="headliner-name">{artist.name}</span>
+const HomeView = ({ favoriteArtists, favoriteDestinations }) => {
+  // Fallback demo destinations (so UI renders even if you haven't wired data yet)
+  const demoDestinations = [
+    {
+      id: 'sonoma',
+      dateRange: '10–12 AUG, 2018',
+      title: 'Sonoma\nRaceway',
+      location: 'Sonoma, CA',
+      registered: 554,
+      revenue: '$34,210.00',
+      image:
+        '/artifacts/destination_sonoma_demo.jpg' // safe fallback if you add an asset; otherwise it will still render with gradient
+    },
+    {
+      id: 'redrocks',
+      dateRange: '14–15 SEP, 2019',
+      title: 'Red Rocks',
+      location: 'Morrison, CO',
+      registered: 312,
+      revenue: '$18,940.00',
+      image:
+        '/artifacts/destination_redrocks_demo.jpg'
+    },
+    {
+      id: 'miami',
+      dateRange: '02–05 MAR, 2020',
+      title: 'Miami\nBeach',
+      location: 'Miami, FL',
+      registered: 811,
+      revenue: '$61,120.00',
+      image:
+        '/artifacts/destination_miami_demo.jpg'
+    }
+  ];
+
+  // If you pass favoriteDestinations in props, we’ll use it.
+  // Shape expected (per item): { id, dateRange, title, location, registered, revenue, image }
+  const destinations =
+    Array.isArray(favoriteDestinations) && favoriteDestinations.length > 0
+      ? favoriteDestinations
+      : demoDestinations;
+
+  // Optional: If you *want* to quickly map artists into destinations later, keep this in mind:
+  // destinations could be derived from your backend trips/itineraries instead.
+
+  return (
+    <div className="dashboard-panel fade-in">
+      {/* HEADLINERS (unchanged) */}
+      <div className="headliners-section">
+        <h3 className="section-title">YOUR HEADLINERS</h3>
+        <div className="headliners-scroll">
+          {favoriteArtists && favoriteArtists.length > 0 ? (
+            favoriteArtists.map((artist, index) => (
+              <div key={index} className="headliner-card">
+                <div
+                  className="headliner-image-wrapper"
+                  style={{
+                    backgroundImage: `url(${artist.image || "/artifacts/defaultprofileillenium.png"})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat'
+                  }}
+                >
+                  <div className="headliner-overlay"></div>
+                  <span className="headliner-name">{artist.name}</span>
+                </div>
               </div>
-            </div>  
-          ))
-        ) : (
-          <p className="no-data-msg">No favorite artists added yet.</p>
-        )}
+            ))
+          ) : (
+            <p className="no-data-msg">No favorite artists added yet.</p>
+          )}
+        </div>
+      </div>
+
+      {/* ✅ YOUR DESTINATIONS (new, styled like your reference image) */}
+      <div className="destinations-section">
+        <h3 className="section-title">YOUR DESTINATIONS</h3>
+        <div className="destinations-scroll">
+          {destinations.map((d) => (
+            <div key={d.id} className="destination-card">
+              <div
+                className="destination-bg"
+                style={{
+                  backgroundImage: d.image ? `url(${d.image})` : 'none'
+                }}
+              />
+              <div className="destination-overlay" />
+
+              <div className="destination-top">
+                <div className="destination-date">{d.dateRange}</div>
+                <div className="destination-title">{d.title}</div>
+                <div className="destination-location">
+                  <MapPin size={16} />
+                  <span>{d.location}</span>
+                </div>
+              </div>
+
+              <div className="destination-bottom">
+                <div className="destination-metric">
+                  <div className="destination-metric-value">{d.registered}</div>
+                  <div className="destination-metric-label">REGISTERED</div>
+                </div>
+
+                <div className="destination-metric">
+                  <div className="destination-metric-value">{d.revenue}</div>
+                  <div className="destination-metric-label">REVENUE</div>
+                </div>
+
+                <div className="destination-edit">
+                  <div className="destination-edit-btn" title="Edit">
+                    <Type size={16} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="destination-chevron" aria-hidden="true">
+                <ChevronRight size={28} />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const EventsView = () => (
   <div className="dashboard-panel fade-in">
     <h2>Events</h2>
     <p>Discover upcoming events and festivals.</p>
+  </div>
+);
+
+const ArtistsView = ({ favoriteArtists }) => (
+  <div className="dashboard-panel fade-in">
+    <h2>Artists</h2>
+    <p>Browse and manage your artists.</p>
+
+    <div style={{ marginTop: 16 }}>
+      {favoriteArtists && favoriteArtists.length > 0 ? (
+        <ul style={{ paddingLeft: 18, color: '#475569', fontWeight: 600 }}>
+          {favoriteArtists.map((a, i) => (
+            <li key={`${a.name}-${i}`} style={{ marginBottom: 6 }}>
+              {a.name}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="no-data-msg">No artists yet.</p>
+      )}
+    </div>
   </div>
 );
 
@@ -208,7 +322,11 @@ const PlacesView = () => {
         {groupedItems.map((obj, i) => {
           if (obj.type === 'header') {
             return (
-              <div key={`header-${i}`} className="places-dropdown-group-label" onMouseDown={(e) => { e.preventDefault(); onSelectGroup(obj.items); }}>
+              <div
+                key={`header-${i}`}
+                className="places-dropdown-group-label"
+                onMouseDown={(e) => { e.preventDefault(); onSelectGroup(obj.items); }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <Map size={14} style={{ marginRight: 6 }}/>
                   {obj.label}
@@ -220,7 +338,11 @@ const PlacesView = () => {
           const a = obj.data;
           const isIndented = obj.indented;
           return (
-            <div key={airportKey(a)} className={`places-dropdown-item ${isIndented ? 'indented' : ''}`} onMouseDown={() => onSelect(a)}>
+            <div
+              key={airportKey(a)}
+              className={`places-dropdown-item ${isIndented ? 'indented' : ''}`}
+              onMouseDown={() => onSelect(a)}
+            >
               <div className="places-dropdown-icon-wrap">
                 <PlaneTakeoff size={16} className="places-dropdown-icon" />
               </div>
@@ -245,7 +367,12 @@ const PlacesView = () => {
         <div className="trip-type-label">Trip Type</div>
         <div className="trip-mode-toggle" role="tablist">
           {tripOptions.map(({ key, label, Icon }) => (
-            <button key={key} type="button" className={`trip-mode-option ${tripMode === key ? 'active' : ''}`} onClick={() => setTripMode(key)}>
+            <button
+              key={key}
+              type="button"
+              className={`trip-mode-option ${tripMode === key ? 'active' : ''}`}
+              onClick={() => setTripMode(key)}
+            >
               <Icon size={18} />
               <span>{label}</span>
             </button>
@@ -264,7 +391,17 @@ const PlacesView = () => {
                     <button className="places-chip-remove" onClick={() => handleRemoveDeparting(sel.iata_code)}><X size={12} /></button>
                   </div>
                 ))}
-                <input ref={departInputRef} type="text" value={departingQuery} onChange={(e) => setDepartingQuery(e.target.value)} onFocus={() => setIsDepartingFocused(true)} onBlur={() => setTimeout(() => setIsDepartingFocused(false), 200)} placeholder={departingSelections.length > 0 ? "" : "e.g. DEN"} className="places-airport-input" autoComplete="off" />
+                <input
+                  ref={departInputRef}
+                  type="text"
+                  value={departingQuery}
+                  onChange={(e) => setDepartingQuery(e.target.value)}
+                  onFocus={() => setIsDepartingFocused(true)}
+                  onBlur={() => setTimeout(() => setIsDepartingFocused(false), 200)}
+                  placeholder={departingSelections.length > 0 ? "" : "e.g. DEN"}
+                  className="places-airport-input"
+                  autoComplete="off"
+                />
               </div>
             </div>
             {isDepartingFocused && departingSuggestions.length > 0 && renderDropdown(departingSuggestions, handleSelectDeparting, handleSelectDepartingGroup)}
@@ -281,7 +418,18 @@ const PlacesView = () => {
                     <button className="places-chip-remove" onClick={() => handleRemoveArrival(sel.iata_code)}><X size={12} /></button>
                   </div>
                 ))}
-                <input ref={arriveInputRef} type="text" value={arrivalQuery} onChange={(e) => setArrivalQuery(e.target.value)} onFocus={() => !isAllDestinations && setIsArrivalFocused(true)} onBlur={() => setTimeout(() => setIsArrivalFocused(false), 200)} placeholder={isAllDestinations ? "Anywhere" : (arrivalSelections.length > 0 ? "" : "e.g. MIA")} className="places-airport-input" autoComplete="off" disabled={isAllDestinations} />
+                <input
+                  ref={arriveInputRef}
+                  type="text"
+                  value={arrivalQuery}
+                  onChange={(e) => setArrivalQuery(e.target.value)}
+                  onFocus={() => !isAllDestinations && setIsArrivalFocused(true)}
+                  onBlur={() => setTimeout(() => setIsArrivalFocused(false), 200)}
+                  placeholder={isAllDestinations ? "Anywhere" : (arrivalSelections.length > 0 ? "" : "e.g. MIA")}
+                  className="places-airport-input"
+                  autoComplete="off"
+                  disabled={isAllDestinations}
+                />
               </div>
             </div>
             <div className="places-destination-toggle-row">
@@ -300,14 +448,26 @@ const PlacesView = () => {
             <div className="places-field-label">Departure Date</div>
             <div className="places-input-wrap">
               <Calendar size={18} className="places-input-icon" />
-              <input type="date" value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} className="places-airport-input" onClick={(e) => e.target.showPicker && e.target.showPicker()} />
+              <input
+                type="date"
+                value={departureDate}
+                onChange={(e) => setDepartureDate(e.target.value)}
+                className="places-airport-input"
+                onClick={(e) => e.target.showPicker && e.target.showPicker()}
+              />
             </div>
           </div>
           <div className="places-airport-field">
             <div className="places-field-label">Arrival Date</div>
             <div className={`places-input-wrap ${tripMode === 'one-way' ? 'disabled' : ''}`}>
               <Calendar size={18} className="places-input-icon" />
-              <input type="date" value={arrivalDate} onChange={(e) => setArrivalDate(e.target.value)} className="places-airport-input" disabled={tripMode === 'one-way'} />
+              <input
+                type="date"
+                value={arrivalDate}
+                onChange={(e) => setArrivalDate(e.target.value)}
+                className="places-airport-input"
+                disabled={tripMode === 'one-way'}
+              />
             </div>
           </div>
         </div>
@@ -404,7 +564,6 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
   const [focusedField, setFocusedField] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load current user info (from DB via parent)
   useEffect(() => {
     if (!userInfo) return;
 
@@ -456,11 +615,8 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
       const payload = new FormData();
       payload.append('email', email);
 
-      // These are used by update_profile (and match Onboarding_1)
       payload.append('username', formData.username || '');
       payload.append('dob', formData.dob || '');
-
-      // Also update first/last name (requires backend support, added in app.py)
       payload.append('first_name', formData.firstName || '');
       payload.append('last_name', formData.lastName || '');
 
@@ -480,10 +636,7 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
         return;
       }
 
-      // Tell parent to refresh user info so everything stays in sync
       if (typeof onSaved === 'function') await onSaved();
-
-      // After refresh, return to Profile view
       if (typeof onBack === 'function') onBack();
     } catch (err) {
       console.error('Failed to save profile:', err);
@@ -499,7 +652,6 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
   return (
     <div className="dashboard-panel fade-in">
       <div className="edit-profile-container">
-        {/* Header */}
         <div className="edit-profile-header">
           <button className="edit-profile-nav-btn" onClick={onBack}>
             <ArrowLeft size={24} />
@@ -517,7 +669,6 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
         </div>
 
         <div className="edit-profile-content">
-          {/* Profile Pic (clickable like Onboarding_1) */}
           <div className="edit-profile-pic-section">
             <div
               className="edit-profile-pic-wrapper clickable"
@@ -532,7 +683,7 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
                 className="edit-profile-pic-img"
                 onError={(e) => { e.target.src = 'https://via.placeholder.com/150'; }}
               />
-              
+
               <input
                 ref={fileInputRef}
                 type="file"
@@ -544,7 +695,6 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
             <p className="edit-profile-pic-hint">Tap to change photo</p>
           </div>
 
-          {/* Fields (match Onboarding_1 / LoginSignup styling) */}
           <div className="edit-profile-fields">
             <div className="form-row">
               <div className="places-airport-field">
@@ -621,13 +771,36 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
   );
 };
 
-
-function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists }) {
+function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, favoriteDestinations }) {
   const [collapsed, setCollapsed] = useState(false);
   const [activeView, setActiveView] = useState('home');
 
-  // Keep a fresh copy of current user info for Profile + Edit Profile
-  const [userInfo, setUserInfo] = useState({
+  const MOBILE_BP = 768; // pick your breakpoint
+  const isMobile = () => window.innerWidth <= MOBILE_BP;
+  useEffect(() => {
+    // start collapsed on mobile
+    if (isMobile()) setCollapsed(true);
+
+    const onResize = () => {
+      // if you enter mobile, collapse; if you leave mobile, expand (optional)
+      if (isMobile()) setCollapsed(true);
+      // else setCollapsed(false); // uncomment if you want it to auto-open on desktop
+    };
+
+      window.addEventListener('resize', onResize);
+      return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+
+  
+
+// ✅ (2) Close the sidebar after any sidebar navigation on mobile
+const handleNav = (action) => {
+  if (typeof action === 'function') action();
+  if (isMobile()) setCollapsed(true);
+};
+
+const [userInfo, setUserInfo] = useState({
     first_name: userFirstName || '',
     last_name: '',
     username: '',
@@ -664,7 +837,6 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists }
     }
   };
 
-  // Initial load (and when App updates firstName/pic)
   useEffect(() => {
     refreshUserInfo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -682,24 +854,26 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists }
     switch (activeView) {
       case 'events': return <EventsView />;
       case 'places': return <PlacesView />;
+      case 'artists': return <ArtistsView favoriteArtists={favoriteArtists} />;
       case 'plan': return <PlanView />;
       case 'friends': return <FriendsView />;
-      case 'profile': 
-        return <ProfileView 
-          userFirstName={userInfo.first_name} 
-          userProfilePic={userInfo.image_file} 
+      case 'profile':
+        return <ProfileView
+          userFirstName={userInfo.first_name}
+          userProfilePic={userInfo.image_file}
           onEditProfile={() => {
             refreshUserInfo();
             setActiveView('edit-profile');
-          }} 
+          }}
         />;
-      case 'edit-profile': 
-        return <EditProfileView 
+      case 'edit-profile':
+        return <EditProfileView
           userInfo={userInfo}
-          onBack={() => setActiveView('profile')} 
+          onBack={() => setActiveView('profile')}
           onSaved={refreshUserInfo}
         />;
-      default: return <HomeView favoriteArtists={favoriteArtists} />;
+      default:
+        return <HomeView favoriteArtists={favoriteArtists} favoriteDestinations={favoriteDestinations} />;
     }
   };
 
@@ -707,45 +881,70 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists }
     <div className="user-home-root">
       <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-top">
-          <img src="/logos/Logo5.png" alt="SetJet" className="sidebar-logo" onClick={() => setActiveView('home')} style={{ cursor: 'pointer' }} />
+          <img
+            src="/logos/Logo5.png"
+            alt="SetJet"
+            className="sidebar-logo"
+            onClick={() => handleNav(() => setActiveView('home'))}
+            style={{ cursor: 'pointer' }}
+          />
         </div>
+
         <div className="sidebar-search">
           <Search size={18} />
           <input type="text" placeholder="Search" />
         </div>
+
         <div className="sidebar-section">
-          <button onClick={() => setActiveView('home')} className={activeView === 'home' ? 'active' : ''}>
+          <button onClick={() => handleNav(() => setActiveView('home'))} className={activeView === 'home' ? 'active' : ''}>
             <Home size={20} />
             <span>Home</span>
           </button>
         </div>
+
         <div className="sidebar-section">
           <h4>Explore</h4>
-          <button onClick={() => onNavigate('search')}>
+
+          <button onClick={() => handleNav(() => onNavigate('search'))}>
             <PlaneTakeoff size={20} />
             <span>Flights</span>
           </button>
-          <button onClick={() => setActiveView('events')} className={activeView === 'events' ? 'active' : ''}>
+
+          <button onClick={() => handleNav(() => setActiveView('events'))} className={activeView === 'events' ? 'active' : ''}>
             <Calendar size={20} />
             <span>Events</span>
           </button>
-          <button onClick={() => setActiveView('places')} className={activeView === 'places' ? 'active' : ''}>
+
+          <button onClick={() => handleNav(() => setActiveView('places'))} className={activeView === 'places' ? 'active' : ''}>
             <MapPin size={20} />
             <span>Places</span>
           </button>
+
+          {/* ✅ NEW: Artists (below Places) */}
+          <button onClick={() => handleNav(() => setActiveView('artists'))} className={activeView === 'artists' ? 'active' : ''}>
+            <MicVocal size={20} />
+            <span>Artists</span>
+          </button>
         </div>
+
         <div className="sidebar-section">
           <h4>Tools</h4>
-          <button onClick={() => setActiveView('plan')} className={activeView === 'plan' ? 'active' : ''}>
+          <button onClick={() => handleNav(() => setActiveView('plan'))} className={activeView === 'plan' ? 'active' : ''}>
             <Map size={20} />
             <span>Plan</span>
           </button>
-          <button onClick={() => setActiveView('friends')} className={activeView === 'friends' ? 'active' : ''}>
+          <button onClick={() => handleNav(() => setActiveView('friends'))} className={activeView === 'friends' ? 'active' : ''}>
             <Users size={20} />
             <span>Friends</span>
           </button>
         </div>
       </aside>
+
+
+{/* ✅ (3) Mobile overlay: tap outside to close the sidebar */}
+{!collapsed && isMobile() && (
+  <div className="sidebar-overlay" onClick={() => setCollapsed(true)} />
+)}
 
       <div className={`main-wrapper ${collapsed ? 'collapsed' : ''}`}>
         <header className="main-header">
@@ -754,12 +953,14 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists }
               {collapsed ? <PanelLeftOpen size={24} /> : <PanelLeftClose size={24} />}
             </button>
           </div>
+
           <div className="header-center">
             <div className="places-input-wrap header-airport-search">
               <Search size={18} className="places-input-icon" />
               <input type="text" placeholder="Artists, venues..." className="places-airport-input" autoComplete="off" />
             </div>
           </div>
+
           <div className="header-right">
             <img
               src={`http://127.0.0.1:5001/static/profile_pics/${userProfilePic || 'default.jpg'}`}
@@ -770,6 +971,7 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists }
             />
           </div>
         </header>
+
         <main className="user-home-content">
           {renderContent()}
         </main>

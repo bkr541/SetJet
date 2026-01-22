@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   ArrowRight,
   ArrowLeft,
-  Music, // ✅ Using Music icon for Genres
+  Music,
   X,
   Search,
   Check,
@@ -17,7 +17,7 @@ function Onboarding_3({ onNext, onBack }) {
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   
-  // --- GENRE STATE (NEW) ---
+  // --- GENRE STATE ---
   const [genreInputValue, setGenreInputValue] = useState('');
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [isGenreSearchFocused, setIsGenreSearchFocused] = useState(false);
@@ -64,7 +64,7 @@ function Onboarding_3({ onNext, onBack }) {
   }, [inputValue, selectedArtists]);
 
   // ----------------------------------------------------------------
-  // 2. GENRE SEARCH EFFECT (NEW)
+  // 2. GENRE SEARCH EFFECT
   // ----------------------------------------------------------------
   useEffect(() => {
     if (!genreInputValue || genreInputValue.length < 2) {
@@ -74,7 +74,6 @@ function Onboarding_3({ onNext, onBack }) {
 
     const t = setTimeout(async () => {
       try {
-        // Assuming an endpoint exists for genres similar to artists
         const url = `http://127.0.0.1:5001/api/db_genres?keyword=${encodeURIComponent(genreInputValue)}&limit=25`;
         const res = await fetch(url);
         const data = await res.json();
@@ -123,7 +122,7 @@ function Onboarding_3({ onNext, onBack }) {
     );
   };
 
-  // Genre Handlers (NEW)
+  // Genre Handlers
   const handleAddGenre = (genreRecord) => {
     setError(null);
     if (selectedGenres.length >= MAX_SELECTION) return;
@@ -162,7 +161,7 @@ function Onboarding_3({ onNext, onBack }) {
     
     // Prepare IDs
     const artistIds = selectedArtists.map(a => a.id);
-    const genreIds = selectedGenres.map(g => g.id); // Assuming DB returns IDs
+    const genreIds = selectedGenres.map(g => g.id);
 
     try {
       const response = await fetch('http://127.0.0.1:5001/api/save_favorite_artists', {
@@ -171,7 +170,7 @@ function Onboarding_3({ onNext, onBack }) {
         body: JSON.stringify({ 
           email, 
           artist_ids: artistIds,
-          genre_ids: genreIds // Sending genres to backend
+          genre_ids: genreIds 
         })
       });
 
@@ -229,7 +228,7 @@ function Onboarding_3({ onNext, onBack }) {
           {/* =========================== */}
           {/* 1. ARTISTS INPUT SECTION    */}
           {/* =========================== */}
-          <div className="form-group" style={{ position: 'relative', zIndex: 60, marginBottom: '1.5rem' }}>
+          <div className="form-group" style={{ position: 'relative', zIndex: 60 }}>
             <div className={`auth-input-wrapper ${focusedField === 'favoriteArtists' ? 'focused' : ''} ${isArtistsMaxReached ? 'disabled' : ''}`}>
               <Search className="auth-icon" size={22} {...getIconProps('favoriteArtists')} />
               <div className="input-stack">
@@ -256,6 +255,14 @@ function Onboarding_3({ onNext, onBack }) {
               <div className="artist-dropdown">
                 {artistSuggestions.map((artist) => {
                   const label = artist.displayLabel || artist.display_name || artist.name;
+                  
+                  // Truncation Logic
+                  const genresList = artist.genres 
+                    ? artist.genres.split('|').map(g => g.trim()).filter(g => g.length > 0) 
+                    : [];
+                  const visibleGenres = genresList.slice(0, 3);
+                  const remainingCount = genresList.length - 3;
+
                   return (
                     <div
                       key={artist.id || label}
@@ -266,26 +273,32 @@ function Onboarding_3({ onNext, onBack }) {
                       
                       <div className="artist-text-group">
                         <div className="artist-main">{label}</div>
-                        {artist.genres && (
+                        {genresList.length > 0 && (
                           <div className="artist-genres" style={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
-                            {artist.genres
-                              .split('|')
-                              .map(g => g.trim())
-                              .filter(g => g.length > 0)
-                              .map((genre, i, arr) => (
-                                <React.Fragment key={i}>
-                                  <span style={{ whiteSpace: 'nowrap' }}>
-                                    {genre.charAt(0).toUpperCase() + genre.slice(1)}
-                                  </span>
-                                  {i < arr.length - 1 && (
-                                    <Dot 
-                                      size={12} 
-                                      strokeWidth={4} 
-                                      style={{ margin: '0 2px', flexShrink: 0, color: '#94a3b8' }} 
-                                    />
-                                  )}
-                                </React.Fragment>
+                            {visibleGenres.map((genre, i) => (
+                              <React.Fragment key={i}>
+                                <span style={{ whiteSpace: 'nowrap' }}>
+                                  {/* Title Case Logic */}
+                                  {genre
+                                    .split(' ')
+                                    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+                                    .join(' ')
+                                  }
+                                </span>
+                                {i < visibleGenres.length - 1 && (
+                                  <Dot 
+                                    size={12} 
+                                    strokeWidth={4} 
+                                    style={{ margin: '0 2px', flexShrink: 0, color: '#94a3b8' }} 
+                                  />
+                                )}
+                              </React.Fragment>
                             ))}
+                            {remainingCount > 0 && (
+                              <span style={{ whiteSpace: 'nowrap', fontStyle: 'italic', marginLeft: '5px' }}>
+                                + {remainingCount} more
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>
@@ -298,14 +311,15 @@ function Onboarding_3({ onNext, onBack }) {
 
           {/* Selected Artists Chips */}
           {selectedArtists.length > 0 && (
-            <div className="selected-artists-group fade-in" style={{ marginBottom: '1.5rem' }}>
+            <div className="selected-artists-group fade-in" style={{ marginTop: '0.5rem', marginBottom: '1.5rem' }}>
               <label className="section-label">Current Selected Artists</label>
               <div className="chips-container">
                 {selectedArtists.map((artist, index) => (
                   <div key={index} className="artist-chip">
                     <span className="chip-text">{artist.name}</span>
                     <button type="button" className="chip-remove-btn" onClick={() => handleRemoveArtist(artist)}>
-                      <X size={14} />
+                      {/* UPDATED: Smaller Icon Size (12) */}
+                      <X size={12} />
                     </button>
                   </div>
                 ))}
@@ -316,70 +330,75 @@ function Onboarding_3({ onNext, onBack }) {
           {/* =========================== */}
           {/* 2. GENRES INPUT SECTION     */}
           {/* =========================== */}
-          <div className="form-group" style={{ position: 'relative', zIndex: 50 }}>
-            <div className={`auth-input-wrapper ${focusedField === 'favoriteGenres' ? 'focused' : ''} ${isGenresMaxReached ? 'disabled' : ''}`}>
-              <Music className="auth-icon" size={22} {...getIconProps('favoriteGenres')} />
-              <div className="input-stack">
-                <span className="input-label-small" style={{ color: isGenresMaxReached ? '#94a3b8' : getIconProps('favoriteGenres').color }}>
-                  Favorite Genres {isGenresMaxReached && "(Limit Reached)"}
-                </span>
-                <input
-                  type="text"
-                  name="favoriteGenres"
-                  value={genreInputValue}
-                  onChange={(e) => setGenreInputValue(e.target.value)}
-                  onFocus={() => { if (!isGenresMaxReached) { handleFocus('favoriteGenres'); setIsGenreSearchFocused(true); } }}
-                  onBlur={() => handleBlur('favoriteGenres')}
-                  placeholder={isGenresMaxReached ? "Max 5 genres selected" : "Search genres..."}
-                  className="auth-input stacked"
-                  autoComplete="off"
-                  disabled={isGenresMaxReached}
-                />
-              </div>
-            </div>
-
-            {/* Genre Suggestions Dropdown */}
-            {isGenreSearchFocused && genreSuggestions.length > 0 && (
-              <div className="artist-dropdown">
-                {genreSuggestions.map((genre) => (
-                  <div
-                    key={genre.id || genre.name}
-                    className="artist-dropdown-item"
-                    onMouseDown={() => handleAddGenre(genre)}
-                  >
-                    {/* Using Music icon for genre items too */}
-                    <Music size={20} className="artist-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
-                    <div className="artist-text-group">
-                      <div className="artist-main">
-                        {genre.name.charAt(0).toUpperCase() + genre.name.slice(1)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Selected Genres Chips */}
-          {selectedGenres.length > 0 && (
-            <div className="selected-artists-group fade-in" style={{ marginTop: '0.5rem' }}>
-              <label className="section-label">Current Selected Genres</label>
-              <div className="chips-container">
-                {selectedGenres.map((genre, index) => (
-                  <div key={index} className="artist-chip">
-                    <span className="chip-text">
-                      {genre.name.charAt(0).toUpperCase() + genre.name.slice(1)}
+          
+          {selectedArtists.length > 0 && (
+            <div className="fade-in">
+              <div className="form-group" style={{ position: 'relative', zIndex: 50 }}>
+                <div className={`auth-input-wrapper ${focusedField === 'favoriteGenres' ? 'focused' : ''} ${isGenresMaxReached ? 'disabled' : ''}`}>
+                  <Music className="auth-icon" size={22} {...getIconProps('favoriteGenres')} />
+                  <div className="input-stack">
+                    <span className="input-label-small" style={{ color: isGenresMaxReached ? '#94a3b8' : getIconProps('favoriteGenres').color }}>
+                      Favorite Genres {isGenresMaxReached && "(Limit Reached)"}
                     </span>
-                    <button type="button" className="chip-remove-btn" onClick={() => handleRemoveGenre(genre)}>
-                      <X size={14} />
-                    </button>
+                    <input
+                      type="text"
+                      name="favoriteGenres"
+                      value={genreInputValue}
+                      onChange={(e) => setGenreInputValue(e.target.value)}
+                      onFocus={() => { if (!isGenresMaxReached) { handleFocus('favoriteGenres'); setIsGenreSearchFocused(true); } }}
+                      onBlur={() => handleBlur('favoriteGenres')}
+                      placeholder={isGenresMaxReached ? "Max 5 genres selected" : "Search genres..."}
+                      className="auth-input stacked"
+                      autoComplete="off"
+                      disabled={isGenresMaxReached}
+                    />
                   </div>
-                ))}
+                </div>
+
+                {/* Genre Suggestions Dropdown */}
+                {isGenreSearchFocused && genreSuggestions.length > 0 && (
+                  <div className="artist-dropdown">
+                    {genreSuggestions.map((genre) => (
+                      <div
+                        key={genre.id || genre.name}
+                        className="artist-dropdown-item"
+                        onMouseDown={() => handleAddGenre(genre)}
+                      >
+                        <Music size={20} className="artist-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
+                        <div className="artist-text-group">
+                          <div className="artist-main">
+                            {genre.name.charAt(0).toUpperCase() + genre.name.slice(1)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
+
+              {/* Selected Genres Chips */}
+              {selectedGenres.length > 0 && (
+                <div className="selected-artists-group fade-in" style={{ marginTop: '0.5rem' }}>
+                  <label className="section-label">Current Selected Genres</label>
+                  <div className="chips-container">
+                    {selectedGenres.map((genre, index) => (
+                      <div key={index} className="artist-chip">
+                        <span className="chip-text">
+                          {genre.name.charAt(0).toUpperCase() + genre.name.slice(1)}
+                        </span>
+                        <button type="button" className="chip-remove-btn" onClick={() => handleRemoveGenre(genre)}>
+                          {/* UPDATED: Smaller Icon Size (12) */}
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Error Message (General) */}
+          {/* Error Message */}
           {error && (
               <div style={{ color: '#FF2C2C', fontSize: '0.85rem', fontWeight: 600, marginTop: '0.5rem', marginLeft: '0.5rem' }}>
                 {error}
