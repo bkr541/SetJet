@@ -6,7 +6,8 @@ import {
   X,
   Search,
   Check,
-  CircleUserRound
+  CircleUserRound,
+  Dot 
 } from 'lucide-react';
 import './Onboarding_3.css';
 
@@ -17,13 +18,9 @@ function Onboarding_3({ onNext, onBack }) {
   const [focusedField, setFocusedField] = useState(null);
   const [error, setError] = useState(null);
 
-  // ✅ NEW: Suggestions from DB artists table
   const [artistSuggestions, setArtistSuggestions] = useState([]);
-
-  // Maximum number of selectable artists
   const MAX_SELECTION = 5;
 
-  // ✅ NEW: Fetch artist suggestions from DB when user types (mirrors Onboarding_2 behavior)
   useEffect(() => {
     if (!inputValue || inputValue.length < 2) {
       setArtistSuggestions([]);
@@ -36,7 +33,6 @@ function Onboarding_3({ onNext, onBack }) {
         const res = await fetch(url);
         const data = await res.json();
 
-        // Filter out artists already selected (by display label/name)
         const selectedLabels = new Set(selectedArtists.map(a => a.displayLabel || a.name));
 
         const filtered = (Array.isArray(data) ? data : []).filter(d => {
@@ -56,7 +52,6 @@ function Onboarding_3({ onNext, onBack }) {
 
   const handleAddArtist = (artistRecord) => {
     setError(null);
-
     if (selectedArtists.length >= MAX_SELECTION) return;
 
     const label = artistRecord?.displayLabel || artistRecord?.display_name || artistRecord?.name || '';
@@ -64,13 +59,8 @@ function Onboarding_3({ onNext, onBack }) {
 
     setSelectedArtists(prev => [
       ...prev,
-      {
-        ...artistRecord,
-        name: label,          // keep existing UI logic (chips display artist.name)
-        displayLabel: label   // keep consistent key for comparisons
-      }
+      { ...artistRecord, name: label, displayLabel: label }
     ]);
-
     setInputValue('');
     setIsSearchFocused(false);
   };
@@ -87,18 +77,13 @@ function Onboarding_3({ onNext, onBack }) {
   const handleBlur = (field) => {
     setFocusedField(null);
     if (field === 'favoriteArtists') {
-      // Delay closing to allow click event on dropdown item
       setTimeout(() => setIsSearchFocused(false), 200);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const email = localStorage.getItem('current_email');
-
-    // ✅ CHANGED: Send list of Artist IDs instead of string name
-    // The "artistRecord" from handleAddArtist comes from DB, so it includes 'id'
     const artistIds = selectedArtists.map(a => a.id);
 
     try {
@@ -131,61 +116,38 @@ function Onboarding_3({ onNext, onBack }) {
 
   return (
     <div className="login-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '640px' }}>
-      {/* STEPPER PROGRESS BAR */}
       <div className="stepper-container">
-        {/* Step 1 Complete */}
         <div className="step-item completed">
-          <div className="step-circle">
-            <Check size={18} strokeWidth={3} />
-          </div>
+          <div className="step-circle"><Check size={18} strokeWidth={3} /></div>
         </div>
         <div className="step-line filled"></div>
-
-        {/* Step 2 Complete */}
         <div className="step-item completed">
-          <div className="step-circle">
-            <Check size={18} strokeWidth={3} />
-          </div>
+          <div className="step-circle"><Check size={18} strokeWidth={3} /></div>
         </div>
         <div className="step-line filled"></div>
-
-        {/* Step 3 Active (Music) */}
         <div className="step-item active">
           <div className="step-circle">3</div>
           <span className="step-label">Music</span>
         </div>
         <div className="step-line"></div>
-
-        {/* Step 4 Pending */}
         <div className="step-item">
           <div className="step-circle">4</div>
         </div>
       </div>
 
       <div className="auth-header">
-        <h2 className="auth-title">
-          Who do you listen to?
-        </h2>
-        <p className="auth-subtitle">
-          Select up to 5 favorite artists to help us find your perfect set.
-        </p>
+        <h2 className="auth-title">Who do you listen to?</h2>
+        <p className="auth-subtitle">Select up to 5 favorite artists to help us find your perfect set.</p>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="auth-form"
-        style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
-      >
+      <form onSubmit={handleSubmit} className="auth-form" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
         <div className="fade-in" style={{ position: 'relative' }}>
-          {/* FAVORITE ARTISTS INPUT */}
+          
           <div className="form-group" style={{ position: 'relative', zIndex: 50 }}>
             <div className={`auth-input-wrapper ${focusedField === 'favoriteArtists' ? 'focused' : ''} ${isMaxReached ? 'disabled' : ''}`}>
               <Search className="auth-icon" size={22} {...getIconProps('favoriteArtists')} />
               <div className="input-stack">
-                <span
-                  className="input-label-small"
-                  style={{ color: isMaxReached ? '#94a3b8' : getIconProps('favoriteArtists').color }}
-                >
+                <span className="input-label-small" style={{ color: isMaxReached ? '#94a3b8' : getIconProps('favoriteArtists').color }}>
                   Favorite Artists {isMaxReached && "(Limit Reached)"}
                 </span>
                 <input
@@ -193,12 +155,7 @@ function Onboarding_3({ onNext, onBack }) {
                   name="favoriteArtists"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onFocus={() => {
-                    if (!isMaxReached) {
-                      handleFocus('favoriteArtists');
-                      setIsSearchFocused(true);
-                    }
-                  }}
+                  onFocus={() => { if (!isMaxReached) { handleFocus('favoriteArtists'); setIsSearchFocused(true); } }}
                   onBlur={() => handleBlur('favoriteArtists')}
                   placeholder={isMaxReached ? "Max 5 artists selected" : "Search artists..."}
                   className="auth-input stacked"
@@ -208,14 +165,12 @@ function Onboarding_3({ onNext, onBack }) {
               </div>
             </div>
 
-            {/* Error Message */}
             {error && (
               <div style={{ color: '#FF2C2C', fontSize: '0.85rem', fontWeight: 600, marginTop: '0.5rem', marginLeft: '0.5rem' }}>
                 {error}
               </div>
             )}
 
-            {/* FLOATING DROPDOWN */}
             {isSearchFocused && artistSuggestions.length > 0 && (
               <div className="artist-dropdown">
                 {artistSuggestions.map((artist) => {
@@ -228,26 +183,40 @@ function Onboarding_3({ onNext, onBack }) {
                     >
                       <CircleUserRound size={24} className="artist-icon" style={{ marginRight: '10px', color: '#94a3b8' }} />
                       
-                      {/* Wrap name and genre to stack them vertically */}
                       <div className="artist-text-group">
-                        <div className="artist-main">
-                          {label}
-                        </div>
-                        {/* Conditionally render genre if it exists */}
+                        <div className="artist-main">{label}</div>
+                        
                         {artist.genres && (
-                          <div className="artist-genres">
-                            {artist.genres}
+                          <div className="artist-genres" style={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+                            {artist.genres
+                              .split('|')
+                              .map(g => g.trim())        // 1. Trim whitespace
+                              .filter(g => g.length > 0) // 2. Remove empty strings (fixes leading/trailing dots)
+                              .map((genre, i, arr) => (
+                                <React.Fragment key={i}>
+                                  <span style={{ whiteSpace: 'nowrap' }}>
+                                    {genre.toUpperCase()}
+                                  </span>
+                                  {/* Only show Dot if this is NOT the last item */}
+                                  {i < arr.length - 1 && (
+                                    <Dot 
+                                      size={12} 
+                                      strokeWidth={4} 
+                                      style={{ margin: '0 2px', flexShrink: 0, color: '#94a3b8' }} 
+                                    />
+                                  )}
+                                </React.Fragment>
+                            ))}
                           </div>
                         )}
+                      </div>
                     </div>
-                  </div>
                   );
                 })}
               </div>
             )}
           </div>
 
-          {/* CURRENT SELECTED ARTISTS GROUP */}
           {selectedArtists.length > 0 && (
             <div className="selected-artists-group fade-in">
               <label className="section-label">Current Selected Artists</label>
@@ -255,11 +224,7 @@ function Onboarding_3({ onNext, onBack }) {
                 {selectedArtists.map((artist, index) => (
                   <div key={index} className="artist-chip">
                     <span className="chip-text">{artist.name}</span>
-                    <button
-                      type="button"
-                      className="chip-remove-btn"
-                      onClick={() => handleRemoveArtist(artist)}
-                    >
+                    <button type="button" className="chip-remove-btn" onClick={() => handleRemoveArtist(artist)}>
                       <X size={14} />
                     </button>
                   </div>
@@ -269,23 +234,11 @@ function Onboarding_3({ onNext, onBack }) {
           )}
         </div>
 
-        {/* BUTTON CONTAINER: Back and Continue */}
         <div className="auth-button-group">
-          {/* BACK BUTTON */}
-          <button
-            type="button"
-            className="auth-back-btn"
-            onClick={onBack}
-          >
+          <button type="button" className="auth-back-btn" onClick={onBack}>
             <ArrowLeft size={24} />
           </button>
-
-          {/* SUBMIT BUTTON */}
-          <button
-            type="submit"
-            className="auth-button"
-            style={{ marginTop: 0, flex: 1 }}
-          >
+          <button type="submit" className="auth-button" style={{ marginTop: 0, flex: 1 }}>
             <span>Continue</span>
             <ArrowRight size={20} />
           </button>

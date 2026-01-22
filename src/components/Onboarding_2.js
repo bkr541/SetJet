@@ -151,10 +151,10 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
       
       <div className="auth-header">
         <h2 className="auth-title">
-          Where do you fly?
+          Where to first?
         </h2>
         <p className="auth-subtitle">
-            Select up to 5 favorite cities to help us personalize your deals.
+            Select up to 5 cities that you either travel to often, or you've always wanted to explore.
         </p>
       </div>
 

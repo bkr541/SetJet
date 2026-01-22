@@ -191,7 +191,7 @@
   z-index: 100;
   max-height: 200px;
   overflow-y: auto;
-  animation: slideDown 0.15s ease-out;
+  animation: slideDown 0.25s ease-out;
 }
 
 .artist-dropdown-item {
@@ -242,10 +242,16 @@
   font-size: 0.85rem;
   color: #64748b;
   font-weight: 700;
-  margin-bottom: 0.35rem; 
+  margin-bottom: 0; /* Reduced from 0.75rem */
   display: block;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  margin-bottom: 0px !important; /* Forces a small gap. Use 0 for no gap. */
+  line-height: 1;                /* Removes invisible vertical space in the text box */
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  /* --- FIX ENDS HERE --- */
 }
 
 .chips-container {
