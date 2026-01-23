@@ -5,6 +5,7 @@ from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
 # from scraper import FrontierScraper  # Commented out - using Amadeus API instead
 from amadeus_api import AmadeusFlightSearch
+from edmtrain_api import EDMTrainAPI
 from trip_planner import find_optimal_trips
 from gowild_blackout import GoWildBlackoutDates
 from datetime import datetime, timedelta, date
@@ -288,6 +289,19 @@ def is_cache_valid(cache_entry):
     cache_time = datetime.fromisoformat(cache_entry['timestamp'])
     return datetime.now() - cache_time < CACHE_DURATION
 
+
+# ==========================================
+# 0d. EDMTRAIN CLIENT INIT
+# ==========================================
+
+try:
+    edmtrain_client = EDMTrainAPI()
+    app.logger.info('EDMTrain API initialized.')
+except Exception as e:
+    app.logger.warning('EDMTrain API not configured: %s', e)
+    edmtrain_client = None
+
+
 # ==========================================
 # 5. API ROUTES
 # ==========================================
@@ -491,7 +505,8 @@ def get_user_info():
         {
             "id": a.id,
             "name": a.display_name,
-            "image": a.image_url
+            "image": a.image_url,
+            "edmtrain_id": a.edmtrain_id
         }
         for a in (user.fav_artists or [])
     ]
@@ -964,8 +979,10 @@ def cache_stats():
         'expired_entries': len(cache) - valid_entries
     })
 
+# ==========================================
+# 6. SPOTIFY API ROUTES
+# ==========================================
 
-# --- SPOTIFY: SEARCH ARTIST ---
 @app.route('/api/spotify/search-artist', methods=['GET'])
 def spotify_search_artist():
     if not spotify_client:
@@ -985,6 +1002,93 @@ def spotify_search_artist():
         app.logger.error('Spotify Search Error: %s', e, exc_info=True)
         return jsonify({'error': str(e)}), 500
 
+# ==========================================
+# 6. EDMTRAIN API ROUTES
+# ==========================================
+
+@app.route('/api/edmtrain/locations', methods=['GET'])
+def edmtrain_locations():
+    if not edmtrain_client:
+        return jsonify({'error': 'EDMTrain API not configured'}), 503
+    
+    results = edmtrain_client.get_locations()
+    return jsonify(results)
+
+@app.route('/api/edmtrain/events/artist', methods=['GET'])
+def edmtrain_artist_events():
+    """Get events for a specific artist (by EDMTrain Artist ID)"""
+    if not edmtrain_client:
+        return jsonify({'error': 'EDMTrain API not configured'}), 503
+
+    artist_ids = request.args.get('artistIds')
+    if not artist_ids:
+        return jsonify({'error': 'Missing artistIds parameter'}), 400
+
+    results = edmtrain_client.get_artist_events(artist_ids)
+    return jsonify(results)
+
+@app.route('/api/edmtrain/events/city', methods=['GET'])
+def edmtrain_city_events():
+    """Get events for a specific city (by EDMTrain Location ID)"""
+    if not edmtrain_client:
+        return jsonify({'error': 'EDMTrain API not configured'}), 503
+
+    location_ids = request.args.get('locationIds')
+    start_date = request.args.get('startDate')
+    end_date = request.args.get('endDate')
+
+    if not location_ids:
+        return jsonify({'error': 'Missing locationIds parameter'}), 400
+
+    results = edmtrain_client.get_city_events(location_ids, start_date, end_date)
+    return jsonify(results)
+
+@app.route('/api/edmtrain/events/nearby', methods=['GET'])
+def edmtrain_nearby_events():
+    """Get events based on geo-coordinates"""
+    if not edmtrain_client:
+        return jsonify({'error': 'EDMTrain API not configured'}), 503
+
+    lat = request.args.get('latitude')
+    long = request.args.get('longitude')
+    state = request.args.get('state')
+    start_date = request.args.get('startDate')
+    end_date = request.args.get('endDate')
+
+    if not lat or not long:
+        return jsonify({'error': 'Missing latitude or longitude'}), 400
+
+    results = edmtrain_client.get_nearby_events(lat, long, state, start_date, end_date)
+    return jsonify(results)
+
+@app.route('/api/edmtrain/events/venue', methods=['GET'])
+def edmtrain_venue_events():
+    """Get events for a specific venue"""
+    if not edmtrain_client:
+        return jsonify({'error': 'EDMTrain API not configured'}), 503
+
+    venue_ids = request.args.get('venueIds')
+    if not venue_ids:
+        return jsonify({'error': 'Missing venueIds parameter'}), 400
+
+    results = edmtrain_client.get_venue_events(venue_ids)
+    return jsonify(results)
+
+@app.route('/api/edmtrain/tours', methods=['GET'])
+def edmtrain_tours():
+    """Get list of tours (Huge JSON)"""
+    if not edmtrain_client:
+        return jsonify({'error': 'EDMTrain API not configured'}), 503
+
+    # Parse query params (optional, defaults to True/False as per screenshot)
+    # Using 'json.loads' or explicit check to convert string "false" to boolean
+    include_electronic = request.args.get('includeElectronic', 'true').lower() == 'true'
+    include_other = request.args.get('includeOther', 'false').lower() == 'true'
+
+    results = edmtrain_client.get_tours(include_electronic, include_other)
+    return jsonify(results)    
+
+# CORS Headers
 @app.after_request
 def add_cors_headers(resp):
     resp.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"

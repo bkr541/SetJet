@@ -354,6 +354,30 @@
   text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
 
+.headliner-event-count {
+  position: absolute;
+  top: 60%; /* Positioned below the name */
+  left: 50%;
+  transform: translateX(-50%);
+  
+  font-size: 0.65rem;
+  font-weight: 500;
+  
+  /* Use a bright accent color (Cyan/Teal) to distinguish from name */
+  color: #67e8f9; 
+  text-shadow: 0 2px 3px rgba(0,0,0,0.9);
+  
+  /* Ensure it centers properly */
+  width: 100%; 
+  text-align: center;
+  z-index: 2;
+  
+  /* Reset previous pill styles if not needed inside the circle */
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
 .no-data-msg {
   color: #94a3b8;
   font-style: italic;
@@ -1247,8 +1271,20 @@ input[type="date"] {
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
   }
   .headliner-name {
-  font-weight: 500;
-  font-size: 14px;
+  position: absolute;
+  top: 42%; /* Changed from 50% to make room below */
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: 800; /* Made slightly bolder */
+  font-size: 15px;  /* Adjusted for balance */
+  text-transform: uppercase;
+  text-align: center;
+  width: 100%;
+  padding: 0 8px;
+  z-index: 2;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+  line-height: 1.1; /* Tighter line height prevents overlap */
   }
   .main-header {
   padding: 0 0;

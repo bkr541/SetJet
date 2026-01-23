@@ -33,19 +33,36 @@ import {
 import './UserHome.css';
 
 // --- Dashboard Sub-Views ---
-// --- Dashboard Sub-Views ---
 const HomeView = ({ favoriteArtists, favoriteDestinations }) => {
-  // Fallback demo destinations (so UI renders even if you haven't wired data yet)
+  // 1. New State for Tour Counts
+  const [tourCounts, setTourCounts] = useState({});
+
+  // 2. Fetch Tour Data on Mount
+  useEffect(() => {
+    const fetchTours = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:5001/api/edmtrain/tours?includeElectronic=true&includeOther=false');
+        if (!res.ok) return;
+        
+        const json = await res.json();
+        
+        // The map is deeply nested in: data.artistIdEventCountMap
+        if (json.data && json.data.artistIdEventCountMap) {
+          setTourCounts(json.data.artistIdEventCountMap);
+        }
+      } catch (err) {
+        console.error("Failed to fetch tour counts:", err);
+      }
+    };
+
+    fetchTours();
+  }, []);
+
+  // Demo destinations fallback
   const demoDestinations = [
-    {
-      id: 'chicago',
-      city: 'Chicago',
-      name: 'Chicago',
-    },
+    { id: 'chicago', city: 'Chicago', name: 'Chicago' },
   ];
 
-  // If you pass favoriteDestinations in props, we’ll use it.
-  // Expected shape (per item): { id, city/name/title/location/location_label/label, image/image_url/photo_url/banner_url }
   const destinations =
     Array.isArray(favoriteDestinations) && favoriteDestinations.length > 0
       ? favoriteDestinations
@@ -53,34 +70,49 @@ const HomeView = ({ favoriteArtists, favoriteDestinations }) => {
 
   return (
     <div className="dashboard-panel fade-in">
-      {/* HEADLINERS (unchanged) */}
+      {/* HEADLINERS SECTION */}
       <div className="headliners-section">
         <h3 className="section-title">YOUR HEADLINERS</h3>
         <div className="headliners-scroll">
           {favoriteArtists && favoriteArtists.length > 0 ? (
-            favoriteArtists.map((artist, index) => (
-              <div key={index} className="headliner-card">
-                <div
-                  className="headliner-image-wrapper"
-                  style={{
-                    backgroundImage: `url(${artist.image || "/artifacts/defaultprofileillenium.png"})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat'
-                  }}
-                >
-                  <div className="headliner-overlay"></div>
-                  <span className="headliner-name">{artist.name}</span>
+            /* ⚠️ FIXED: Switched to curly braces { } to allow variable definition */
+            favoriteArtists.map((artist, index) => {
+              
+              // 1. Define the count variable here
+              const count = artist.edmtrain_id ? tourCounts[artist.edmtrain_id] : 0;
+              
+              // 2. Explicitly return the JSX
+              return (
+                <div key={index} className="headliner-card">
+                  <div
+                    className="headliner-image-wrapper"
+                    style={{
+                      backgroundImage: `url(${artist.image || "/artifacts/defaultprofileillenium.png"})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat'
+                    }}
+                  >
+                    <div className="headliner-overlay"></div>
+                    <span className="headliner-name">{artist.name}</span>
+                    {count > 0 && (
+                    <div className="headliner-event-count fade-in">
+                      {count} {count === 1 ? 'Event' : 'Events'}
+                    </div>
+                  )}
+                  </div>
+
+                  
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <p className="no-data-msg">No favorite artists added yet.</p>
           )}
         </div>
       </div>
 
-      {/* YOUR DESTINATIONS (poster style like your reference image) */}
+      {/* YOUR DESTINATIONS (poster style) */}
       <div className="destinations-section">
         <h3 className="section-title">YOUR DESTINATIONS</h3>
 
@@ -99,7 +131,6 @@ const HomeView = ({ favoriteArtists, favoriteDestinations }) => {
             const cityName = (raw || 'Unknown').split(',')[0].trim() || 'Unknown';
 
             // Construct image path: /artifacts/cities/<lowercase_city_nospaces>.png
-            // e.g. "New York" -> "newyork.png"
             const safeName = cityName.toLowerCase().replace(/\s+/g, '');
             const imgPath = `/artifacts/cities/${safeName}.png`;
 
