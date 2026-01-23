@@ -36,6 +36,33 @@ import './UserHome.css';
 // --- ✅ NEW: Artist Details View ---
 const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => {
   const [activeTab, setActiveTab] = useState('Upcoming Sets');
+
+  const [localFavorite, setLocalFavorite] = useState(!!isFavorite);
+  const [heartAnimating, setHeartAnimating] = useState(false);
+
+  useEffect(() => {
+    setLocalFavorite(!!isFavorite);
+    setHeartAnimating(false);
+  }, [isFavorite, artist?.id, artist?.name]);
+
+  const handleFavoriteClick = async () => {
+    if (heartAnimating) return;
+
+    const next = !localFavorite;
+    setLocalFavorite(next);
+    setHeartAnimating(true);
+
+    try {
+      // Parent performs the real toggle + refresh. We stay optimistic for snappy UI.
+      await onToggleFavorite(artist);
+    } catch (e) {
+      // Revert if backend fails
+      setLocalFavorite(!next);
+      console.error(e);
+    } finally {
+      setTimeout(() => setHeartAnimating(false), 420);
+    }
+  };
   
   // 1. Define tabs with Icons matching your imports
   const tabs = [
@@ -96,17 +123,17 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
             <ArrowLeft size={24} />
           </button>
 
-          <button onClick={() => onToggleFavorite(artist)} style={{
-            background: 'rgba(0,0,0,0.3)', 
-            border: 'none', 
-            borderRadius: '50%', 
-            width: '40px', height: '40px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: isFavorite ? '#22c55e' : 'white', // Green if favorite
-            cursor: 'pointer',
-            backdropFilter: 'blur(4px)'
-          }}>
-            <Heart size={24} fill={isFavorite ? "#22c55e" : "none"} />
+          <button
+            type="button"
+            onClick={handleFavoriteClick}
+            className={`favorite-heart-btn ${localFavorite ? 'is-favorite' : ''} ${heartAnimating ? 'is-animating' : ''}`}
+            aria-label={localFavorite ? 'Unfavorite artist' : 'Favorite artist'}
+          >
+            <Heart
+              size={24}
+              className="favorite-heart-icon"
+              fill={localFavorite ? 'currentColor' : 'none'}
+            />
           </button>
         </div>
 
@@ -927,6 +954,7 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
   const [activeView, setActiveView] = useState('home');
   // State to hold fetched destinations from backend (which override/supplement props)
   const [userDestinations, setUserDestinations] = useState(favoriteDestinations || []);
+  const [favoriteArtistsState, setFavoriteArtistsState] = useState(favoriteArtists || []);
   
   // ✅ NEW: Selected Artist for Detail View
   const [selectedArtist, setSelectedArtist] = useState(null);
@@ -993,6 +1021,10 @@ const [userInfo, setUserInfo] = useState({
       if (data.favorite_destinations && Array.isArray(data.favorite_destinations)) {
         setUserDestinations(data.favorite_destinations);
       }
+
+      if (data.favorite_artists && Array.isArray(data.favorite_artists)) {
+        setFavoriteArtistsState(data.favorite_artists);
+      }
     } catch (err) {
       console.error('Failed to fetch user info:', err);
     }
@@ -1011,6 +1043,10 @@ const [userInfo, setUserInfo] = useState({
     }));
   }, [userFirstName, userProfilePic]);
 
+  useEffect(() => {
+    if (Array.isArray(favoriteArtists)) setFavoriteArtistsState(favoriteArtists);
+  }, [favoriteArtists]);
+
   // ✅ NEW: Handle clicking an artist from Home
   const handleArtistClick = (artist) => {
     setSelectedArtist(artist);
@@ -1019,43 +1055,45 @@ const [userInfo, setUserInfo] = useState({
 
   // ✅ NEW: Check if an artist is in favorites (using existing favoriteArtists prop)
   const isFavorite = (artist) => {
-    if (!favoriteArtists) return false;
-    return favoriteArtists.some(fav => fav.id === artist.id || fav.name === artist.name);
+    if (!artist) return false;
+    if (!Array.isArray(favoriteArtistsState)) return false;
+    return favoriteArtistsState.some(fav => fav.id === artist.id || fav.name === artist.name);
   };
 
   // ✅ NEW: Toggle Favorite with backend call
   const handleToggleFavorite = async (artist) => {
     const email = localStorage.getItem('current_email');
-    if (!email) return;
+    if (!email) throw new Error('No current_email in localStorage');
 
-    try {
-      const res = await fetch('http://127.0.0.1:5001/api/toggle_favorite_artist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email,
-          artist_name: artist.name,
-          artist_id: artist.id,
-          artist_image: artist.image
-        })
-      });
+    const res = await fetch('http://127.0.0.1:5001/api/toggle_favorite_artist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email,
+        artist_name: artist.name,
+        artist_id: artist.id,
+        artist_image: artist.image
+      })
+    });
 
-      if (res.ok) {
-         // Refresh list after toggle to show correct state
-         await refreshUserInfo();
-      } else {
-        console.error("Failed to toggle favorite");
-      }
-    } catch (err) {
-      console.error("Error toggling favorite:", err);
+    let data = null;
+    try { data = await res.json(); } catch (e) {}
+
+    if (!res.ok) {
+      throw new Error(data?.error || 'Failed to toggle favorite');
     }
+
+    // Refresh list after toggle so the whole app stays consistent
+    await refreshUserInfo();
+
+    return data;
   };
 
   const renderContent = () => {
     switch (activeView) {
       case 'events': return <EventsView />;
       case 'places': return <PlacesView />;
-      case 'artists': return <ArtistsView favoriteArtists={favoriteArtists} />;
+      case 'artists': return <ArtistsView favoriteArtists={favoriteArtistsState} />;
       case 'plan': return <PlanView />;
       case 'friends': return <FriendsView />;
       
@@ -1088,7 +1126,7 @@ const [userInfo, setUserInfo] = useState({
       default:
         return (
           <HomeView 
-            favoriteArtists={favoriteArtists} 
+            favoriteArtists={favoriteArtistsState} 
             favoriteDestinations={userDestinations} 
             onArtistClick={handleArtistClick} // ✅ Pass handler
           />

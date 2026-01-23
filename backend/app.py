@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 import json
 import os
 import random
+import re
 import time
 import traceback
 import logging
@@ -677,6 +678,82 @@ def save_favorite_artists():
     except Exception as e:
         db.session.rollback()
         print("!!!!! ARTIST SAVE CRASH !!!!!")
+        traceback.print_exc()
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
+
+
+# --- ✅ NEW: TOGGLE FAVORITE ARTIST (ADD/REMOVE) ---
+@app.route('/api/toggle_favorite_artist', methods=['POST'])
+def toggle_favorite_artist():
+    data = request.get_json() or {}
+    email = data.get('email')
+    artist_id = data.get('artist_id')
+    artist_name = data.get('artist_name')
+    artist_image = data.get('artist_image')
+
+    if not email:
+        return jsonify({'error': 'Email required'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Helper to build a deterministic normalized_name if we ever need to create an Artist record
+    def _normalize_artist_name(name: str) -> str:
+        name = (name or '').strip().lower()
+        # keep letters/numbers/spaces/underscores, then convert spaces to underscores
+        name = re.sub(r'[^a-z0-9 _-]+', '', name)
+        name = name.replace('-', ' ')
+        name = re.sub(r'\s+', '_', name).strip('_')
+        return name or 'unknown'
+
+    try:
+        artist = None
+
+        # Prefer ID lookup (most reliable)
+        if artist_id is not None:
+            try:
+                artist_id_int = int(artist_id)
+            except (TypeError, ValueError):
+                return jsonify({'error': 'artist_id must be an integer'}), 400
+            artist = Artist.query.get(artist_id_int)
+
+        # Fallback: name lookup
+        if artist is None and artist_name:
+            artist = Artist.query.filter_by(display_name=artist_name).first()
+
+        # Optional: create artist if not found but the client provided a name
+        if artist is None and artist_name:
+            artist = Artist(
+                display_name=artist_name,
+                normalized_name=_normalize_artist_name(artist_name),
+                image_url=artist_image
+            )
+            db.session.add(artist)
+            db.session.flush()  # get artist.id without committing yet
+
+        if artist is None:
+            return jsonify({'error': 'Artist not found (provide artist_id or artist_name)'}), 404
+
+        # Toggle membership
+        already_favorited = any(a.id == artist.id for a in (user.fav_artists or []))
+        if already_favorited:
+            user.fav_artists = [a for a in user.fav_artists if a.id != artist.id]
+            favorited = False
+        else:
+            user.fav_artists.append(artist)
+            favorited = True
+
+        db.session.commit()
+        return jsonify({
+            'message': 'Favorite artist updated',
+            'favorited': favorited,
+            'artist_id': artist.id
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print("!!!!! TOGGLE FAVORITE ARTIST CRASH !!!!!")
         traceback.print_exc()
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
