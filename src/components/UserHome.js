@@ -25,15 +25,173 @@ import {
   ArrowLeft,
   Check,
   Camera,
-  AtSign, // Added for Username
+  AtSign,
   Type,
   UserRound,
-  MicVocal
+  MicVocal,
+  Heart // Added Heart icon
 } from 'lucide-react';
 import './UserHome.css';
 
+// --- ✅ NEW: Artist Details View ---
+const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => {
+  const [activeTab, setActiveTab] = useState('Upcoming Sets');
+  const tabs = ['Upcoming Sets', 'Set Map', 'Discover', 'Bio', 'Alerts', 'Tracks'];
+
+  // Fallback image if artist has none
+  const bgImage = artist.image || "/artifacts/defaultprofileillenium.png";
+
+  return (
+    <div className="dashboard-panel fade-in" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+      
+      {/* 1. HERO SECTION */}
+      <div style={{ 
+        position: 'relative', 
+        height: '340px', 
+        width: '100%',
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        flexShrink: 0
+      }}>
+        {/* Dark Gradient Overlay */}
+        <div style={{
+          position: 'absolute',
+          bottom: 0, left: 0, right: 0,
+          height: '60%',
+          background: 'linear-gradient(to top, #0f172a 0%, transparent 100%)'
+        }}></div>
+
+        {/* Top Navigation (Back & Favorite) */}
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0,
+          padding: '24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          zIndex: 10
+        }}>
+          <button onClick={onBack} style={{
+            background: 'rgba(0,0,0,0.3)', 
+            border: 'none', 
+            borderRadius: '50%', 
+            width: '40px', height: '40px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'white', cursor: 'pointer',
+            backdropFilter: 'blur(4px)'
+          }}>
+            <ArrowLeft size={24} />
+          </button>
+
+          <button onClick={() => onToggleFavorite(artist)} style={{
+            background: 'rgba(0,0,0,0.3)', 
+            border: 'none', 
+            borderRadius: '50%', 
+            width: '40px', height: '40px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: isFavorite ? '#22c55e' : 'white', // Green if favorite
+            cursor: 'pointer',
+            backdropFilter: 'blur(4px)'
+          }}>
+            <Heart size={24} fill={isFavorite ? "#22c55e" : "none"} />
+          </button>
+        </div>
+
+        {/* Artist Info Overlay */}
+        <div style={{
+          position: 'absolute',
+          bottom: '24px',
+          left: '24px',
+          right: '24px',
+          zIndex: 5
+        }}>
+          <h1 style={{ 
+            color: 'white', 
+            margin: 0, 
+            fontSize: '2.5rem', 
+            fontWeight: 800, 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.02em',
+            textShadow: '0 2px 10px rgba(0,0,0,0.5)'
+          }}>
+            {artist.name}
+          </h1>
+          
+          {/* Genre Tags */}
+          <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+            {artist.genres && Array.isArray(artist.genres) ? (
+               artist.genres.slice(0, 3).map((g, i) => (
+                 <span key={i} style={{
+                   background: 'rgba(255,255,255,0.15)',
+                   color: '#e2e8f0',
+                   padding: '4px 10px',
+                   borderRadius: '12px',
+                   fontSize: '0.75rem',
+                   fontWeight: 600,
+                   backdropFilter: 'blur(4px)'
+                 }}>{g}</span>
+               ))
+            ) : (
+               <span style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>Electronic / Dance</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 2. TAB NAVIGATION (Pill Style) */}
+      <div style={{
+        background: '#0f172a', // Match gradient bottom
+        padding: '16px 24px',
+        borderBottom: '1px solid #1e293b'
+      }}>
+        <div style={{
+          display: 'flex',
+          gap: '12px',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          paddingBottom: '4px'
+        }}>
+          {tabs.map(tab => {
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  background: isActive ? '#0096a6' : 'rgba(255,255,255,0.05)',
+                  color: isActive ? 'white' : '#94a3b8',
+                  border: 'none',
+                  padding: '8px 18px',
+                  borderRadius: '24px',
+                  fontSize: '0.9rem',
+                  fontWeight: isActive ? 700 : 600,
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {tab}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* 3. CONTENT AREA */}
+      <div style={{ padding: '24px', flex: 1, overflowY: 'auto', background: '#ffffff' }}>
+        <h3 style={{ marginTop: 0, color: '#1e293b' }}>{activeTab}</h3>
+        <p style={{ color: '#64748b', lineHeight: 1.6 }}>
+          Content for {activeTab} will appear here. This section will connect to backend endpoints to show tour dates, tracks, or bio information for {artist.name}.
+        </p>
+      </div>
+
+    </div>
+  );
+};
+
 // --- Dashboard Sub-Views ---
-const HomeView = ({ favoriteArtists, favoriteDestinations }) => {
+const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick }) => {
   // 1. New State for Tour Counts
   const [tourCounts, setTourCounts] = useState({});
 
@@ -83,7 +241,11 @@ const HomeView = ({ favoriteArtists, favoriteDestinations }) => {
               
               // 2. Explicitly return the JSX
               return (
-                <div key={index} className="headliner-card">
+                <div 
+                  key={index} 
+                  className="headliner-card"
+                  onClick={() => onArtistClick(artist)} // ✅ NEW: Click handler
+                >
                   <div
                     className="headliner-image-wrapper"
                     style={{
@@ -95,14 +257,13 @@ const HomeView = ({ favoriteArtists, favoriteDestinations }) => {
                   >
                     <div className="headliner-overlay"></div>
                     <span className="headliner-name">{artist.name}</span>
-                    {count > 0 && (
+                    {/* 3. Display the Event Count */}
+                  {count > 0 && (
                     <div className="headliner-event-count fade-in">
                       {count} {count === 1 ? 'Event' : 'Events'}
                     </div>
                   )}
                   </div>
-
-                  
                 </div>
               );
             })
@@ -774,6 +935,9 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
   const [activeView, setActiveView] = useState('home');
   // State to hold fetched destinations from backend (which override/supplement props)
   const [userDestinations, setUserDestinations] = useState(favoriteDestinations || []);
+  
+  // ✅ NEW: Selected Artist for Detail View
+  const [selectedArtist, setSelectedArtist] = useState(null);
 
   const MOBILE_BP = 768; // pick your breakpoint
   const isMobile = () => window.innerWidth <= MOBILE_BP;
@@ -855,6 +1019,24 @@ const [userInfo, setUserInfo] = useState({
     }));
   }, [userFirstName, userProfilePic]);
 
+  // ✅ NEW: Handle clicking an artist from Home
+  const handleArtistClick = (artist) => {
+    setSelectedArtist(artist);
+    setActiveView('artist-details');
+  };
+
+  // ✅ NEW: Check if an artist is in favorites (using existing favoriteArtists prop)
+  const isFavorite = (artist) => {
+    if (!favoriteArtists) return false;
+    return favoriteArtists.some(fav => fav.id === artist.id || fav.name === artist.name);
+  };
+
+  // ✅ NEW: Toggle Favorite (Visual placeholder, backend would go here)
+  const handleToggleFavorite = (artist) => {
+    console.log("Toggle favorite for:", artist.name);
+    // Add API call here later
+  };
+
   const renderContent = () => {
     switch (activeView) {
       case 'events': return <EventsView />;
@@ -862,6 +1044,18 @@ const [userInfo, setUserInfo] = useState({
       case 'artists': return <ArtistsView favoriteArtists={favoriteArtists} />;
       case 'plan': return <PlanView />;
       case 'friends': return <FriendsView />;
+      
+      // ✅ NEW CASE
+      case 'artist-details': 
+        return (
+          <ArtistDetailsView 
+            artist={selectedArtist} 
+            onBack={() => setActiveView('home')} 
+            isFavorite={isFavorite(selectedArtist)}
+            onToggleFavorite={handleToggleFavorite}
+          />
+        );
+
       case 'profile':
         return <ProfileView
           userFirstName={userInfo.first_name}
@@ -878,7 +1072,13 @@ const [userInfo, setUserInfo] = useState({
           onSaved={refreshUserInfo}
         />;
       default:
-        return <HomeView favoriteArtists={favoriteArtists} favoriteDestinations={userDestinations} />;
+        return (
+          <HomeView 
+            favoriteArtists={favoriteArtists} 
+            favoriteDestinations={userDestinations} 
+            onArtistClick={handleArtistClick} // ✅ Pass handler
+          />
+        );
     }
   };
 
@@ -925,7 +1125,7 @@ const [userInfo, setUserInfo] = useState({
             <span>Places</span>
           </button>
 
-          {/* ✅ NEW: Artists (below Places) */}
+          {/* ✅ Artists (below Places) */}
           <button onClick={() => handleNav(() => setActiveView('artists'))} className={activeView === 'artists' ? 'active' : ''}>
             <MicVocal size={20} />
             <span>Artists</span>
