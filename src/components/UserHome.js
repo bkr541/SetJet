@@ -37,6 +37,9 @@ import './UserHome.css';
 const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, eventsCacheByArtistId, setEventsCacheByArtistId }) => {
   const [activeTab, setActiveTab] = useState('Upcoming Sets');
   const [artistEvents, setArtistEvents] = useState([]);
+  const [upcomingSort, setUpcomingSort] = useState('date_asc');
+  const [upcomingDateFrom, setUpcomingDateFrom] = useState('');
+  const [upcomingDateTo, setUpcomingDateTo] = useState('');
   const [eventsLoading, setEventsLoading] = useState(false);
   const [eventsError, setEventsError] = useState(null);
 
@@ -51,6 +54,56 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
       year: 'numeric',
     });
   };
+
+  // Sort events only for display (keeps original order in state/cache)
+  const sortedArtistEvents = (() => {
+    const base = Array.isArray(artistEvents) ? [...artistEvents] : [];
+    const from = upcomingDateFrom ? new Date(`${upcomingDateFrom}T00:00:00`) : null;
+    const toExclusive = upcomingDateTo ? new Date(new Date(`${upcomingDateTo}T00:00:00`).getTime() + 24 * 60 * 60 * 1000) : null;
+    const arr = base.filter((e) => {
+      const t = e?.startTime;
+      if (!t) return true;
+      const d = new Date(t);
+      if (Number.isNaN(d.getTime())) return true;
+      if (from && d < from) return false;
+      if (toExclusive && d >= toExclusive) return false;
+      return true;
+    });
+
+    const getName = (e) => (e?.name || artist?.name || '').toString();
+    const getVenue = (e) => (e?.venue?.name || '').toString();
+    const getLoc = (e) => (e?.venue?.location || '').toString();
+    const getTime = (e) => {
+      const t = e?.startTime;
+      const ms = t ? Date.parse(t) : NaN;
+      return Number.isFinite(ms) ? ms : 0;
+    };
+
+    switch (upcomingSort) {
+      case 'date_desc':
+        arr.sort((a, b) => getTime(b) - getTime(a));
+        break;
+      case 'name_asc':
+        arr.sort((a, b) => getName(a).localeCompare(getName(b), undefined, { sensitivity: 'base' }));
+        break;
+      case 'name_desc':
+        arr.sort((a, b) => getName(b).localeCompare(getName(a), undefined, { sensitivity: 'base' }));
+        break;
+      case 'venue_asc':
+        arr.sort((a, b) => getVenue(a).localeCompare(getVenue(b), undefined, { sensitivity: 'base' }));
+        break;
+      case 'location_asc':
+        arr.sort((a, b) => getLoc(a).localeCompare(getLoc(b), undefined, { sensitivity: 'base' }));
+        break;
+      case 'date_asc':
+      default:
+        arr.sort((a, b) => getTime(a) - getTime(b));
+        break;
+    }
+
+    return arr;
+  })();
+
 
   useEffect(() => {
     if (activeTab !== 'Upcoming Sets') return;
@@ -136,7 +189,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
       {/* 1. HERO SECTION */}
       <div style={{ 
         position: 'relative', 
-        height: '300px', 
+        height: '340px', 
         width: '100%',
         backgroundImage: `url(${bgImage})`,
         backgroundSize: 'cover',
@@ -201,7 +254,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
           <h1 style={{ 
             color: 'white', 
             margin: 0, 
-            fontSize: '3rem', 
+            fontSize: '2.5rem', 
             fontWeight: 800, 
             textTransform: 'uppercase', 
             letterSpacing: '0.02em',
@@ -253,11 +306,73 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
 
       {/* 3. CONTENT AREA */}
       <div className="artist-details-content">
+        {activeTab === 'Upcoming Sets' ? (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+          <h3 style={{ marginTop: 0, marginBottom: 0, color: '#1e293b' }}>Upcoming Sets</h3>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, color: '#64748b', fontWeight: 700 }}>Sort by</span>
+              <select
+                value={upcomingSort}
+                onChange={(e) => setUpcomingSort(e.target.value)}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: 12,
+                  border: '1px solid #e2e8f0',
+                  background: '#ffffff',
+                  color: '#0f172a',
+                  fontWeight: 700
+                }}
+              >
+                <option value="date_asc">Date (Soonest)</option>
+                <option value="date_desc">Date (Latest)</option>
+                <option value="name_asc">Event Name (A–Z)</option>
+                <option value="name_desc">Event Name (Z–A)</option>
+                <option value="venue_asc">Venue (A–Z)</option>
+                <option value="location_asc">Location (A–Z)</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, color: '#64748b', fontWeight: 700 }}>Dates</span>
+              <input
+                type="date"
+                value={upcomingDateFrom}
+                onChange={(e) => setUpcomingDateFrom(e.target.value)}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: 12,
+                  border: '1px solid #e2e8f0',
+                  background: '#ffffff',
+                  color: '#0f172a',
+                  fontWeight: 700
+                }}
+              />
+              <span style={{ color: '#94a3b8', fontWeight: 800 }}>–</span>
+              <input
+                type="date"
+                value={upcomingDateTo}
+                onChange={(e) => setUpcomingDateTo(e.target.value)}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: 12,
+                  border: '1px solid #e2e8f0',
+                  background: '#ffffff',
+                  color: '#0f172a',
+                  fontWeight: 700
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
         <h3 style={{ marginTop: 0, color: '#1e293b' }}>{activeTab}</h3>
+      )}
 
         {activeTab === 'Upcoming Sets' ? (
           <div style={{ marginTop: 16 }}>
-            {eventsLoading ? (
+{eventsLoading ? (
               <div style={{ color: '#64748b' }}>Loading events...</div>
             ) : eventsError ? (
               <div style={{ color: '#ef4444' }}>{eventsError}</div>
@@ -265,7 +380,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
               <div style={{ color: '#64748b' }}>No upcoming events found.</div>
             ) : (
               <div className="upcoming-sets-list">
-                {artistEvents.map((evt, idx) => {
+                {sortedArtistEvents.map((evt, idx) => {
                   const name = evt?.name || artist?.name || 'Event';
                   const startTime = evt?.startTime;
                   const venueName = evt?.venue?.name || '';
