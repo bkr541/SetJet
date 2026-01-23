@@ -36,33 +36,64 @@ import './UserHome.css';
 // --- ✅ NEW: Artist Details View ---
 const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => {
   const [activeTab, setActiveTab] = useState('Upcoming Sets');
+  const [artistEvents, setArtistEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState(null);
 
-  const [localFavorite, setLocalFavorite] = useState(!!isFavorite);
-  const [heartAnimating, setHeartAnimating] = useState(false);
+  const formatEventDate = (startTime) => {
+    if (!startTime) return '';
+    const d = new Date(startTime);
+    if (Number.isNaN(d.getTime())) return String(startTime);
+    return d.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 
   useEffect(() => {
-    setLocalFavorite(!!isFavorite);
-    setHeartAnimating(false);
-  }, [isFavorite, artist?.id, artist?.name]);
+    if (activeTab !== 'Upcoming Sets') return;
 
-  const handleFavoriteClick = async () => {
-    if (heartAnimating) return;
-
-    const next = !localFavorite;
-    setLocalFavorite(next);
-    setHeartAnimating(true);
-
-    try {
-      // Parent performs the real toggle + refresh. We stay optimistic for snappy UI.
-      await onToggleFavorite(artist);
-    } catch (e) {
-      // Revert if backend fails
-      setLocalFavorite(!next);
-      console.error(e);
-    } finally {
-      setTimeout(() => setHeartAnimating(false), 420);
+    const edmtrainId = artist?.edmtrain_id;
+    if (!edmtrainId) {
+      setArtistEvents([]);
+      setEventsError('No EDMTrain artist ID found for this artist.');
+      return;
     }
-  };
+
+
+    let cancelled = false;
+
+    const fetchEvents = async () => {
+      try {
+        setEventsLoading(true);
+        setEventsError(null);
+
+        const url = `http://127.0.0.1:5001/api/edmtrain/events/artist?artistIds=${encodeURIComponent(edmtrainId)}`;
+        const res = await fetch(url);
+        const json = await res.json();
+
+        const events = Array.isArray(json?.data) ? json.data : [];
+        if (!cancelled) setArtistEvents(events);
+      } catch (err) {
+        console.error('Failed to fetch EDMTrain events:', err);
+        if (!cancelled) {
+          setArtistEvents([]);
+          setEventsError('Unable to load upcoming events.');
+        }
+      } finally {
+        if (!cancelled) setEventsLoading(false);
+      }
+    };
+
+    fetchEvents();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [artist?.edmtrain_id, activeTab]);
+
   
   // 1. Define tabs with Icons matching your imports
   const tabs = [
@@ -123,17 +154,17 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
             <ArrowLeft size={24} />
           </button>
 
-          <button
-            type="button"
-            onClick={handleFavoriteClick}
-            className={`favorite-heart-btn ${localFavorite ? 'is-favorite' : ''} ${heartAnimating ? 'is-animating' : ''}`}
-            aria-label={localFavorite ? 'Unfavorite artist' : 'Favorite artist'}
-          >
-            <Heart
-              size={24}
-              className="favorite-heart-icon"
-              fill={localFavorite ? 'currentColor' : 'none'}
-            />
+          <button onClick={() => onToggleFavorite(artist)} style={{
+            background: 'rgba(0,0,0,0.3)', 
+            border: 'none', 
+            borderRadius: '50%', 
+            width: '40px', height: '40px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: isFavorite ? '#22c55e' : 'white', // Green if favorite
+            cursor: 'pointer',
+            backdropFilter: 'blur(4px)'
+          }}>
+            <Heart size={24} fill={isFavorite ? "#22c55e" : "none"} />
           </button>
         </div>
 
@@ -201,9 +232,84 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
       {/* 3. CONTENT AREA */}
       <div style={{ padding: '24px', flex: 1, overflowY: 'auto', background: '#ffffff' }}>
         <h3 style={{ marginTop: 0, color: '#1e293b' }}>{activeTab}</h3>
-        <p style={{ color: '#64748b', lineHeight: 1.6 }}>
-          Content for {activeTab} will appear here. This section will connect to backend endpoints to show tour dates, tracks, or bio information for {artist.name}.
-        </p>
+
+        {activeTab === 'Upcoming Sets' ? (
+          <div style={{ marginTop: 16 }}>
+            {eventsLoading ? (
+              <div style={{ color: '#64748b' }}>Loading events...</div>
+            ) : eventsError ? (
+              <div style={{ color: '#ef4444' }}>{eventsError}</div>
+            ) : artistEvents.length === 0 ? (
+              <div style={{ color: '#64748b' }}>No upcoming events found.</div>
+            ) : (
+              <div style={{ display: 'grid', gap: 12 }}>
+                {artistEvents.map((evt, idx) => {
+                  const name = evt?.name || artist?.name || 'Event';
+                  const startTime = evt?.startTime;
+                  const venueName = evt?.venue?.name || '';
+                  const venueLocation = evt?.venue?.location || '';
+
+                  const key = evt?.id || evt?.eventId || `${artist?.edmtrain_id || 'artist'}-${idx}`;
+
+                  return (
+                    <div
+                      key={key}
+                      style={{
+                        display: 'flex',
+                        gap: 12,
+                        alignItems: 'stretch',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 14,
+                        padding: 12,
+                        background: '#ffffff',
+                        boxShadow: '0 8px 22px rgba(15, 23, 42, 0.06)',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <img
+                        src="/artifacts/defaultevent.png"
+                        alt="Event"
+                        style={{
+                          width: 84,
+                          height: 84,
+                          borderRadius: 12,
+                          objectFit: 'cover',
+                          flexShrink: 0,
+                          border: '1px solid #e2e8f0'
+                        }}
+                      />
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                          <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '1.02rem', lineHeight: 1.2 }}>
+                            {name}
+                          </div>
+                        </div>
+
+                        <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
+                          <div style={{ color: '#334155', fontWeight: 700 }}>
+                            {formatEventDate(startTime)}
+                          </div>
+
+                          <div style={{ color: '#64748b' }}>
+                            {venueLocation}
+                          </div>
+
+                          <div style={{ color: '#0f172a', fontWeight: 700 }}>
+                            {venueName}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : (
+          <p style={{ color: '#64748b', lineHeight: 1.6 }}>
+            Content for {activeTab} will appear here. This section will connect to backend endpoints to show tour dates, tracks, or bio information for {artist.name}.
+          </p>
+        )}
       </div>
 
     </div>
@@ -278,7 +384,7 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick }) => {
                     <span className="headliner-name">{artist.name}</span>
                     {/* 3. Display the Event Count */}
                   {count > 0 && (
-                    <div className="headliner-event-count fade-in">
+                    <div className="headliner-event-count">
                       {count} {count === 1 ? 'Event' : 'Events'}
                     </div>
                   )}
@@ -954,7 +1060,6 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
   const [activeView, setActiveView] = useState('home');
   // State to hold fetched destinations from backend (which override/supplement props)
   const [userDestinations, setUserDestinations] = useState(favoriteDestinations || []);
-  const [favoriteArtistsState, setFavoriteArtistsState] = useState(favoriteArtists || []);
   
   // ✅ NEW: Selected Artist for Detail View
   const [selectedArtist, setSelectedArtist] = useState(null);
@@ -1021,10 +1126,6 @@ const [userInfo, setUserInfo] = useState({
       if (data.favorite_destinations && Array.isArray(data.favorite_destinations)) {
         setUserDestinations(data.favorite_destinations);
       }
-
-      if (data.favorite_artists && Array.isArray(data.favorite_artists)) {
-        setFavoriteArtistsState(data.favorite_artists);
-      }
     } catch (err) {
       console.error('Failed to fetch user info:', err);
     }
@@ -1043,10 +1144,6 @@ const [userInfo, setUserInfo] = useState({
     }));
   }, [userFirstName, userProfilePic]);
 
-  useEffect(() => {
-    if (Array.isArray(favoriteArtists)) setFavoriteArtistsState(favoriteArtists);
-  }, [favoriteArtists]);
-
   // ✅ NEW: Handle clicking an artist from Home
   const handleArtistClick = (artist) => {
     setSelectedArtist(artist);
@@ -1055,45 +1152,43 @@ const [userInfo, setUserInfo] = useState({
 
   // ✅ NEW: Check if an artist is in favorites (using existing favoriteArtists prop)
   const isFavorite = (artist) => {
-    if (!artist) return false;
-    if (!Array.isArray(favoriteArtistsState)) return false;
-    return favoriteArtistsState.some(fav => fav.id === artist.id || fav.name === artist.name);
+    if (!favoriteArtists) return false;
+    return favoriteArtists.some(fav => fav.id === artist.id || fav.name === artist.name);
   };
 
   // ✅ NEW: Toggle Favorite with backend call
   const handleToggleFavorite = async (artist) => {
     const email = localStorage.getItem('current_email');
-    if (!email) throw new Error('No current_email in localStorage');
+    if (!email) return;
 
-    const res = await fetch('http://127.0.0.1:5001/api/toggle_favorite_artist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: email,
-        artist_name: artist.name,
-        artist_id: artist.id,
-        artist_image: artist.image
-      })
-    });
+    try {
+      const res = await fetch('http://127.0.0.1:5001/api/toggle_favorite_artist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          artist_name: artist.name,
+          artist_id: artist.id,
+          artist_image: artist.image
+        })
+      });
 
-    let data = null;
-    try { data = await res.json(); } catch (e) {}
-
-    if (!res.ok) {
-      throw new Error(data?.error || 'Failed to toggle favorite');
+      if (res.ok) {
+         // Refresh list after toggle to show correct state
+         await refreshUserInfo();
+      } else {
+        console.error("Failed to toggle favorite");
+      }
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
     }
-
-    // Refresh list after toggle so the whole app stays consistent
-    await refreshUserInfo();
-
-    return data;
   };
 
   const renderContent = () => {
     switch (activeView) {
       case 'events': return <EventsView />;
       case 'places': return <PlacesView />;
-      case 'artists': return <ArtistsView favoriteArtists={favoriteArtistsState} />;
+      case 'artists': return <ArtistsView favoriteArtists={favoriteArtists} />;
       case 'plan': return <PlanView />;
       case 'friends': return <FriendsView />;
       
@@ -1126,7 +1221,7 @@ const [userInfo, setUserInfo] = useState({
       default:
         return (
           <HomeView 
-            favoriteArtists={favoriteArtistsState} 
+            favoriteArtists={favoriteArtists} 
             favoriteDestinations={userDestinations} 
             onArtistClick={handleArtistClick} // ✅ Pass handler
           />

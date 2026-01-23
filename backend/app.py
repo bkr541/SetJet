@@ -10,6 +10,7 @@ from trip_planner import find_optimal_trips
 from gowild_blackout import GoWildBlackoutDates
 from datetime import datetime, timedelta, date
 from dotenv import load_dotenv
+import requests
 import json
 import os
 import random
@@ -302,7 +303,10 @@ def is_cache_valid(cache_entry):
 # ==========================================
 
 try:
-    edmtrain_client = EDMTrainAPI()
+    # Our EDMTrain wrapper defaults to EDMTRAIN_CLIENT_KEY, but your backend .env uses EDMTRAIN_API_KEY.
+    # Pass the key explicitly so all EDMTrain wrapper routes (tours/locations/etc.) work and logging is clean.
+    edmtrain_key = os.environ.get('EDMTRAIN_API_KEY') or os.environ.get('EDMTRAIN_CLIENT_KEY')
+    edmtrain_client = EDMTrainAPI(client_key=edmtrain_key)
     app.logger.info('EDMTrain API initialized.')
 except Exception as e:
     app.logger.warning('EDMTrain API not configured: %s', e)
@@ -316,14 +320,16 @@ except Exception as e:
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
+    edmtrain_key_loaded = bool(os.environ.get('EDMTRAIN_API_KEY') or os.environ.get('EDMTRAIN_CLIENT_KEY'))
+    app.logger.info("Health check: edmtrain_key_loaded=%s", edmtrain_key_loaded)
     return jsonify({
         'status': 'ok',
         'message': 'Flight Search API is running',
         'amadeus_enabled': AMADEUS_ENABLED,
         'dev_mode': DEV_MODE,
-        'spotify_enabled': spotify_client is not None
+        'spotify_enabled': spotify_client is not None,
+        'edmtrain_key_loaded': edmtrain_key_loaded
     })
-
 # --- GET RECORDS FROM LOCATIONS TABLE ---
 @app.route('/api/db_locations', methods=['GET'])
 def db_locations():
@@ -1099,17 +1105,34 @@ def edmtrain_locations():
 
 @app.route('/api/edmtrain/events/artist', methods=['GET'])
 def edmtrain_artist_events():
-    """Get events for a specific artist (by EDMTrain Artist ID)"""
-    if not edmtrain_client:
-        return jsonify({'error': 'EDMTrain API not configured'}), 503
+    """Get events for a specific artist (by EDMTrain Artist ID).
 
-    artist_ids = request.args.get('artistIds')
+    Proxies the EDMTrain API server-side so the frontend does not need an API key
+    and avoids browser CORS issues.
+
+    Uses:
+      https://edmtrain.com/api/events?client=<API_KEY>&artistids=<artistIds>
+    """
+    artist_ids = request.args.get('artistIds') or request.args.get('artistids')
     if not artist_ids:
         return jsonify({'error': 'Missing artistIds parameter'}), 400
 
-    results = edmtrain_client.get_artist_events(artist_ids)
-    return jsonify(results)
+    api_key = os.environ.get('EDMTRAIN_API_KEY')
+    if not api_key:
+        return jsonify({'error': 'Missing EDMTRAIN_API_KEY on server'}), 500
 
+    try:
+        url = 'https://edmtrain.com/api/events'
+        params = {'client': api_key, 'artistids': artist_ids}
+        r = requests.get(url, params=params, timeout=15)
+        r.raise_for_status()
+        return jsonify(r.json())
+    except requests.RequestException as e:
+        app.logger.error('EDMTrain artist events request failed: %s', e)
+        return jsonify({'error': 'EDMTrain request failed', 'details': str(e)}), 502
+    except Exception as e:
+        app.logger.error('Unexpected error in edmtrain_artist_events: %s', e)
+        return jsonify({'error': 'Unexpected error', 'details': str(e)}), 500
 @app.route('/api/edmtrain/events/city', methods=['GET'])
 def edmtrain_city_events():
     """Get events for a specific city (by EDMTrain Location ID)"""

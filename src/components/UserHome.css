@@ -1461,3 +1461,130 @@ input[type="date"] {
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
 }
+
+/* --- Artist Details: Upcoming Sets (Events) --- */
+.artist-main-content {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.artist-main-title {
+  margin-top: 0;
+  color: #1e293b;
+}
+
+.artist-main-placeholder {
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.upcoming-sets-wrap {
+  margin-top: 14px;
+}
+
+.events-state {
+  padding: 14px 12px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.04);
+  color: #475569;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.events-state.error {
+  background: rgba(220, 38, 38, 0.06);
+  border-color: rgba(220, 38, 38, 0.22);
+  color: #b91c1c;
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .events-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.event-card {
+  display: flex;
+  gap: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.10);
+  overflow: hidden;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+}
+
+.event-thumb {
+  width: 108px;
+  min-width: 108px;
+  height: 108px;
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 12px 0 12px 12px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.event-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.event-body {
+  padding: 14px 14px 14px 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.event-name {
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 10px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-row {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.event-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.event-value {
+  font-size: 13px;
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
