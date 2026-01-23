@@ -34,7 +34,7 @@ import {
 import './UserHome.css';
 
 // --- ✅ NEW: Artist Details View ---
-const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => {
+const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, eventsCacheByArtistId, setEventsCacheByArtistId }) => {
   const [activeTab, setActiveTab] = useState('Upcoming Sets');
   const [artistEvents, setArtistEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(false);
@@ -63,6 +63,21 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
     }
 
 
+    const cacheKey = String(edmtrainId);
+
+    // ✅ Cache hit: use in-memory results and skip fetch (prevents reload when switching tabs/views)
+    const cached = eventsCacheByArtistId?.[cacheKey];
+    const TTL_MS = 10 * 60 * 1000; // 10 minutes
+    if (cached && Array.isArray(cached.data)) {
+      const isFresh = !cached.fetchedAt || (Date.now() - cached.fetchedAt) < TTL_MS;
+      if (isFresh) {
+        setArtistEvents(cached.data);
+        setEventsError(null);
+        setEventsLoading(false);
+        return;
+      }
+    }
+
     let cancelled = false;
 
     const fetchEvents = async () => {
@@ -75,7 +90,14 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
         const json = await res.json();
 
         const events = Array.isArray(json?.data) ? json.data : [];
-        if (!cancelled) setArtistEvents(events);
+        if (!cancelled) {
+          setArtistEvents(events);
+          // ✅ Store in parent cache
+          setEventsCacheByArtistId?.((prev) => ({
+            ...prev,
+            [cacheKey]: { data: events, fetchedAt: Date.now() }
+          }));
+        }
       } catch (err) {
         console.error('Failed to fetch EDMTrain events:', err);
         if (!cancelled) {
@@ -114,7 +136,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
       {/* 1. HERO SECTION */}
       <div style={{ 
         position: 'relative', 
-        height: '340px', 
+        height: '300px', 
         width: '100%',
         backgroundImage: `url(${bgImage})`,
         backgroundSize: 'cover',
@@ -179,7 +201,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
           <h1 style={{ 
             color: 'white', 
             margin: 0, 
-            fontSize: '2.5rem', 
+            fontSize: '3rem', 
             fontWeight: 800, 
             textTransform: 'uppercase', 
             letterSpacing: '0.02em',
@@ -230,7 +252,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
       </div>
 
       {/* 3. CONTENT AREA */}
-      <div style={{ padding: '24px', flex: 1, overflowY: 'auto', background: '#ffffff' }}>
+      <div className="artist-details-content">
         <h3 style={{ marginTop: 0, color: '#1e293b' }}>{activeTab}</h3>
 
         {activeTab === 'Upcoming Sets' ? (
@@ -242,7 +264,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
             ) : artistEvents.length === 0 ? (
               <div style={{ color: '#64748b' }}>No upcoming events found.</div>
             ) : (
-              <div style={{ display: 'grid', gap: 12 }}>
+              <div className="upcoming-sets-list">
                 {artistEvents.map((evt, idx) => {
                   const name = evt?.name || artist?.name || 'Event';
                   const startTime = evt?.startTime;
@@ -306,9 +328,11 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
             )}
           </div>
         ) : (
-          <p style={{ color: '#64748b', lineHeight: 1.6 }}>
+          <div className="artist-tab-scroll">
+            <p style={{ color: '#64748b', lineHeight: 1.6 }}>
             Content for {activeTab} will appear here. This section will connect to backend endpoints to show tour dates, tracks, or bio information for {artist.name}.
           </p>
+          </div>
         )}
       </div>
 
@@ -317,32 +341,9 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
 };
 
 // --- Dashboard Sub-Views ---
-const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick }) => {
-  // 1. New State for Tour Counts
-  const [tourCounts, setTourCounts] = useState({});
-
-  // 2. Fetch Tour Data on Mount
-  useEffect(() => {
-    const fetchTours = async () => {
-      try {
-        const res = await fetch('http://127.0.0.1:5001/api/edmtrain/tours?includeElectronic=true&includeOther=false');
-        if (!res.ok) return;
-        
-        const json = await res.json();
-        
-        // The map is deeply nested in: data.artistIdEventCountMap
-        if (json.data && json.data.artistIdEventCountMap) {
-          setTourCounts(json.data.artistIdEventCountMap);
-        }
-      } catch (err) {
-        console.error("Failed to fetch tour counts:", err);
-      }
-    };
-
-    fetchTours();
-  }, []);
-
+const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, tourCounts, toursLoading }) => {
   // Demo destinations fallback
+
   const demoDestinations = [
     { id: 'chicago', city: 'Chicago', name: 'Chicago' },
   ];
@@ -1064,6 +1065,12 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
   // ✅ NEW: Selected Artist for Detail View
   const [selectedArtist, setSelectedArtist] = useState(null);
 
+  // ✅ NEW: In-memory caches (survive tab/view switches inside UserHome)
+  const [eventsCacheByArtistId, setEventsCacheByArtistId] = useState({});
+  const [tourCounts, setTourCounts] = useState(null);
+  const [toursLoading, setToursLoading] = useState(false);
+
+
   const MOBILE_BP = 768; // pick your breakpoint
   const isMobile = () => window.innerWidth <= MOBILE_BP;
   useEffect(() => {
@@ -1079,6 +1086,39 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
       window.addEventListener('resize', onResize);
       return () => window.removeEventListener('resize', onResize);
   }, []);
+  // ✅ Fetch tour counts once per session (cached in parent to prevent reloads)
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchTours = async () => {
+      // Cache hit: skip
+      if (tourCounts && typeof tourCounts === 'object') return;
+
+      try {
+        setToursLoading(true);
+        const res = await fetch('http://127.0.0.1:5001/api/edmtrain/tours?includeElectronic=true&includeOther=false');
+        if (!res.ok) return;
+
+        const json = await res.json();
+        const map = json?.data?.artistIdEventCountMap || null;
+
+        if (!cancelled && map) {
+          setTourCounts(map);
+        }
+      } catch (err) {
+        console.error('Failed to fetch tour counts:', err);
+      } finally {
+        if (!cancelled) setToursLoading(false);
+      }
+    };
+
+    fetchTours();
+    return () => {
+      cancelled = true;
+    };
+  }, [tourCounts]);
+
+
 
 
   
@@ -1200,6 +1240,8 @@ const [userInfo, setUserInfo] = useState({
             onBack={() => setActiveView('home')} 
             isFavorite={isFavorite(selectedArtist)}
             onToggleFavorite={handleToggleFavorite}
+            eventsCacheByArtistId={eventsCacheByArtistId}
+            setEventsCacheByArtistId={setEventsCacheByArtistId}
           />
         );
 
@@ -1224,6 +1266,8 @@ const [userInfo, setUserInfo] = useState({
             favoriteArtists={favoriteArtists} 
             favoriteDestinations={userDestinations} 
             onArtistClick={handleArtistClick} // ✅ Pass handler
+            tourCounts={tourCounts || {}}
+            toursLoading={toursLoading}
           />
         );
     }
