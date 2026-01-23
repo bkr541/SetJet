@@ -116,6 +116,12 @@ user_favorite_genres = db.Table('user_favorite_genres',
     db.Column('genre_id', db.Integer, db.ForeignKey('genres.id', ondelete='CASCADE'), primary_key=True)
 )
 
+# Join Table for Artist <-> Genres
+artist_genres = db.Table('artist_genres',
+    db.Column('artist_id', db.Integer, db.ForeignKey('artists.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('genre_id', db.Integer, db.ForeignKey('genres.id', ondelete='CASCADE'), primary_key=True)
+)
+
 class Location(db.Model):
     __tablename__ = 'locations'
 
@@ -128,13 +134,13 @@ class Location(db.Model):
     longitude = db.Column(db.Float)
     region = db.Column(db.String(100))
     country = db.Column(db.String(100))
-
     airports = db.relationship(
         'Airport',
         back_populates='location',
         cascade='all, delete-orphan',
         lazy=True
     )
+    edmtrain_locationid = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
         return f'<Location {self.name}>'

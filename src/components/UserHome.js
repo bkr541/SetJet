@@ -29,14 +29,23 @@ import {
   Type,
   UserRound,
   MicVocal,
-  Heart // Added Heart icon
+  Heart
 } from 'lucide-react';
 import './UserHome.css';
 
 // --- ✅ NEW: Artist Details View ---
 const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => {
   const [activeTab, setActiveTab] = useState('Upcoming Sets');
-  const tabs = ['Upcoming Sets', 'Set Map', 'Discover', 'Bio', 'Alerts', 'Tracks'];
+  
+  // 1. Define tabs with Icons matching your imports
+  const tabs = [
+    { name: 'Upcoming Sets', icon: Calendar },
+    { name: 'Set Map', icon: Map },
+    { name: 'Discover', icon: Sparkles },
+    { name: 'Bio', icon: User },
+    { name: 'Alerts', icon: Bell },
+    { name: 'Tracks', icon: MicVocal }
+  ];
 
   // Fallback image if artist has none
   const bgImage = artist.image || "/artifacts/defaultprofileillenium.png";
@@ -52,14 +61,17 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
         backgroundImage: `url(${bgImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        flexShrink: 0
+        flexShrink: 0,
+        borderTopLeftRadius: '16px',  // ✅ Rounded Top Left
+        borderTopRightRadius: '16px'  // ✅ Rounded Top Right
       }}>
         {/* Dark Gradient Overlay */}
         <div style={{
           position: 'absolute',
           bottom: 0, left: 0, right: 0,
           height: '60%',
-          background: 'linear-gradient(to top, #0f172a 0%, transparent 100%)'
+          background: 'linear-gradient(to top, #0f172a 0%, transparent 100%)',
+          borderRadius: 'inherit' // Inherit rounding for overlay
         }}></div>
 
         {/* Top Navigation (Back & Favorite) */}
@@ -139,39 +151,20 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite }) => 
         </div>
       </div>
 
-      {/* 2. TAB NAVIGATION (Pill Style) */}
-      <div style={{
-        background: '#0f172a', // Match gradient bottom
-        padding: '16px 24px',
-        borderBottom: '1px solid #1e293b'
-      }}>
-        <div style={{
-          display: 'flex',
-          gap: '12px',
-          overflowX: 'auto',
-          scrollbarWidth: 'none',
-          paddingBottom: '4px'
-        }}>
+      {/* 2. TAB NAVIGATION (Restyled to match reference) */}
+      <div className="artist-tabs-container">
+        <div className="artist-tabs-scroll">
           {tabs.map(tab => {
-            const isActive = activeTab === tab;
+            const isActive = activeTab === tab.name;
+            const Icon = tab.icon;
             return (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                style={{
-                  background: isActive ? '#0096a6' : 'rgba(255,255,255,0.05)',
-                  color: isActive ? 'white' : '#94a3b8',
-                  border: 'none',
-                  padding: '8px 18px',
-                  borderRadius: '24px',
-                  fontSize: '0.9rem',
-                  fontWeight: isActive ? 700 : 600,
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
+                key={tab.name}
+                onClick={() => setActiveTab(tab.name)}
+                className={`artist-tab-btn ${isActive ? 'active' : ''}`}
               >
-                {tab}
+                <Icon size={18} className="artist-tab-icon" />
+                <span>{tab.name}</span>
               </button>
             )
           })}
@@ -233,7 +226,6 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick }) => {
         <h3 className="section-title">YOUR HEADLINERS</h3>
         <div className="headliners-scroll">
           {favoriteArtists && favoriteArtists.length > 0 ? (
-            /* ⚠️ FIXED: Switched to curly braces { } to allow variable definition */
             favoriteArtists.map((artist, index) => {
               
               // 1. Define the count variable here
@@ -244,7 +236,7 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick }) => {
                 <div 
                   key={index} 
                   className="headliner-card"
-                  onClick={() => onArtistClick(artist)} // ✅ NEW: Click handler
+                  onClick={() => onArtistClick(artist)} // ✅ Click handler
                 >
                   <div
                     className="headliner-image-wrapper"
@@ -1031,10 +1023,32 @@ const [userInfo, setUserInfo] = useState({
     return favoriteArtists.some(fav => fav.id === artist.id || fav.name === artist.name);
   };
 
-  // ✅ NEW: Toggle Favorite (Visual placeholder, backend would go here)
-  const handleToggleFavorite = (artist) => {
-    console.log("Toggle favorite for:", artist.name);
-    // Add API call here later
+  // ✅ NEW: Toggle Favorite with backend call
+  const handleToggleFavorite = async (artist) => {
+    const email = localStorage.getItem('current_email');
+    if (!email) return;
+
+    try {
+      const res = await fetch('http://127.0.0.1:5001/api/toggle_favorite_artist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          artist_name: artist.name,
+          artist_id: artist.id,
+          artist_image: artist.image
+        })
+      });
+
+      if (res.ok) {
+         // Refresh list after toggle to show correct state
+         await refreshUserInfo();
+      } else {
+        console.error("Failed to toggle favorite");
+      }
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
+    }
   };
 
   const renderContent = () => {
@@ -1177,7 +1191,8 @@ const [userInfo, setUserInfo] = useState({
           </div>
         </header>
 
-        <main className="user-home-content">
+        {/* ✅ MODIFIED: Added conditional class 'artist-view-active' */}
+        <main className={`user-home-content ${activeView === 'artist-details' ? 'artist-view-active' : ''}`}>
           {renderContent()}
         </main>
       </div>

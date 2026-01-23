@@ -267,6 +267,12 @@
   border-bottom-left-radius: 24px;
 }
 
+/* ✅ NEW: Override padding when Artist View is active */
+.user-home-content.artist-view-active {
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
 .user-home-content h2 {
   margin-top: 0;
   margin-bottom: 0.5rem;
@@ -314,8 +320,8 @@
 .headliner-card:hover { transform: translateY(-5px); }
 
 .headliner-image-wrapper {
-  width: 124px;
-  height: 124px;
+  width: 132px;
+  height: 132px;
   border-radius: 50%;
   border: 4px solid #235a76;
   position: relative;
@@ -360,8 +366,8 @@
   left: 50%;
   transform: translateX(-50%);
   
-  font-size: 0.65rem;
-  font-weight: 500;
+  font-size: 0.80rem;
+  font-weight: 400;
   
   /* Use a bright accent color (Cyan/Teal) to distinguish from name */
   color: #67e8f9; 
@@ -388,7 +394,6 @@
    ========================================= */
 
 .destinations-section {
-  margin-top: 22px;
 }
 
 .destinations-scroll {
@@ -1310,4 +1315,82 @@ input[type="date"] {
     padding-left: 16px;
     padding-right: 16px;
   }
+}
+
+/* =========================================
+   NEW ARTIST TABS (Reference Style)
+   ========================================= */
+
+.artist-tabs-container {
+  background: #ffffff; /* White background to match content */
+  border-bottom: 1px solid #e2e8f0;
+  width: 100%;
+}
+
+.artist-tabs-scroll {
+  display: flex;
+  gap: 24px; /* Spacing between tabs */
+  overflow-x: auto;
+  padding: 0 24px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.artist-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.artist-tab-btn {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 4px; /* Vertical padding for touch target */
+  cursor: pointer;
+  position: relative;
+  
+  /* Text Styling */
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #64748b; /* Muted Grey (Inactive) */
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.artist-tab-icon {
+  color: #94a3b8; /* Lighter grey for inactive icon */
+  transition: color 0.2s ease;
+}
+
+/* Hover State */
+.artist-tab-btn:hover {
+  color: #334155;
+}
+
+.artist-tab-btn:hover .artist-tab-icon {
+  color: #64748b;
+}
+
+/* Active State */
+.artist-tab-btn.active {
+  color: #0096a6; /* Theme Teal/Blue */
+}
+
+.artist-tab-btn.active .artist-tab-icon {
+  color: #0096a6;
+}
+
+/* The Active Bottom Border Line */
+.artist-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px; /* Thickness of the active line */
+  background-color: #0096a6;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
 }
