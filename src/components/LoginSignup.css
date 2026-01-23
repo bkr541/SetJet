@@ -276,15 +276,10 @@ input:-webkit-autofill:active{
 
 /* --- FOOTER & UTILS --- */
 .auth-footer {
-  margin-top: 0.5rem; /* Reduced from 1.5rem */
+  margin-top: 1.5rem; /* Reduced from 1.5rem */
   text-align: center;
   font-size: 0.95rem;
   color: #64748b;
-}
-
-/* Kill the default browser spacing on the text */
-.auth-footer p {
-  margin: 0;
 }
 
 .link-button {
@@ -459,4 +454,9 @@ input:-webkit-autofill:active{
   .auth-header {
     margin-bottom: 1.5rem;
   }
+
+  /* Kill the default browser spacing on the text */
+.auth-footer p {
+  margin: 0;
+}
 }

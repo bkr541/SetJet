@@ -33,50 +33,23 @@ import {
 import './UserHome.css';
 
 // --- Dashboard Sub-Views ---
+// --- Dashboard Sub-Views ---
 const HomeView = ({ favoriteArtists, favoriteDestinations }) => {
   // Fallback demo destinations (so UI renders even if you haven't wired data yet)
   const demoDestinations = [
     {
-      id: 'sonoma',
-      dateRange: '10–12 AUG, 2018',
-      title: 'Sonoma\nRaceway',
-      location: 'Sonoma, CA',
-      registered: 554,
-      revenue: '$34,210.00',
-      image:
-        '/artifacts/destination_sonoma_demo.jpg' // safe fallback if you add an asset; otherwise it will still render with gradient
+      id: 'chicago',
+      city: 'Chicago',
+      name: 'Chicago',
     },
-    {
-      id: 'redrocks',
-      dateRange: '14–15 SEP, 2019',
-      title: 'Red Rocks',
-      location: 'Morrison, CO',
-      registered: 312,
-      revenue: '$18,940.00',
-      image:
-        '/artifacts/destination_redrocks_demo.jpg'
-    },
-    {
-      id: 'miami',
-      dateRange: '02–05 MAR, 2020',
-      title: 'Miami\nBeach',
-      location: 'Miami, FL',
-      registered: 811,
-      revenue: '$61,120.00',
-      image:
-        '/artifacts/destination_miami_demo.jpg'
-    }
   ];
 
   // If you pass favoriteDestinations in props, we’ll use it.
-  // Shape expected (per item): { id, dateRange, title, location, registered, revenue, image }
+  // Expected shape (per item): { id, city/name/title/location/location_label/label, image/image_url/photo_url/banner_url }
   const destinations =
     Array.isArray(favoriteDestinations) && favoriteDestinations.length > 0
       ? favoriteDestinations
       : demoDestinations;
-
-  // Optional: If you *want* to quickly map artists into destinations later, keep this in mind:
-  // destinations could be derived from your backend trips/itineraries instead.
 
   return (
     <div className="dashboard-panel fade-in">
@@ -107,52 +80,46 @@ const HomeView = ({ favoriteArtists, favoriteDestinations }) => {
         </div>
       </div>
 
-      {/* ✅ YOUR DESTINATIONS (new, styled like your reference image) */}
+      {/* YOUR DESTINATIONS (poster style like your reference image) */}
       <div className="destinations-section">
         <h3 className="section-title">YOUR DESTINATIONS</h3>
+
         <div className="destinations-scroll">
-          {destinations.map((d) => (
-            <div key={d.id} className="destination-card">
-              <div
-                className="destination-bg"
+          {destinations.map((d, idx) => {
+            const raw =
+              d?.city ||
+              d?.location ||
+              d?.name ||
+              d?.title ||
+              d?.location_label ||
+              d?.label ||
+              '';
+
+            // Extract city name (handle "City, State")
+            const cityName = (raw || 'Unknown').split(',')[0].trim() || 'Unknown';
+
+            // Construct image path: /artifacts/cities/<lowercase_city_nospaces>.png
+            // e.g. "New York" -> "newyork.png"
+            const safeName = cityName.toLowerCase().replace(/\s+/g, '');
+            const imgPath = `/artifacts/cities/${safeName}.png`;
+
+            const key = d?.id || d?.location_id || d?.iata_code || `${cityName}-${idx}`;
+
+            return (
+              <button
+                key={key}
+                type="button"
+                className="destination-card destination-poster"
                 style={{
-                  backgroundImage: d.image ? `url(${d.image})` : 'none'
+                  backgroundImage: `url(${imgPath})`
                 }}
-              />
-              <div className="destination-overlay" />
-
-              <div className="destination-top">
-                <div className="destination-date">{d.dateRange}</div>
-                <div className="destination-title">{d.title}</div>
-                <div className="destination-location">
-                  <MapPin size={16} />
-                  <span>{d.location}</span>
-                </div>
-              </div>
-
-              <div className="destination-bottom">
-                <div className="destination-metric">
-                  <div className="destination-metric-value">{d.registered}</div>
-                  <div className="destination-metric-label">REGISTERED</div>
-                </div>
-
-                <div className="destination-metric">
-                  <div className="destination-metric-value">{d.revenue}</div>
-                  <div className="destination-metric-label">REVENUE</div>
-                </div>
-
-                <div className="destination-edit">
-                  <div className="destination-edit-btn" title="Edit">
-                    <Type size={16} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="destination-chevron" aria-hidden="true">
-                <ChevronRight size={28} />
-              </div>
-            </div>
-          ))}
+                aria-label={cityName}
+              >
+                <div className="destination-poster-overlay" />
+                <div className="destination-poster-title">{cityName}</div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -774,6 +741,8 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
 function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, favoriteDestinations }) {
   const [collapsed, setCollapsed] = useState(false);
   const [activeView, setActiveView] = useState('home');
+  // State to hold fetched destinations from backend (which override/supplement props)
+  const [userDestinations, setUserDestinations] = useState(favoriteDestinations || []);
 
   const MOBILE_BP = 768; // pick your breakpoint
   const isMobile = () => window.innerWidth <= MOBILE_BP;
@@ -832,6 +801,11 @@ const [userInfo, setUserInfo] = useState({
         dob: data.dob || '',
         image_file: data.image_file || 'default.jpg'
       });
+
+      // Update destinations state if returned from API
+      if (data.favorite_destinations && Array.isArray(data.favorite_destinations)) {
+        setUserDestinations(data.favorite_destinations);
+      }
     } catch (err) {
       console.error('Failed to fetch user info:', err);
     }
@@ -873,7 +847,7 @@ const [userInfo, setUserInfo] = useState({
           onSaved={refreshUserInfo}
         />;
       default:
-        return <HomeView favoriteArtists={favoriteArtists} favoriteDestinations={favoriteDestinations} />;
+        return <HomeView favoriteArtists={favoriteArtists} favoriteDestinations={userDestinations} />;
     }
   };
 

@@ -505,6 +505,16 @@ def get_user_info():
         for g in (user.fav_genres or [])
     ]
 
+    # ✅ NEW: Include favorite destinations from user_favorite_locations
+    favorite_destinations_payload = [
+        {
+            "id": loc.id,
+            "city": loc.city,
+            "name": loc.name
+        }
+        for loc in (user.fav_cities or [])
+    ]
+
     return jsonify({
         'first_name': user.first_name,
         'last_name': user.last_name,
@@ -514,7 +524,8 @@ def get_user_info():
         'home_city': home_city_str,
         'image_file': user.image_file,
         'favorite_artists': favorite_artists_payload,
-        'favorite_genres': favorite_genres_payload
+        'favorite_genres': favorite_genres_payload,
+        'favorite_destinations': favorite_destinations_payload
     }), 200
 
 # --- UPDATE PROFILE (Onboarding Step 1) ---
@@ -988,4 +999,4 @@ with app.app_context():
     print(f"DB Location: {os.path.join(instance_path, 'site.db')}")
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001, host='0.0.0.0', use_reloader=False) 
+    app.run(debug=True, port=5001, host='0.0.0.0', use_reloader=False)
