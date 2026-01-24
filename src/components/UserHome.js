@@ -119,26 +119,38 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
   const [eventsError, setEventsError] = useState(null);
 
   const formatEventDate = (dateStr) => {
-    if (!dateStr) return '';
+    if (!dateStr) return "TBA";
 
-    const d = new Date(`${dateStr}T00:00:00`);
-    if (Number.isNaN(d.getTime())) return dateStr;
+    // EDMTrain sends date like "YYYY-MM-DD" (no time). Force local midnight.
+    const d = new Date(String(dateStr) + "T00:00:00");
+    if (Number.isNaN(d.getTime())) return String(dateStr);
 
-    return d.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
+    return d.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
     });
   };
 
 
   const sortedArtistEvents = (() => {
     const base = Array.isArray(artistEvents) ? [...artistEvents] : [];
+
     const getTime = (e) => {
+      // Prefer EDMTrain "date" (YYYY-MM-DD)
+      const ds = e?.date;
+      const msFromDate = ds ? Date.parse(String(ds) + "T00:00:00") : NaN;
+      if (Number.isFinite(msFromDate)) return msFromDate;
+
+      // Fallback to startTime if it exists
       const t = e?.startTime;
-      const ms = t ? Date.parse(t) : NaN;
-      return Number.isFinite(ms) ? ms : 0;
+      const msFromStart = t ? Date.parse(t) : NaN;
+      if (Number.isFinite(msFromStart)) return msFromStart;
+
+      // Unknown date goes to the end
+      return Number.POSITIVE_INFINITY;
     };
+
     base.sort((a, b) => getTime(a) - getTime(b));
     return base;
   })();
@@ -356,10 +368,10 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
               // ✅ Updated to use CSS classes instead of inline styles
               <div className="artist-events-grid">
                 {sortedArtistEvents.map((evt, idx) => {
-                  const name = evt?.name || artist?.name || 'Event';
-                  const eventDate = evt?.date;
-                  const venueName = evt?.venue?.name || '';
-                  const venueLocation = evt?.venue?.location || '';
+                  const name = evt?.name || artist?.name || "Event";
+                  const eventDate = evt?.date; // ✅ use EDMTrain "date"
+                  const venueName = evt?.venue?.name || "";
+                  const venueLocation = evt?.venue?.location || "";
                   const key = evt?.id || evt?.eventId || `${artist?.edmtrain_id || 'artist'}-${idx}`;
 
                   return (

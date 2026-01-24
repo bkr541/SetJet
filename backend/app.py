@@ -1133,7 +1133,7 @@ def edmtrain_artist_events():
     and avoids browser CORS issues.
 
     Uses:
-      https://edmtrain.com/api/events?client=<API_KEY>&artistids=<artistIds>
+      https://edmtrain.com/api/events?client=<API_KEY>&artistIds=<artistIds>
     """
     artist_ids = request.args.get('artistIds') or request.args.get('artistids')
     if not artist_ids:
@@ -1145,7 +1145,7 @@ def edmtrain_artist_events():
 
     try:
         url = 'https://edmtrain.com/api/events'
-        params = {'client': api_key, 'artistids': artist_ids}
+        params = {'client': api_key, 'artistIds': artist_ids}
         r = requests.get(url, params=params, timeout=15)
         r.raise_for_status()
         return jsonify(r.json())

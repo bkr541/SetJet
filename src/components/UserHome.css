@@ -1451,8 +1451,8 @@ input[type="date"] {
 .artist-event-card {
   position: relative;
   max-height: 220px;
-  aspect-ratio: 8 / 4;
-  border-radius: 16px;
+  aspect-ratio: 10 / 4;
+  border-radius: 9px;
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(0,0,0,0.12);
   cursor: pointer;
@@ -1510,7 +1510,7 @@ input[type="date"] {
 
 .artist-event-name {
   color: white;
-  font-size: 1.25rem;
+  font-size: 2rem;
   font-weight: 800;
   line-height: 1.1;
   margin-bottom: 6px;
