@@ -762,6 +762,28 @@ def toggle_favorite_artist():
         print("!!!!! TOGGLE FAVORITE ARTIST CRASH !!!!!")
         traceback.print_exc()
         return jsonify({'error': f'Database error: {str(e)}'}), 500
+# --- getEventImage ---
+event_image_cache = {}
+
+@app.route('/api/edmtrain/event-image', methods=['GET'])
+def get_event_image():
+    link = request.args.get('link')
+    
+    if not link:
+        return jsonify({'image': None})
+
+    # Check cache first
+    if link in event_image_cache:
+        return jsonify({'image': event_image_cache[link]})
+
+    # Fetch from EDMTrain
+    # Note: We use the static method we just added
+    image_url = EDMTrainAPI.extract_event_image(link)
+    
+    # Cache the result (even if None, to avoid retrying bad links repeatedly)
+    event_image_cache[link] = image_url
+    
+    return jsonify({'image': image_url})
 
 # --- LOGIN ---
 @app.route('/api/login', methods=['POST'])

@@ -277,7 +277,7 @@
   overflow: hidden;
 }
 
-/* âœ… NEW: Override padding when Artist View is active */
+/* ✅ NEW: Override padding when Artist View is active */
 .user-home-content.artist-view-active {
   padding-left: 32px;
   padding-right: 32px;
@@ -444,7 +444,7 @@
   background-repeat: no-repeat;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14), 0 2px 6px rgba(15, 23, 42, 0.08);
   
-  /* âœ… THIS MAKES THEM "SHIFT" SMOOTHLY WHEN RESIZING */
+  /* ✅ THIS MAKES THEM "SHIFT" SMOOTHLY WHEN RESIZING */
   transition: transform 0.18s ease, box-shadow 0.18s ease, width 0.3s ease, height 0.3s ease;
 }
 
@@ -1433,4 +1433,101 @@ input[type="date"] {
   padding-right: 6px;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+}
+
+/* =========================================
+   ARTIST EVENTS GRID (Posters)
+   ========================================= */
+
+/* The Grid Container */
+.artist-events-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding-bottom: 24px;
+}
+
+/* The Individual Card */
+.artist-event-card {
+  position: relative;
+  max-height: 220px;
+  aspect-ratio: 8 / 4;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  cursor: pointer;
+  background: #0f172a;
+  transition: transform 0.2s;
+}
+
+.artist-event-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Background Image (Covering full card) */
+.artist-event-bg {
+  width: 100%;
+  height: 100%;
+  border-radius: 0 !important; /* Force override local styles */
+  border: none !important;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
+}
+
+/* Gradient Overlay */
+.artist-event-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(2, 6, 23, 0.95) 0%, rgba(2, 6, 23, 0.5) 45%, transparent 100%);
+  z-index: 1;
+}
+
+/* Content Container */
+.artist-event-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Text Elements */
+.artist-event-date {
+  color: #2dd4bf; 
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.artist-event-name {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 6px;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+.artist-event-venue {
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+  line-height: 1.2;
+}
+
+.artist-event-location {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.2;
 }

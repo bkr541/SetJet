@@ -1,6 +1,7 @@
 import os
 import requests
 import logging
+import re
 from typing import Any, Dict, Iterable, Optional, Union
 
 # Configure logger to match app style
@@ -203,7 +204,37 @@ class EDMTrainAPI:
             start_date=start_date,
             end_date=end_date,
         )
+    # ==========================================
+    # Helper: Extract Event Image (Scraping)
+    # ==========================================
+    @staticmethod
+    def extract_event_image(event_url: str) -> Optional[str]:
+        """
+        Scrapes the EDMTrain event page to find the og:image or twitter:image.
+        Returns None if scraping fails or no image is found.
+        """
+        if not event_url:
+            return None
 
+        try:
+            # Use a browser-like user agent to avoid being blocked
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            }
+            response = requests.get(event_url, headers=headers, timeout=5)
+            response.raise_for_status()
+            html = response.text
+
+            match = re.search(
+                r'<meta\s+(?:property=["\']og:image["\']|name=["\']twitter:image["\'])\s+content=["\']([^"\']+)["\']',
+                html,
+                re.IGNORECASE
+            )
+            return match.group(1) if match else None
+        except Exception as e:
+            logger.error(f"Error extracting image from {event_url}: {e}")
+            return None
+    
     # ==========================================
     # Endpoint: GetTours
     # ==========================================
