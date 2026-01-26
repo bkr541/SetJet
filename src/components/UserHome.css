@@ -376,7 +376,7 @@
   left: 50%;
   transform: translateX(-50%);
   
-  font-size: 0.80rem;
+  font-size: 0.85rem;
   font-weight: 400;
   
   /* Use a bright accent color (Cyan/Teal) to distinguish from name */
@@ -1451,7 +1451,7 @@ input[type="date"] {
 .artist-event-card {
   position: relative;
   max-height: 220px;
-  aspect-ratio: 10 / 4;
+  aspect-ratio: 10 / 5;
   border-radius: 9px;
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(0,0,0,0.12);
@@ -1479,7 +1479,14 @@ input[type="date"] {
 .artist-event-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(2, 6, 23, 0.95) 0%, rgba(2, 6, 23, 0.5) 45%, transparent 100%);
+  background: linear-gradient(
+    to top,
+    rgba(2, 6, 23, 0.98) 0%,
+    rgba(2, 6, 23, 0.85) 35%,
+    rgba(2, 6, 23, 0.55) 65%,
+    rgba(2, 6, 23, 0.25) 85%,
+    transparent 100%
+  );
   z-index: 1;
 }
 
