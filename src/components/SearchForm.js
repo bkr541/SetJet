@@ -127,7 +127,7 @@ const CalendarLegend = () => (
 // ✅ NEW CONSTANT FOR DATE FORMAT
 const DATE_FORMAT = 'EEE, MMM do, yyyy';
 
-function SearchForm({ onSearch, loading, onCollapse }) {
+function SearchForm({ onSearch, loading }) {
   const [searchMode, setSearchMode] = useState('package');
   
   // --- ORIGIN SEARCH STATE ---
@@ -175,7 +175,7 @@ function SearchForm({ onSearch, loading, onCollapse }) {
         return;
       }
       try {
-        const response = await fetch(`http://localhost:5001/api/locations?keyword=${originSearchText}`);
+        const response = await fetch(`/api/locations?keyword=${originSearchText}`);
         if (response.ok) {
           const data = await response.json();
           setOriginResults(data);
@@ -223,7 +223,7 @@ function SearchForm({ onSearch, loading, onCollapse }) {
         return;
       }
       try {
-        const response = await fetch(`http://localhost:5001/api/locations?keyword=${destinationSearchText}`);
+        const response = await fetch(`/api/locations?keyword=${destinationSearchText}`);
         if (response.ok) {
           const data = await response.json();
           setDestinationResults(data);
@@ -305,8 +305,6 @@ function SearchForm({ onSearch, loading, onCollapse }) {
     }
 
     onSearch(searchParams);
-
-    if (typeof onCollapse === 'function') onCollapse();
   };
 
   return (

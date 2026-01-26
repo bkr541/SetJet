@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { TicketsPlane, Circle, ChevronDown, ChevronUp } from 'lucide-react';
 import './FlightCard.css';
 
@@ -126,6 +126,131 @@ const AIRPORT_DB = {
 
 function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outbound', onSelectFlight }) {
   const [isAlertsExpanded, setIsAlertsExpanded] = useState(false);
+
+  // =========================
+  // Saved Flight (user_flights)
+  // =========================
+  const [isSelected, setIsSelected] = useState(false);
+  const [isSelecting, setIsSelecting] = useState(false);
+
+  // Build a deterministic key for this flight (used to upsert + check selection)
+  const flightKey = useMemo(() => {
+    const safe = (v) => (v ?? '').toString().trim();
+    const base = [
+      safe(flight.origin || flight.origin_iata),
+      safe(flight.destination || flight.destination_iata),
+      safe(flight.departure_date),
+      safe(flight.departure_time),
+      safe(flight.arrival_date),
+      safe(flight.arrival_time),
+      safe(flight.flight_number || flight.flightNumber),
+      safe(flight.is_round_trip ? 'RT' : 'OW')
+    ].join('|');
+
+    if (flight.is_round_trip && flight.return_flight) {
+      const r = flight.return_flight;
+      return base + '||RET|' + [
+        safe(r.origin),
+        safe(r.destination),
+        safe(r.departure_date),
+        safe(r.departure_time),
+        safe(r.arrival_date),
+        safe(r.arrival_time),
+        safe(r.flight_number || r.flightNumber)
+      ].join('|');
+    }
+    return base;
+  }, [flight]);
+
+  // Check DB to see if this flight is already saved for the current user
+  useEffect(() => {
+    if (buildYourOwnMode) return; // Build-your-own selections are handled separately
+    const email = localStorage.getItem('current_email');
+    if (!email || !flightKey) return;
+
+    let cancelled = false;
+
+    const checkSelected = async () => {
+      try {
+        const res = await fetch(
+          `/api/user_flights/is_selected?email=${encodeURIComponent(email)}&flight_key=${encodeURIComponent(flightKey)}`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setIsSelected(!!data.selected);
+      } catch (err) {
+        // silent fail
+      }
+    };
+
+    checkSelected();
+    return () => { cancelled = true; };
+  }, [buildYourOwnMode, flightKey]);
+
+  const handleSelectAndSave = async () => {
+    if (buildYourOwnMode) {
+      onSelectFlight && onSelectFlight(flight);
+      return;
+    }
+
+    const email = localStorage.getItem('current_email');
+    if (!email) {
+      alert('No user email found. Please log in again.');
+      return;
+    }
+
+    setIsSelecting(true);
+    try {
+      // Build a minimal, indexable payload + full snapshot for later viewing
+      const payload = {
+        email,
+        flight_key: flightKey,
+        provider: flight.provider || 'frontier',
+        provider_offer_id: flight.provider_offer_id || flight.offer_id || null,
+
+        origin_iata: flight.origin,
+        destination_iata: flight.destination,
+
+        // Prefer ISO strings if present; otherwise fall back to date+time strings
+        start_time: flight.start_time || `${flight.departure_date}T${(flight.departure_time || '').trim()}`,
+        end_time: flight.end_time || `${flight.arrival_date || flight.departure_date}T${(flight.arrival_time || '').trim()}`,
+
+        trip_type: flight.is_round_trip ? 'round-trip' : 'one-way',
+        airline: 'Frontier Airlines',
+        flight_number: flight.flight_number || flight.flightNumber || null,
+
+        stops: typeof flight.stops === 'number' ? flight.stops : null,
+        duration_minutes: flight.duration_minutes || null,
+
+        price_total: flight.gowild_eligible ? 0 : (typeof flight.price === 'number' ? flight.price : parseFloat(flight.price)),
+        currency: flight.currency || 'USD',
+
+        gowild_eligible: !!flight.gowild_eligible,
+        nonstop: (flight.stops === 0) || false,
+
+        snapshot_json: flight
+      };
+
+      const res = await fetch('/api/user_flights/select', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to save flight');
+      }
+
+      setIsSelected(true);
+      onSelectFlight && onSelectFlight(flight);
+    } catch (err) {
+      alert(err.message || 'Failed to save flight');
+    } finally {
+      setIsSelecting(false);
+    }
+  };
+
 
   // Format date helper: "Tue, Jan 13, 2026"
   const formatDate = (dateStr) => {
@@ -311,11 +436,13 @@ function FlightCard({ flight, buildYourOwnMode = false, buildYourOwnStep = 'outb
       <div className="card-footer">
         <div className="footer-actions">
           {buildYourOwnMode ? (
-            <button className="action-button" onClick={() => onSelectFlight && onSelectFlight(flight)}>
+            <button className="action-button" onClick={() => onSelectFlight && onSelectFlight(flight)} disabled={isSelecting}>
               {buildYourOwnStep === 'outbound' ? 'Select Outbound' : 'Select Return'}
             </button>
           ) : (
-            <button className="action-button">Select</button>
+            <button className={`action-button ${isSelected ? "selected" : ""}`} onClick={handleSelectAndSave} disabled={isSelecting || isSelected}>
+              {isSelected ? "Selected" : (isSelecting ? "Selecting..." : "Select")}
+            </button>
           )}
         </div>
       </div>

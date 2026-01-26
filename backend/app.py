@@ -267,17 +267,40 @@ class UserFlights(db.Model):
     provider = db.Column(db.String(32), nullable=True, index=True)
     provider_offer_id = db.Column(db.String(128), nullable=True, index=True)
 
+    # Route summary (indexable)
+    origin_iata = db.Column(db.String(3), nullable=False, index=True)
+    destination_iata = db.Column(db.String(3), nullable=False, index=True)
+
     # Unified time window (UTC)
     start_time = db.Column(db.DateTime, nullable=False, index=True)   # first departure
     end_time = db.Column(db.DateTime, nullable=False, index=True)     # final arrival
 
+    trip_type = db.Column(db.String(16), nullable=True, index=True)   # one-way / round-trip / etc.
+    airline = db.Column(db.String(64), nullable=True, index=True)
+    flight_number = db.Column(db.String(32), nullable=True, index=True)
+
+    stops = db.Column(db.Integer, nullable=True, index=True)
+    duration_minutes = db.Column(db.Integer, nullable=True, index=True)
+
+    price_total = db.Column(db.Float, nullable=True, index=True)
+    currency = db.Column(db.String(8), nullable=True)
+
+    gowild_eligible = db.Column(db.Boolean, nullable=True, index=True)
+    nonstop = db.Column(db.Boolean, nullable=True, index=True)
+
+    cabin_class = db.Column(db.String(24), nullable=True, index=True)
+    seats_remaining = db.Column(db.Integer, nullable=True)
+
     saved_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    snapshot_json = db.Column(db.JSON, nullable=True)
+    # Full provider payload snapshot for later viewing
+    snapshot_json = db.Column(db.JSON, nullable=False)
     snapshot_updated_at = db.Column(db.DateTime, nullable=True)
 
     __table_args__ = (
         db.UniqueConstraint("user_id", "flight_key", name="uq_user_flight_key"),
+        db.Index("ix_user_flights_user_start", "user_id", "start_time"),
+        db.Index("ix_user_flights_user_route", "user_id", "origin_iata", "destination_iata"),
     )
 
 # ==========================================
@@ -1454,6 +1477,126 @@ with app.app_context():
     db.create_all()
     print("Database initialized successfully.")
     print(f"DB Location: {os.path.join(instance_path, 'site.db')}")
+
+
+
+# ==========================================
+# USER FLIGHTS (Save / Check)
+# ==========================================
+
+def _parse_dt(dt_str):
+    """Parse ISO-ish datetime strings safely."""
+    if not dt_str:
+        return None
+    try:
+        # Handle trailing Z
+        s = dt_str.replace('Z', '+00:00')
+        return datetime.fromisoformat(s)
+    except Exception:
+        # Best-effort fallback for 'YYYY-MM-DDTHH:MM' without seconds
+        try:
+            return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M")
+        except Exception:
+            return None
+
+
+@app.route('/api/user_flights/select', methods=['POST'])
+def save_user_flight():
+    data = request.get_json() or {}
+    email = data.get('email')
+    if not email:
+        return jsonify({'error': 'Missing email'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    flight_key = data.get('flight_key')
+    if not flight_key:
+        return jsonify({'error': 'Missing flight_key'}), 400
+
+    origin_iata = (data.get('origin_iata') or '').strip()
+    destination_iata = (data.get('destination_iata') or '').strip()
+    if not origin_iata or not destination_iata:
+        return jsonify({'error': 'Missing origin_iata/destination_iata'}), 400
+
+    start_time = _parse_dt(data.get('start_time'))
+    end_time = _parse_dt(data.get('end_time'))
+    if not start_time or not end_time:
+        return jsonify({'error': 'Missing or invalid start_time/end_time'}), 400
+
+    snapshot_json = data.get('snapshot_json')
+    if snapshot_json is None:
+        return jsonify({'error': 'Missing snapshot_json'}), 400
+
+    existing = UserFlights.query.filter_by(user_id=user.id, flight_key=flight_key).first()
+    if existing:
+        # Upsert update
+        existing.provider = data.get('provider')
+        existing.provider_offer_id = data.get('provider_offer_id')
+        existing.origin_iata = origin_iata
+        existing.destination_iata = destination_iata
+        existing.start_time = start_time
+        existing.end_time = end_time
+        existing.trip_type = data.get('trip_type')
+        existing.airline = data.get('airline')
+        existing.flight_number = data.get('flight_number')
+        existing.stops = data.get('stops')
+        existing.duration_minutes = data.get('duration_minutes')
+        existing.price_total = data.get('price_total')
+        existing.currency = data.get('currency')
+        existing.gowild_eligible = data.get('gowild_eligible')
+        existing.nonstop = data.get('nonstop')
+        existing.cabin_class = data.get('cabin_class')
+        existing.seats_remaining = data.get('seats_remaining')
+        existing.snapshot_json = snapshot_json
+        existing.snapshot_updated_at = datetime.utcnow()
+        db.session.commit()
+        return jsonify({'selected': True, 'updated': True}), 200
+
+    new_row = UserFlights(
+        user_id=user.id,
+        flight_key=flight_key,
+        provider=data.get('provider'),
+        provider_offer_id=data.get('provider_offer_id'),
+        origin_iata=origin_iata,
+        destination_iata=destination_iata,
+        start_time=start_time,
+        end_time=end_time,
+        trip_type=data.get('trip_type'),
+        airline=data.get('airline'),
+        flight_number=data.get('flight_number'),
+        stops=data.get('stops'),
+        duration_minutes=data.get('duration_minutes'),
+        price_total=data.get('price_total'),
+        currency=data.get('currency'),
+        gowild_eligible=data.get('gowild_eligible'),
+        nonstop=data.get('nonstop'),
+        cabin_class=data.get('cabin_class'),
+        seats_remaining=data.get('seats_remaining'),
+        snapshot_json=snapshot_json,
+        snapshot_updated_at=datetime.utcnow()
+    )
+    db.session.add(new_row)
+    db.session.commit()
+    return jsonify({'selected': True, 'created': True}), 201
+
+
+@app.route('/api/user_flights/is_selected', methods=['GET'])
+def is_user_flight_selected():
+    email = request.args.get('email')
+    flight_key = request.args.get('flight_key')
+    if not email or not flight_key:
+        return jsonify({'selected': False}), 200
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'selected': False}), 200
+
+    exists = UserFlights.query.filter_by(user_id=user.id, flight_key=flight_key).first() is not None
+    return jsonify({'selected': exists}), 200
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001, host='0.0.0.0', use_reloader=False)

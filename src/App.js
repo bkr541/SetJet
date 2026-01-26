@@ -42,7 +42,7 @@ function App() {
     if (!showAuth && !showOnboarding) {
         const email = localStorage.getItem('current_email');
         if (email) {
-            fetch('http://127.0.0.1:5001/api/get_user_info', {
+            fetch('/api/get_user_info', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })

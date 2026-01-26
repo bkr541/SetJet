@@ -352,7 +352,7 @@
 /* --- CONTENT AREA --- */
 .user-home-content {
   padding-left: 32px;
-  padding-right: 6px;
+  padding-right: 32px;
   padding-top: 0px;
   padding-bottom: 16px;
   flex: 1;

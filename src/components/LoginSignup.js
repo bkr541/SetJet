@@ -165,8 +165,8 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
       }
 
       const endpoint = mode === 'signup' 
-        ? 'http://127.0.0.1:5001/api/signup' 
-        : 'http://127.0.0.1:5001/api/login';
+        ? '/api/signup'
+        : '/api/login';
 
       try {
         const response = await fetch(endpoint, {

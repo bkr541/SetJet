@@ -292,7 +292,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
         setEventsLoading(true);
         setEventsError(null);
 
-        const url = `http://127.0.0.1:5001/api/edmtrain/events/artist?artistIds=${encodeURIComponent(edmtrainId)}`;
+        const url = `/api/edmtrain/events/artist?artistIds=${encodeURIComponent(edmtrainId)}`;
         const res = await fetch(url);
         const json = await res.json();
 
@@ -970,9 +970,7 @@ const ArtistsView = ({ favoriteArtists }) => (
 );
 
 // --- Flights View (embedded SearchForm + results) ---
-const FlightsView = ({ onSearchFlights, flightState }) => {
-  const [isSearchCollapsed, setIsSearchCollapsed] = useState(false);
-
+const FlightsView = ({ onBack, onSearchFlights, flightState }) => {
   const {
     searchParams,
     flights,
@@ -991,56 +989,54 @@ const FlightsView = ({ onSearchFlights, flightState }) => {
 
   return (
     <div className="dashboard-panel fade-in">
-      <div className={`search-form-shell ${isSearchCollapsed ? 'collapsed' : ''}`}>
-        <SearchForm
-          onSearch={onSearchFlights}
-          loading={!!loading}
-          onCollapse={() => setIsSearchCollapsed(true)}
-        />
-      </div>
+      <button
+        onClick={onBack}
+        style={{
+          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          color: '#64748b',
+          fontSize: '1rem',
+          fontWeight: 600
+        }}
+      >
+        <ArrowLeft size={20} /> Back
+      </button>
 
-      {isSearchCollapsed && (
-        <button
-          type="button"
-          className="modify-search-btn"
-          onClick={() => setIsSearchCollapsed(false)}
-        >
-          Modify Search
-        </button>
+      <SearchForm onSearch={onSearchFlights} loading={!!loading} />
+
+      {error && (
+        <div className="error-message"><p>⚠️ {error}</p></div>
       )}
 
-      {/* When modifying search, show ONLY the SearchForm */}
-      {isSearchCollapsed && (
-        <>
-          {error && (
-            <div className="error-message"><p>⚠️ {error}</p></div>
+      {loading && (
+        <div className="loading-message">
+          <div className="spinner"></div>
+          <p>Searching for flights... {routesSearched || 0}/{totalRoutes || 0} routes searched</p>
+          {Array.isArray(flights) && flights.length > 0 && (
+            <p className="flights-found">{flights.length} flights found so far</p>
           )}
+        </div>
+      )}
 
-          {loading && (
-            <div className="loading-message">
-              <div className="spinner"></div>
-              <p>Searching for flights... {routesSearched || 0}/{totalRoutes || 0} routes searched</p>
-              {Array.isArray(flights) && flights.length > 0 && (
-                <p className="flights-found">{flights.length} flights found so far</p>
-              )}
-            </div>
-          )}
-
-          {searchParams && Array.isArray(flights) && flights.length > 0 && (
-            <FlightResults
-              flights={flights}
-              searchParams={searchParams}
-              fromCache={!!fromCache}
-              isLoading={!!loading}
-              tripPlannerInfo={tripPlannerInfo}
-              buildYourOwnStep={buildYourOwnStep}
-              selectedOutboundFlight={selectedOutboundFlight}
-              onSelectOutbound={onSelectOutbound}
-              onSelectReturn={onSelectReturn}
-              onResetBuildYourOwn={onResetBuildYourOwn}
-            />
-          )}
-        </>
+      {searchParams && Array.isArray(flights) && flights.length > 0 && (
+        <FlightResults
+          flights={flights}
+          searchParams={searchParams}
+          fromCache={!!fromCache}
+          isLoading={!!loading}
+          tripPlannerInfo={tripPlannerInfo}
+          buildYourOwnMode={searchParams.searchMode === 'build-your-own' || searchParams.searchMode === 'build-your-own-return'}
+          buildYourOwnStep={buildYourOwnStep}
+          selectedOutboundFlight={selectedOutboundFlight}
+          onSelectOutbound={onSelectOutbound}
+          onSelectReturn={onSelectReturn}
+          onResetBuildYourOwn={onResetBuildYourOwn}
+        />
       )}
     </div>
   );

@@ -32,7 +32,7 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
 
     const t = setTimeout(async () => {
       try {
-        const url = `http://127.0.0.1:5001/api/db_locations?keyword=${encodeURIComponent(inputValue)}&limit=25`;
+        const url = `/api/db_locations?keyword=${encodeURIComponent(inputValue)}&limit=25`;
         const res = await fetch(url);
         const data = await res.json();
 
@@ -95,7 +95,7 @@ function Onboarding_2({ onNext, onBack, homeCity }) {
     const citiesString = selectedCities.map(c => c.displayLabel).join('|');
 
     try {
-        const response = await fetch('http://127.0.0.1:5001/api/save_favorite_cities', {
+        const response = await fetch('/api/save_favorite_cities', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, cities: citiesString })

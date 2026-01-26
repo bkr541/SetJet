@@ -400,7 +400,7 @@
     padding: 1rem;
   }
 
-  /* ✅ UPDATED: Maintain Horizontal Grid Layout (Left - Center - Right) */
+  /* âœ… UPDATED: Maintain Horizontal Grid Layout (Left - Center - Right) */
   .flight-row-grid {
     grid-template-columns: 1fr 120px 1fr; /* Resize center to fit icons tighter */
     text-align: inherit; /* Remove 'center' alignment override */
@@ -462,4 +462,16 @@
   .airline-name {
     font-size: 0.9rem;
   }
+}
+
+/* âœ… Selected state for saved flights */
+.action-button.selected {
+  background-color: #004e5a;
+  color: #ffffff;
+  border-color: #004e5a;
+}
+
+.action-button.selected:hover {
+  background-color: #004e5a;
+  color: #ffffff;
 }

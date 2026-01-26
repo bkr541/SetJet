@@ -91,7 +91,7 @@ function Onboarding_1({ onComplete }) {
       if (!email) return;
 
       try {
-        const response = await fetch('http://127.0.0.1:5001/api/get_user_info', {
+        const response = await fetch('/api/get_user_info', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email })
@@ -131,7 +131,7 @@ function Onboarding_1({ onComplete }) {
 
     const t = setTimeout(async () => {
       try {
-        const url = `http://127.0.0.1:5001/api/db_locations?keyword=${encodeURIComponent(q)}&limit=25`;
+        const url = `/api/db_locations?keyword=${encodeURIComponent(q)}&limit=25`;
         const res = await fetch(url);
         const data = await res.json();
         setHomeSuggestions(Array.isArray(data) ? data : []);
@@ -313,7 +313,7 @@ function Onboarding_1({ onComplete }) {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:5001/api/update_profile', {
+      const response = await fetch('/api/update_profile', {
         method: 'POST',
         body: payload,
       });

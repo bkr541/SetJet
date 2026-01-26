@@ -42,7 +42,7 @@ function Onboarding_3({ onNext, onBack }) {
 
     const t = setTimeout(async () => {
       try {
-        const url = `http://127.0.0.1:5001/api/db_artists?keyword=${encodeURIComponent(inputValue)}&limit=25`;
+        const url = `/api/db_artists?keyword=${encodeURIComponent(inputValue)}&limit=25`;
         const res = await fetch(url);
         const data = await res.json();
 
@@ -74,7 +74,7 @@ function Onboarding_3({ onNext, onBack }) {
 
     const t = setTimeout(async () => {
       try {
-        const url = `http://127.0.0.1:5001/api/db_genres?keyword=${encodeURIComponent(genreInputValue)}&limit=25`;
+        const url = `/api/db_genres?keyword=${encodeURIComponent(genreInputValue)}&limit=25`;
         const res = await fetch(url);
         const data = await res.json();
 
@@ -164,7 +164,7 @@ function Onboarding_3({ onNext, onBack }) {
     const genreIds = selectedGenres.map(g => g.id);
 
     try {
-      const response = await fetch('http://127.0.0.1:5001/api/save_favorite_artists', {
+      const response = await fetch('/api/save_favorite_artists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
