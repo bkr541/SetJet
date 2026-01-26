@@ -111,7 +111,7 @@
 }
 
 .auth-screen {
-width: 100%;
+  width: 100%;
   overflow: hidden; 
   max-height: 1200px;
   opacity: 1;
@@ -141,4 +141,18 @@ width: 100%;
     padding: 0;
     background-color: #ffffff;
   }
+}
+
+/* ✅ NEW: Full width styles for UserHome Dashboard */
+.main-dashboard {
+  padding: 0 !important; /* Removes the 2rem top/bottom padding */
+  padding-left: 6px !important; /* Removes the 2rem top/bottom padding */
+  padding-right: 6px !important; /* Removes the 2rem top/bottom padding */
+}
+
+.container-fluid {
+  width: 100%;
+  max-width: none; /* Removes the 1200px limit */
+  padding: 0;      /* Removes the 20px side padding */
+  margin: 0;
 }

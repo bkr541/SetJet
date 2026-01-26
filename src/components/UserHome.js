@@ -43,7 +43,10 @@ import './UserHome.css';
 import SearchForm from './SearchForm';
 import FlightResults from './FlightResults';
 
-// --- BLACKOUT DATES CONFIGURATION (Mirrored from SearchForm) ---
+// --- CONFIGURATION ---
+const API_BASE_URL = ""; 
+
+// --- BLACKOUT DATES CONFIGURATION ---
 const BLACKOUT_RANGES = [
   // 2025
   { start: "2025-01-01", end: "2025-01-01" },
@@ -167,7 +170,7 @@ const EventImage = ({ link, alt, className, style, mode = "background" }) => {
     const fetchImage = async () => {
       try {
         const res = await fetch(
-          `http://127.0.0.1:5001/api/edmtrain/event-image?link=${encodeURIComponent(link)}`
+          `${API_BASE_URL}/api/edmtrain/event-image?link=${encodeURIComponent(link)}`
         );
         if (!res.ok) return;
 
@@ -214,7 +217,6 @@ const EventImage = ({ link, alt, className, style, mode = "background" }) => {
   );
 };
 
-
 // --- Artist Details View ---
 const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, eventsCacheByArtistId, setEventsCacheByArtistId, onEventClick }) => {
   const [activeTab, setActiveTab] = useState('Upcoming Sets');
@@ -236,6 +238,17 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
       day: "numeric",
     });
   };
+
+  const formatEventDateParts = (dateStr) => {
+    if (!dateStr) return { day: "--", month: "TBA" };
+    const d = new Date(String(dateStr) + "T00:00:00");
+    if (Number.isNaN(d.getTime())) return { day: "--", month: "TBA" };
+
+    const day = String(d.getDate());
+    const month = d.toLocaleString("en-US", { month: "short" }).toUpperCase();
+    return { day, month };
+  };
+
 
 
   const sortedArtistEvents = (() => {
@@ -292,7 +305,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
         setEventsLoading(true);
         setEventsError(null);
 
-        const url = `/api/edmtrain/events/artist?artistIds=${encodeURIComponent(edmtrainId)}`;
+        const url = `${API_BASE_URL}/api/edmtrain/events/artist?artistIds=${encodeURIComponent(edmtrainId)}`;
         const res = await fetch(url);
         const json = await res.json();
 
@@ -335,90 +348,40 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
   const bgImage = artist.image || "/artifacts/defaultprofileillenium.png";
 
   return (
-    <div className="dashboard-panel fade-in" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="dashboard-panel fade-in full">
       
       {/* 1. HERO SECTION */}
-      <div style={{ 
-        position: 'relative', 
-        height: '340px', 
-        width: '100%',
+      <div className="hero" style={{
         backgroundImage: `url(${bgImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundSize: 'cover', backgroundPosition: 'center',
         flexShrink: 0,
-        borderTopLeftRadius: '16px', 
-        borderTopRightRadius: '16px' 
+         
       }}>
-        <div style={{
-          position: 'absolute',
-          bottom: 0, left: 0, right: 0,
-          height: '60%',
-          background: 'linear-gradient(to top, #0f172a 0%, transparent 100%)',
-          borderRadius: 'inherit'
-        }}></div>
+        <div className="hero-overlay"></div>
 
-        <div style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0,
-          padding: '24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          zIndex: 10
-        }}>
-          <button onClick={onBack} style={{
-            background: 'rgba(0,0,0,0.3)', 
-            border: 'none', 
-            borderRadius: '50%', 
-            width: '40px', height: '40px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', cursor: 'pointer',
-            backdropFilter: 'blur(4px)'
-          }}>
+        <div className="hero-topbar">
+          <button onClick={onBack} className="hero-back-btn">
             <ArrowLeft size={24} />
           </button>
 
-          <button onClick={() => onToggleFavorite(artist)} style={{
-            background: 'rgba(0,0,0,0.3)', 
-            border: 'none', 
-            borderRadius: '50%', 
-            width: '40px', height: '40px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: isFavorite ? '#22c55e' : 'white', 
-            cursor: 'pointer',
-            backdropFilter: 'blur(4px)'
-          }}>
+          <button onClick={() => onToggleFavorite(artist)} className="hero-icon-btn" style={{ color: isFavorite ? "#22c55e" : "white" }}>
             <Heart size={24} fill={isFavorite ? "#22c55e" : "none"} />
           </button>
         </div>
 
-        <div style={{
-          position: 'absolute',
-          bottom: '24px',
-          left: '24px',
-          right: '24px',
-          zIndex: 5
-        }}>
-          <h1 style={{ 
-            color: 'white', 
-            margin: 0, 
-            fontSize: '2.5rem', 
-            fontWeight: 800, 
-            textTransform: 'uppercase', 
-            letterSpacing: '0.02em',
-            textShadow: '0 2px 10px rgba(0,0,0,0.5)'
-          }}>
+        <div className="hero-bottom">
+          <h1 className="hero-title">
             {artist.name}
           </h1>
           
-          <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
             {artist.genres && Array.isArray(artist.genres) ? (
                artist.genres.slice(0, 3).map((g, i) => (
                  <span key={i} style={{
                    background: 'rgba(255,255,255,0.15)',
                    color: '#e2e8f0',
                    padding: '4px 10px',
-                   borderRadius: '12px',
+                   borderRadius: 'px',
                    fontSize: '0.75rem',
                    fontWeight: 600,
                    backdropFilter: 'blur(4px)'
@@ -455,7 +418,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
       <div className="artist-details-content">
         {activeTab === 'Upcoming Sets' ? (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-          <h3 style={{ marginTop: 0, marginBottom: 0, color: '#1e293b' }}>Upcoming Sets</h3>
+         
         </div>
       ) : (
         <h3 style={{ marginTop: 0, color: '#1e293b' }}>{activeTab}</h3>
@@ -473,7 +436,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
               // ✅ Updated to use CSS classes instead of inline styles
               <div className="artist-events-grid">
                 {sortedArtistEvents.map((evt, idx) => {
-                  const name = evt?.name || artist?.name || "Event";
+                  const name = evt?.name || evt?.venue?.name || artist?.name || "Event";
                   const eventDate = evt?.date; // ✅ use EDMTrain "date"
                   const venueName = evt?.venue?.name || "";
                   const venueLocation = evt?.venue?.location || "";
@@ -491,21 +454,43 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
                       {/* Gradient Overlay */}
                       <div className="artist-event-overlay" />
 
+                      {/* Date Badge */}
+                      {(() => {
+                        const { day, month } = formatEventDateParts(eventDate);
+                        return (
+                          <div className="artist-event-date-badge" aria-label={formatEventDate(eventDate)}>
+                            <div className="artist-event-date-day">{day}</div>
+                            <div className="artist-event-date-month">{month}</div>
+                          </div>
+                        );
+                      })()}
+
+
                       {/* Text Content Layer */}
                       <div className="artist-event-content">
-                        <div className="artist-event-date">
-                          {formatEventDate(eventDate)}
-                        </div>
-
-                        <div className="artist-event-name">
+<div className="artist-event-name">
                           {name}
                         </div>
 
-                        <div className="artist-event-venue">
-                          {venueName}
-                        </div>
+                        {(() => {
+                          const list = Array.isArray(evt?.artistList) ? evt.artistList : [];
+                          const names = list.map(a => a?.name).filter(Boolean);
+
+                          // Only hide if there is exactly ONE artist total
+                          if (names.length === 1) return null;
+
+                          const second = names[1];
+                          const remaining = Math.max(0, names.length - 2);
+
+                          return (
+                            <div className="artist-event-artists">
+                              + {second}{remaining > 0 ? ` and ${remaining} others` : ""}
+                            </div>
+                          );
+                        })()}
 
                         <div className="artist-event-location">
+                          <MapPin size={14} className="artist-event-location-icon" />
                           {venueLocation}
                         </div>
                       </div>
@@ -546,70 +531,27 @@ const DestinationDetailsView = ({ destination, onBack }) => {
   ];
 
   return (
-    <div className="dashboard-panel fade-in" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="dashboard-panel fade-in full">
       
       {/* 1. HERO SECTION */}
-      <div style={{ 
-        position: 'relative', 
-        height: '340px', 
-        width: '100%',
+      <div className="hero" style={{
         backgroundImage: `url(${bgImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundSize: 'cover', backgroundPosition: 'center',
         flexShrink: 0,
-        borderTopLeftRadius: '16px', 
-        borderTopRightRadius: '16px',
         backgroundColor: '#0f172a' // Fallback
       }}>
-        <div style={{
-          position: 'absolute',
-          bottom: 0, left: 0, right: 0,
-          height: '60%',
-          background: 'linear-gradient(to top, #0f172a 0%, transparent 100%)',
-          borderRadius: 'inherit'
-        }}></div>
+        <div className="hero-overlay"></div>
 
-        <div style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0,
-          padding: '24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          zIndex: 10
-        }}>
-          <button onClick={onBack} style={{
-            background: 'rgba(0,0,0,0.3)', 
-            border: 'none', 
-            borderRadius: '50%', 
-            width: '40px', height: '40px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', cursor: 'pointer',
-            backdropFilter: 'blur(4px)'
-          }}>
+        <div className="hero-topbar">
+          <button onClick={onBack} className="hero-back-btn">
             <ArrowLeft size={24} />
           </button>
         </div>
 
-        <div style={{
-          position: 'absolute',
-          bottom: '24px',
-          left: '24px',
-          right: '24px',
-          zIndex: 5
-        }}>
-          <h1 style={{ 
-            color: 'white', 
-            margin: 0, 
-            fontSize: '2.5rem', 
-            fontWeight: 800, 
-            textTransform: 'uppercase', 
-            letterSpacing: '0.02em',
-            textShadow: '0 2px 10px rgba(0,0,0,0.5)'
-          }}>
+        <div className="hero-bottom">
+          <h1 className="hero-title">
             {cityName}
           </h1>
-          
           {/* Removed "Destination" chip below the city name */}
         </div>
       </div>
@@ -667,7 +609,7 @@ const EventDetailsView = ({ event, onBack }) => {
       if (!email || !event?.id) return;
 
       try {
-        const res = await fetch(`http://127.0.0.1:5001/api/get_user_info`, {
+        const res = await fetch(`${API_BASE_URL}/api/get_user_info`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email })
@@ -695,7 +637,7 @@ const EventDetailsView = ({ event, onBack }) => {
 
     setIsUpdating(true);
     try {
-      const res = await fetch('http://127.0.0.1:5001/api/toggle_event_attendance', {
+      const res = await fetch(`${API_BASE_URL}/api/toggle_event_attendance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -736,12 +678,13 @@ const EventDetailsView = ({ event, onBack }) => {
 
   const tabs = [
     { name: 'Details', icon: Type },
+    { name: 'Lineup', icon: Users },
     { name: 'Plan It', icon: MapPin },
     { name: 'More', icon: Sparkles },
   ];
 
   return (
-    <div className="dashboard-panel fade-in" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="dashboard-panel fade-in full">
       {/* 1. HERO SECTION */}
       <div className="event-hero">
         <EventImage
@@ -830,6 +773,45 @@ const EventDetailsView = ({ event, onBack }) => {
             <div className="event-details-note">
               More event details (tickets, lineup, schedule) can plug in here later.
             </div>
+          </div>
+        ) : activeTab === 'Lineup' ? (
+          <div className="event-lineup-body">
+            {Array.isArray(event?.artistList) && event.artistList.length > 0 ? (
+              <div className="event-lineup-list">
+                {event.artistList.map((a, i) => {
+                  const name = a?.name || `Artist ${i + 1}`;
+                  const genresArr = Array.isArray(a?.genres) ? a.genres : (typeof a?.genre === 'string' ? [a.genre] : []);
+                  const genres = genresArr.filter(Boolean).slice(0, 3).join(" • ");
+                  return (
+                    <div key={`${name}-${i}`} className="event-lineup-item">
+                      <div
+                        className="event-lineup-avatar"
+                        style={{
+                          backgroundImage: `url(${a?.image_url || "/artifacts/defaultprofileillenium.png"})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          backgroundRepeat: "no-repeat"
+                        }}
+                        aria-label={name}
+                      >
+                        <div className="event-lineup-avatar-overlay" />
+                      </div>
+
+                      <div className="event-lineup-meta">
+                        <div className="event-lineup-name">{name}</div>
+                        {genres ? (
+                          <div className="event-lineup-genres">{genres}</div>
+                        ) : (
+                          <div className="event-lineup-genres muted">Electronic / Dance</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-muted">No lineup found for this event.</div>
+            )}
           </div>
         ) : (
           <div className="artist-tab-scroll">
@@ -1077,7 +1059,7 @@ const PlacesView = () => {
     }
     const t = setTimeout(async () => {
       try {
-        const url = `http://127.0.0.1:5001/api/db_airports?keyword=${encodeURIComponent(q)}&limit=25`;
+        const url = `${API_BASE_URL}/api/db_airports?keyword=${encodeURIComponent(q)}&limit=25`;
         const res = await fetch(url);
         const data = await res.json();
         setDepartingSuggestions(Array.isArray(data) ? data : []);
@@ -1097,7 +1079,7 @@ const PlacesView = () => {
     }
     const t = setTimeout(async () => {
       try {
-        const url = `http://127.0.0.1:5001/api/db_airports?keyword=${encodeURIComponent(q)}&limit=25`;
+        const url = `${API_BASE_URL}/api/db_airports?keyword=${encodeURIComponent(q)}&limit=25`;
         const res = await fetch(url);
         const data = await res.json();
         setArrivalSuggestions(Array.isArray(data) ? data : []);
@@ -1372,7 +1354,7 @@ const ProfileView = ({ userFirstName, userProfilePic, onEditProfile }) => (
     <div className="profile-header-card">
       <div className="profile-avatar-large">
         <img
-          src={`http://127.0.0.1:5001/static/profile_pics/${userProfilePic || 'default.jpg'}`}
+          src={`${API_BASE_URL}/static/profile_pics/${userProfilePic || 'default.jpg'}`}
           alt="Profile"
           onError={(e) => { e.target.src = 'https://via.placeholder.com/150'; }}
         />
@@ -1500,7 +1482,7 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
         payload.append('profile_photo', selectedFile);
       }
 
-      const res = await fetch('http://127.0.0.1:5001/api/update_profile', {
+      const res = await fetch(`${API_BASE_URL}/api/update_profile`, {
         method: 'POST',
         body: payload
       });
@@ -1523,7 +1505,7 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
 
   const profileSrc = previewImage
     ? previewImage
-    : `http://127.0.0.1:5001/static/profile_pics/${userInfo?.image_file || 'default.jpg'}`;
+    : `${API_BASE_URL}/static/profile_pics/${userInfo?.image_file || 'default.jpg'}`;
 
   return (
     <div className="dashboard-panel fade-in">
@@ -1720,7 +1702,7 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
 
     const t = setTimeout(async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:5001/api/search_global?keyword=${encodeURIComponent(q)}&limit=8`);
+        const res = await fetch(`${API_BASE_URL}/api/search_global?keyword=${encodeURIComponent(q)}&limit=8`);
         const data = await res.json();
         if (!res.ok) {
           console.error('Global search failed:', data);
@@ -1778,7 +1760,7 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
 
       try {
         setToursLoading(true);
-        const res = await fetch('http://127.0.0.1:5001/api/edmtrain/tours?includeElectronic=true&includeOther=false');
+        const res = await fetch(`${API_BASE_URL}/api/edmtrain/tours?includeElectronic=true&includeOther=false`);
         if (!res.ok) return;
 
         const json = await res.json();
@@ -1818,7 +1800,7 @@ const [userInfo, setUserInfo] = useState({
     if (!email) return;
 
     try {
-      const res = await fetch('http://127.0.0.1:5001/api/get_user_info', {
+      const res = await fetch(`${API_BASE_URL}/api/get_user_info`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -1902,7 +1884,7 @@ const [userInfo, setUserInfo] = useState({
     if (!email) return;
 
     try {
-      const res = await fetch('http://127.0.0.1:5001/api/toggle_favorite_artist', {
+      const res = await fetch(`${API_BASE_URL}/api/toggle_favorite_artist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1997,6 +1979,9 @@ const [userInfo, setUserInfo] = useState({
     }
   };
 
+  // ✅ Calculate if we are in a details view to toggle header visibility
+  const isDetailsView = ['artist-details', 'event-details', 'destination-details'].includes(activeView);
+
   return (
     <div className="user-home-root">
       <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
@@ -2063,7 +2048,8 @@ const [userInfo, setUserInfo] = useState({
   <div className="sidebar-overlay" onClick={() => setCollapsed(true)} />
 )}
 
-      <div className={`main-wrapper ${collapsed ? 'collapsed' : ''}`}>
+      {/* ✅ ADDED CLASS: details-view-mode based on the check above */}
+      <div className={`main-wrapper ${collapsed ? 'collapsed' : ''} ${isDetailsView ? 'details-view-mode' : ''}`}>
         <header className="main-header">
           <div className="header-left">
             <button className="header-toggle-btn" onClick={() => setCollapsed(!collapsed)}>
@@ -2168,7 +2154,7 @@ const [userInfo, setUserInfo] = useState({
 
           <div className="header-right">
             <img
-              src={`http://127.0.0.1:5001/static/profile_pics/${userProfilePic || 'default.jpg'}`}
+              src={`${API_BASE_URL}/static/profile_pics/${userProfilePic || 'default.jpg'}`}
               alt="Profile"
               className={`header-profile-pic ${activeView === 'profile' || activeView === 'edit-profile' ? 'active' : ''}`}
               onClick={() => setActiveView('profile')}

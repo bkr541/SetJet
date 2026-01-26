@@ -269,16 +269,6 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
         <h2 className="auth-title">
           {mode === 'login' ? 'Welcome Back' : 'Create Account'}
         </h2>
-        {mode === 'signup' && (
-          <p className="auth-subtitle">
-            Fill out the below fields to start your jet setting journey
-          </p>
-        )}
-        {mode === 'login' && (
-          <p className="auth-subtitle">
-            Ready to jet set to another adventure?
-          </p>
-        )}
       </div>
 
       <form onSubmit={handleSubmit} className="auth-form" noValidate>

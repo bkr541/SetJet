@@ -1977,6 +1977,43 @@ input[type="date"] {
   display: none !important;
 }
 
+@media (max-width: 768px) {
+  /* 1. Hide header in details views */
+  .details-view-mode .main-header {
+    display: none !important;
+  }
+  
+  /* Ensure content doesn't have a gap where header used to be */
+  .details-view-mode .user-home-content {
+     padding-top: 0; 
+  }
+
+  /* 2. Single column for artist event cards */
+  .artist-events-grid {
+    grid-template-columns: 1fr;
+  }
+  .details-view-mode .main-header {
+    display: none !important;
+  }
+  
+  /* 2. Remove padding from the content container on mobile */
+  .user-home-content,
+  .user-home-content.artist-view-active {
+     padding-left: 0 !important;
+     padding-right: 0 !important;
+  }
+
+  /* 3. Ensure content doesn't have a gap where header used to be */
+  .details-view-mode .user-home-content {
+     padding-top: 0; 
+  }
+
+  /* 4. Single column for artist event cards */
+  .artist-events-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
 
 /* === SEARCH FORM COLLAPSE (Flights View) === */
 .search-form-shell {
@@ -2016,4 +2053,257 @@ input[type="date"] {
 
 .modify-search-btn:active {
   transform: translateY(0);
+}
+
+/* === MOVED FROM INLINE STYLES (UserHome.js) === */
+
+/* Generic dashboard panel full-bleed layout */
+.dashboard-panel.full {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Hero sections */
+.hero {
+  position: relative;
+  height: 280px;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.hero-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: linear-gradient(to top, #0f172a 0%, transparent 100%);
+}
+
+.hero-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
+
+.hero-back-btn,
+.hero-icon-btn {
+  background: rgba(0,0,0,0.3);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.hero-bottom {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  right: 24px;
+  z-index: 5;
+}
+
+.hero-title {
+  color: white;
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* Small muted text */
+.text-muted {
+  color: #64748b;
+}
+
+
+/* Artist event location with icon */
+.artist-event-location.with-icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #e5e7eb;
+  font-size: 0.85rem;
+}
+
+
+/* Artist event card: location pin */
+.artist-event-location{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.artist-event-location-icon{
+  flex-shrink: 0;
+  opacity: 0.95;
+}
+
+
+/* Artist event date badge (top-right, calendar style) */
+.artist-event-card{
+  position: relative;
+}
+
+.artist-event-date-badge{
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 56px;
+  height: 60px;
+  background: rgba(255,255,255,0.96);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.artist-event-date-day{
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.artist-event-date-month{
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: #f97316; /* warm accent similar to reference */
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* Ensure content sits below badge visually */
+.artist-event-content{
+  position: relative;
+  z-index: 3;
+}
+
+
+/* Ensure date badge does not affect content layout */
+.artist-event-date,
+.artist-event-date *{
+  display: none !important;
+}
+
+
+.artist-event-content{
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  right: 14px;
+  z-index: 3;
+}
+
+
+/* =========================
+   EVENT DETAILS: LINEUP TAB
+   ========================= */
+.event-lineup-body{
+  padding-top: 6px;
+}
+
+.event-lineup-list{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.event-lineup-item{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 10px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.event-lineup-avatar{
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 3px solid #235a76;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  background: #0f172a;
+}
+
+.event-lineup-avatar-img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.event-lineup-meta{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.event-lineup-name{
+  font-size: 1rem;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.event-lineup-genres{
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  line-height: 1.15;
+}
+
+.event-lineup-genres.muted{
+  opacity: 0.9;
+}
+
+/* Lineup avatar overlay (matches headliner feel) */
+.event-lineup-avatar-overlay{
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+
+/* === FIX: Ensure artist list line is visible over hero overlay === */
+.artist-event-artists{
+  color: rgba(255, 255, 255, 0.92) !important;
+  text-shadow: 0 2px 12px rgba(2, 6, 23, 0.85) !important;
+  position: relative;
+  z-index: 6;
 }

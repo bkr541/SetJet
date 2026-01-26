@@ -241,8 +241,11 @@ function App() {
   // ✅ SCREEN 3: MAIN APP (USER HOME OR SEARCH)
   return (
     <div className="App">
-      <main className="main">
-        <div className="container">
+      {/* ✅ CHANGE: Dynamic class for main to remove padding on Dashboard */}
+      <main className={`main ${currentView === 'home' ? 'main-dashboard' : ''}`}>
+        
+        {/* ✅ CHANGE: Dynamic class for container to be fluid on Dashboard */}
+        <div className={currentView === 'home' ? 'container-fluid' : 'container'}>
           
           {/* VIEW 1: USER HOME DASHBOARD */}
           {currentView === 'home' && (
