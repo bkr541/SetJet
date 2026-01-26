@@ -6,6 +6,10 @@
   max-width: 1200px;
   margin: 0 auto 2rem;
   padding: 1.25rem;
+  border: 1px solid #d1d5db; 
+  color: #374151; /* Darker grey text */
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .results-header {
@@ -33,7 +37,7 @@
   padding: 0.32rem 0.75rem;
   border-radius: 999px;
 
-  /* ✅ UPDATED: White background + Grey border like previous chips */
+  /* âœ… UPDATED: White background + Grey border like previous chips */
   background: #ffffff;
   border: 1px solid #d1d5db; 
   color: #374151; /* Darker grey text */
@@ -82,7 +86,7 @@
   margin-left: 6px;
   color: #16a34a;
   
-  /* ✅ UPDATED: Decreased font weight & Floating middle */
+  /* âœ… UPDATED: Decreased font weight & Floating middle */
   font-size: 0.85rem;
   font-weight: 500; /* Decreased from 600 */
   display: inline-flex;
@@ -140,9 +144,9 @@
 
 .controls-row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 28px;
+  flex-direction: column; /* âœ… UPDATED: stack Sort By and Filter By */
+  align-items: stretch;
+  gap: 12px;
   width: 100%;
 }
 
@@ -180,7 +184,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px; /* ✅ tighter icon/text spacing */
+  gap: 4px; /* âœ… tighter icon/text spacing */
 
   padding: 0.5rem 0.4rem;
   border: none;
@@ -252,12 +256,12 @@
     padding: 1rem;
   }
 
-  /* ✅ UPDATED: Smaller Header Title */
+  /* âœ… UPDATED: Smaller Header Title */
   .results-header h2 {
     font-size: 1.75rem; 
   }
 
-  /* ✅ UPDATED: Smaller Header Info Text */
+  /* âœ… UPDATED: Smaller Header Info Text */
   .results-info {
     font-size: 0.95rem;
   }
@@ -266,7 +270,7 @@
     font-size: 0.8rem;
   }
 
-  /* ✅ UPDATED: Smaller Badges/Pills */
+  /* âœ… UPDATED: Smaller Badges/Pills */
   .trip-type-pill,
   .cache-badge {
     padding: 0.25rem 0.6rem;
@@ -279,7 +283,7 @@
     height: 12px;
   }
 
-  /* ✅ UPDATED: Smaller Map Toggle Button */
+  /* âœ… UPDATED: Smaller Map Toggle Button */
   .map-toggle-button {
     font-size: 0.85rem;
     padding: 0.4rem 1rem;
@@ -293,12 +297,12 @@
   /* --- CONTROLS --- */
   .controls-row {
     flex-direction: column;
-    /* ✅ UPDATED: Exact match (4px) to the text margins above */
+    /* âœ… UPDATED: Exact match (4px) to the text margins above */
     gap: 4px; 
     width: 100%;
   }
 
-  /* ✅ STRETCH CONTAINERS */
+  /* âœ… STRETCH CONTAINERS */
   .control-group {
     width: 100%;
   }
@@ -310,7 +314,7 @@
     overflow: hidden; /* Prevent spillover */
   }
 
-  /* ✅ DECREASE ELEMENT SIZES & PREVENT OVERFLOW */
+  /* âœ… DECREASE ELEMENT SIZES & PREVENT OVERFLOW */
   .control-option {
     font-size: 0.75rem !important; /* Smaller text */
     padding: 0.45rem 0.2rem !important; /* Tighter padding */

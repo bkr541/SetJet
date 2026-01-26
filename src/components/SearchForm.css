@@ -4,11 +4,12 @@
 }
 
 .search-form-container {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 1.25rem 2rem 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
-  margin-bottom: 2rem;
+  /* Match UserHome "flat panel" views */
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  margin: 0;
 }
 
 .search-form {
@@ -43,7 +44,7 @@
   box-sizing: border-box;
   max-width: 100%;
 
-  /* ✅ lock height so it NEVER changes based on pills */
+  /* âœ… lock height so it NEVER changes based on pills */
   height: 56px;
   max-height: 56px;
   overflow: hidden;
@@ -73,7 +74,7 @@
   border-color: #0096a6;
 }
 
-/* Keep has-value behavior, don’t tint outer pill */
+/* Keep has-value behavior, donâ€™t tint outer pill */
 .search-input-wrapper.has-value {
   border-color: #0096a6;
 }
@@ -104,15 +105,15 @@
 .pills-container {
   display: flex;
 
-  /* ✅ prevent wrapping so height never grows */
+  /* âœ… prevent wrapping so height never grows */
   flex-wrap: nowrap;
 
-  /* ✅ horizontal scroll when too many selections */
+  /* âœ… horizontal scroll when too many selections */
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
 
-  /* ✅ requested spacing between values */
+  /* âœ… requested spacing between values */
   gap: 6px;
 
   flex: 1 1 auto;
@@ -129,7 +130,7 @@
   scrollbar-width: none;
 }
 
-/* ✅ UPDATED: CHIP STYLING (Like uploaded image) */
+/* âœ… UPDATED: CHIP STYLING (Like uploaded image) */
 .airport-pill {
   display: inline-flex;
   align-items: center;
@@ -198,7 +199,7 @@
   cursor: pointer;
 }
 
-/* ✅ UPDATED: Date display text matches input font */
+/* âœ… UPDATED: Date display text matches input font */
 .date-display-text {
   font-size: 1rem;
   color: #111827;
@@ -555,7 +556,7 @@
   display: flex;
   align-items: stretch;
   background-color: #f1f5f9;
-  /* ✅ UPDATED: Removed left/right padding as requested */
+  /* âœ… UPDATED: Removed left/right padding as requested */
   padding: 4px 0; 
   border-radius: 50px;
   border: 1px solid #e2e8f0;
@@ -630,7 +631,7 @@
   justify-content: flex-end;
 }
 
-/* ✅ UPDATED: Smaller Toggle Switch */
+/* âœ… UPDATED: Smaller Toggle Switch */
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -677,7 +678,7 @@ input:checked + .toggle-slider:before {
   transform: translateX(16px);
 }
 
-/* ✅ UPDATED: Smaller font size and weight */
+/* âœ… UPDATED: Smaller font size and weight */
 .toggle-label {
   font-weight: 400; 
   font-size: 0.85rem;
@@ -723,7 +724,7 @@ input:checked + .toggle-slider:before {
   cursor: not-allowed;
 }
 
-/* ✅ UPDATED: "Searching All Airports..." style matches Origin Input style */
+/* âœ… UPDATED: "Searching All Airports..." style matches Origin Input style */
 .input-disabled-placeholder::placeholder {
   color: #111827; /* Dark text like Origin Input */
   font-weight: 400;
@@ -774,7 +775,7 @@ input:checked + .toggle-slider:before {
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 2px;
-    padding: 4px 0; /* ✅ Updated mobile padding too */
+    padding: 4px 0; /* âœ… Updated mobile padding too */
     border-radius: 18px;
   }
 
@@ -876,4 +877,120 @@ input:checked + .toggle-slider:before {
     justify-content: flex-end;
     margin-top: 1rem;
   }
+}
+
+/* =========================================
+   Airport inputs: prevent width growth + enable horizontal chip scroll
+   ========================================= */
+.search-form .form-row{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+/* CRITICAL: allow grid/flex children to shrink instead of overflowing */
+.search-form .form-row > .form-group,
+.search-form .relative-input-container{
+  min-width: 0;
+}
+
+.search-form .search-input-wrapper{
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.search-form .search-input-inner{
+  width: 100%;
+  min-width: 0;
+  overflow: hidden; /* chips scroll inside instead of growing the parent */
+}
+
+.search-form .pills-container{
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.search-form .airport-pill{
+  flex: 0 0 auto;
+}
+
+
+/* === PLACES-VIEW STYLE OVERRIDES (Airport Inputs) === */
+/* Make airport inputs match Places View (UserHome) while keeping existing logic/markup */
+.search-form .form-row {
+  width: 100%;
+  gap: 16px;
+}
+
+/* CRITICAL: allow grid children to shrink so the input never grows with chips */
+.search-form .form-row > .form-group,
+.search-form .relative-input-container {
+  min-width: 0;
+}
+
+.search-form .search-input-wrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  /* Places-like container */
+  padding: 0 16px;
+  border-radius: 18px;
+  border-color: #e2e8f0;
+  box-shadow: none;
+}
+
+/* Remove the â€œinner pillâ€ look (keep it structurally, but visually flat) */
+.search-form .search-input-inner {
+  border: none;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  min-height: unset;
+
+  flex: 1;
+  min-width: 0;
+  overflow: hidden; /* chips scroll inside */
+}
+
+/* Icon + focus ring match Places View */
+.search-form .search-icon {
+  color: #64748b;
+  margin-right: 12px;
+}
+
+.search-form .search-input-wrapper:focus-within {
+  border-color: #0096a6;
+  box-shadow: 0 0 0 1px #0096a6;
+}
+
+.search-form .search-input-wrapper.has-value {
+  border-color: #0096a6;
+}
+
+/* Pills scroll horizontally instead of expanding the input width */
+.search-form .pills-container {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.search-form .airport-pill {
+  flex: 0 0 auto;
+}
+
+/* Optional: slightly softer placeholder like Places */
+.search-form .search-box-input::placeholder {
+  color: #94a3b8;
 }

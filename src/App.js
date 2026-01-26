@@ -101,6 +101,21 @@ function App() {
     setCurrentView('home');
   };
 
+  // Clear flight search state (used by embedded Flights view)
+  const handleClearFlightSearch = () => {
+    setFlights([]);
+    setSearchParams(null);
+    setError(null);
+    setLoading(false);
+    setFromCache(false);
+    setRoutesSearched(0);
+    setTotalRoutes(0);
+    setTripPlannerInfo(null);
+    setSelectedOutboundFlight(null);
+    setReturnFlights([]);
+    setBuildYourOwnStep('outbound');
+  };
+
   /* ... Flight Handlers ... */
 
   const handleSelectOutboundFlight = (flight) => {
@@ -236,6 +251,25 @@ function App() {
                 userFirstName={userFirstName}
                 userProfilePic={userProfilePic}
                 favoriteArtists={favoriteArtists}
+
+                // Embedded Flights (SearchForm + results) inside UserHome
+                onSearchFlights={handleSearch}
+                onClearFlightSearch={handleClearFlightSearch}
+                flightState={{
+                  searchParams,
+                  flights,
+                  loading,
+                  error,
+                  fromCache,
+                  routesSearched,
+                  totalRoutes,
+                  tripPlannerInfo,
+                  buildYourOwnStep,
+                  selectedOutboundFlight,
+                  onSelectOutbound: handleSelectOutboundFlight,
+                  onSelectReturn: handleSelectReturnFlight,
+                  onResetBuildYourOwn: handleResetBuildYourOwn
+                }}
             />
           )}
 

@@ -127,7 +127,7 @@ const CalendarLegend = () => (
 // ✅ NEW CONSTANT FOR DATE FORMAT
 const DATE_FORMAT = 'EEE, MMM do, yyyy';
 
-function SearchForm({ onSearch, loading }) {
+function SearchForm({ onSearch, loading, onCollapse }) {
   const [searchMode, setSearchMode] = useState('package');
   
   // --- ORIGIN SEARCH STATE ---
@@ -305,18 +305,13 @@ function SearchForm({ onSearch, loading }) {
     }
 
     onSearch(searchParams);
+
+    if (typeof onCollapse === 'function') onCollapse();
   };
 
   return (
     <div className="search-form-container">
       {/* Reduced whitespace around logo */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
-        <img 
-          src={process.env.PUBLIC_URL + '/Logos/setjet_logo4.png'} 
-          alt="SetJet Logo" 
-          style={{ height: '100px', width: 'auto' }} 
-        />
-      </div>
 
       <h2>Explore Flights</h2>
       

@@ -40,6 +40,8 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isWithinInterval, startOfDay } from 'date-fns';
 import './UserHome.css';
+import SearchForm from './SearchForm';
+import FlightResults from './FlightResults';
 
 // --- BLACKOUT DATES CONFIGURATION (Mirrored from SearchForm) ---
 const BLACKOUT_RANGES = [
@@ -967,6 +969,83 @@ const ArtistsView = ({ favoriteArtists }) => (
   </div>
 );
 
+// --- Flights View (embedded SearchForm + results) ---
+const FlightsView = ({ onSearchFlights, flightState }) => {
+  const [isSearchCollapsed, setIsSearchCollapsed] = useState(false);
+
+  const {
+    searchParams,
+    flights,
+    loading,
+    error,
+    fromCache,
+    routesSearched,
+    totalRoutes,
+    tripPlannerInfo,
+    buildYourOwnStep,
+    selectedOutboundFlight,
+    onSelectOutbound,
+    onSelectReturn,
+    onResetBuildYourOwn,
+  } = flightState || {};
+
+  return (
+    <div className="dashboard-panel fade-in">
+      <div className={`search-form-shell ${isSearchCollapsed ? 'collapsed' : ''}`}>
+        <SearchForm
+          onSearch={onSearchFlights}
+          loading={!!loading}
+          onCollapse={() => setIsSearchCollapsed(true)}
+        />
+      </div>
+
+      {isSearchCollapsed && (
+        <button
+          type="button"
+          className="modify-search-btn"
+          onClick={() => setIsSearchCollapsed(false)}
+        >
+          Modify Search
+        </button>
+      )}
+
+      {/* When modifying search, show ONLY the SearchForm */}
+      {isSearchCollapsed && (
+        <>
+          {error && (
+            <div className="error-message"><p>⚠️ {error}</p></div>
+          )}
+
+          {loading && (
+            <div className="loading-message">
+              <div className="spinner"></div>
+              <p>Searching for flights... {routesSearched || 0}/{totalRoutes || 0} routes searched</p>
+              {Array.isArray(flights) && flights.length > 0 && (
+                <p className="flights-found">{flights.length} flights found so far</p>
+              )}
+            </div>
+          )}
+
+          {searchParams && Array.isArray(flights) && flights.length > 0 && (
+            <FlightResults
+              flights={flights}
+              searchParams={searchParams}
+              fromCache={!!fromCache}
+              isLoading={!!loading}
+              tripPlannerInfo={tripPlannerInfo}
+              buildYourOwnStep={buildYourOwnStep}
+              selectedOutboundFlight={selectedOutboundFlight}
+              onSelectOutbound={onSelectOutbound}
+              onSelectReturn={onSelectReturn}
+              onResetBuildYourOwn={onResetBuildYourOwn}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
 const PlacesView = () => {
   const [tripMode, setTripMode] = useState('one-way');
   const [departingQuery, setDepartingQuery] = useState('');
@@ -1572,7 +1651,7 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
   );
 };
 
-function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, favoriteDestinations }) {
+function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDestinations, onSearchFlights, flightState, onClearFlightSearch }) {
   const [collapsed, setCollapsed] = useState(false);
   const [activeView, setActiveView] = useState('home');
   const [userDestinations, setUserDestinations] = useState(favoriteDestinations || []);
@@ -1852,6 +1931,14 @@ const [userInfo, setUserInfo] = useState({
     switch (activeView) {
       case 'events': return <EventsView />;
       case 'places': return <PlacesView />;
+      case 'flights':
+        return (
+          <FlightsView
+            onBack={() => { onClearFlightSearch && onClearFlightSearch(); setActiveView('home'); }}
+            onSearchFlights={onSearchFlights}
+            flightState={flightState}
+          />
+        );
       case 'artists': return <ArtistsView favoriteArtists={userFavoriteArtists} />;
       case 'plan': return <PlanView />;
       case 'friends': return <FriendsView />;
@@ -1942,7 +2029,7 @@ const [userInfo, setUserInfo] = useState({
         <div className="sidebar-section">
           <h4>Explore</h4>
 
-          <button onClick={() => handleNav(() => onNavigate('search'))}>
+          <button onClick={() => handleNav(() => setActiveView('flights'))} className={activeView === 'flights' ? 'active' : ''}>
             <PlaneTakeoff size={20} />
             <span>Flights</span>
           </button>

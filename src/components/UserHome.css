@@ -1971,3 +1971,49 @@ input[type="date"] {
     font-size: 0.9rem !important;
   }
 }
+
+/* Hide the main input clear (X) icon everywhere (keep chip X icons) */
+.clear-icon{
+  display: none !important;
+}
+
+
+/* === SEARCH FORM COLLAPSE (Flights View) === */
+.search-form-shell {
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+  max-height: 1200px; /* generous for expanded form */
+  opacity: 1;
+}
+
+.search-form-shell.collapsed {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modify-search-btn {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.modify-search-btn:hover {
+  border-color: #0096a6;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
+  transform: translateY(-1px);
+}
+
+.modify-search-btn:active {
+  transform: translateY(0);
+}
