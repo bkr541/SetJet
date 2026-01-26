@@ -31,7 +31,9 @@ import {
   MicVocal,
   Heart,
   TowerControl,
-  CircleUserRound
+  CircleUserRound,
+  CalendarDays,
+  Plane
 } from 'lucide-react';
 import './UserHome.css';
 
@@ -425,6 +427,131 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
   );
 };
 
+
+// --- Destination Details View (New) ---
+const DestinationDetailsView = ({ destination, onBack }) => {
+  const [activeTab, setActiveTab] = useState('Upcoming Sets');
+
+  // Derive Image (reuse logic from HomeView)
+  const rawName = destination?.name || destination?.city || 'Unknown';
+  const cityName = rawName.split(',')[0].trim();
+  const safeName = cityName.toLowerCase().replace(/\s+/g, '');
+  const bgImage = `/artifacts/cities/${safeName}.png`;
+
+  const tabs = [
+    { name: 'Upcoming Sets', icon: Calendar },
+    { name: 'Calendar', icon: CalendarDays },
+    { name: 'Flights', icon: Plane }
+  ];
+
+  return (
+    <div className="dashboard-panel fade-in" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+      
+      {/* 1. HERO SECTION */}
+      <div style={{ 
+        position: 'relative', 
+        height: '340px', 
+        width: '100%',
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        flexShrink: 0,
+        borderTopLeftRadius: '16px', 
+        borderTopRightRadius: '16px',
+        backgroundColor: '#0f172a' // Fallback
+      }}>
+        <div style={{
+          position: 'absolute',
+          bottom: 0, left: 0, right: 0,
+          height: '60%',
+          background: 'linear-gradient(to top, #0f172a 0%, transparent 100%)',
+          borderRadius: 'inherit'
+        }}></div>
+
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0,
+          padding: '24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          zIndex: 10
+        }}>
+          <button onClick={onBack} style={{
+            background: 'rgba(0,0,0,0.3)', 
+            border: 'none', 
+            borderRadius: '50%', 
+            width: '40px', height: '40px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'white', cursor: 'pointer',
+            backdropFilter: 'blur(4px)'
+          }}>
+            <ArrowLeft size={24} />
+          </button>
+        </div>
+
+        <div style={{
+          position: 'absolute',
+          bottom: '24px',
+          left: '24px',
+          right: '24px',
+          zIndex: 5
+        }}>
+          <h1 style={{ 
+            color: 'white', 
+            margin: 0, 
+            fontSize: '2.5rem', 
+            fontWeight: 800, 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.02em',
+            textShadow: '0 2px 10px rgba(0,0,0,0.5)'
+          }}>
+            {cityName}
+          </h1>
+          
+          {/* ✅ UPDATED: Removed the "Destination" chip below the city name */}
+        </div>
+      </div>
+
+      {/* 2. TAB NAVIGATION */}
+      <div className="artist-tabs-container">
+        <div className="artist-tabs-scroll">
+          {tabs.map(tab => {
+            const isActive = activeTab === tab.name;
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.name}
+                onClick={() => setActiveTab(tab.name)}
+                className={`artist-tab-btn ${isActive ? 'active' : ''}`}
+              >
+                <Icon size={18} className="artist-tab-icon" />
+                <span>{tab.name}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* 3. CONTENT AREA */}
+      <div className="artist-details-content">
+        <h3 style={{ marginTop: 0, color: '#1e293b' }}>{activeTab}</h3>
+
+        <div className="artist-tab-scroll">
+            <p style={{ color: '#64748b', lineHeight: 1.6 }}>
+               {/* Placeholder content for now */}
+               {activeTab === 'Upcoming Sets' && `Events in ${cityName} will appear here.`}
+               {activeTab === 'Calendar' && `A calendar of events for ${cityName} will live here.`}
+               {activeTab === 'Flights' && `Flight deals to ${cityName} will appear here.`}
+            </p>
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
+
 // --- Event Details View (mirrors ArtistDetails styling) ---
 const EventDetailsView = ({ event, onBack }) => {
   const [activeTab, setActiveTab] = useState('Details');
@@ -558,7 +685,7 @@ const EventDetailsView = ({ event, onBack }) => {
 
 
 // --- Dashboard Sub-Views ---
-const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, tourCounts, toursLoading }) => {
+const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDestinationClick, tourCounts, toursLoading }) => {
   // Demo destinations fallback
 
   const demoDestinations = [
@@ -646,6 +773,7 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, tourCo
                   backgroundImage: `url(${imgPath})`
                 }}
                 aria-label={cityName}
+                onClick={() => onDestinationClick(d)} // ✅ NEW: Route to Details
               >
                 <div className="destination-poster-overlay" />
                 <div className="destination-poster-title">{cityName}</div>
@@ -1280,6 +1408,9 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
 
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  // ✅ ADDED: State for selected destination
+  const [selectedDestination, setSelectedDestination] = useState(null);
+
   const [viewStack, setViewStack] = useState([]);
 
   const [eventsCacheByArtistId, setEventsCacheByArtistId] = useState({});
@@ -1320,10 +1451,10 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
   };
 
   const selectGlobalLocation = (loc) => {
-    // For now we just route the user to Places view (future: prefill fields).
-    setGlobalQuery(loc?.name || loc?.city || '');
+    // ✅ CHANGED: Now routes to Destination Details
+    setGlobalQuery('');
     closeGlobalSearch();
-    setActiveView('places');
+    handleDestinationClick(loc);
   };
 
   const selectGlobalAirport = (ap) => {
@@ -1498,6 +1629,12 @@ const [userInfo, setUserInfo] = useState({
     setActiveView('artist-details');
   };
 
+  // ✅ ADDED: Handler for destination clicks
+  const handleDestinationClick = (destination) => {
+    setSelectedDestination(destination);
+    setActiveView('destination-details');
+  };
+
   const pushView = (nextView) => {
     setViewStack((prev) => [...prev, activeView]);
     setActiveView(nextView);
@@ -1571,6 +1708,15 @@ const [userInfo, setUserInfo] = useState({
           />
         );
 
+      // ✅ ADDED: Destination Details View
+      case 'destination-details':
+        return (
+            <DestinationDetailsView
+                destination={selectedDestination}
+                onBack={goBack}
+            />
+        );
+
       case 'event-details':
         return (
           <EventDetailsView
@@ -1600,6 +1746,7 @@ const [userInfo, setUserInfo] = useState({
             favoriteArtists={userFavoriteArtists} // ✅ UPDATED: Pass dynamic state
             favoriteDestinations={userDestinations} 
             onArtistClick={handleArtistClick} 
+            onDestinationClick={handleDestinationClick} // ✅ ADDED: Pass destination click handler
             tourCounts={tourCounts || {}}
             toursLoading={toursLoading}
           />
@@ -1791,7 +1938,7 @@ const [userInfo, setUserInfo] = useState({
           </div>
         </header>
 
-        <main className={`user-home-content ${(activeView === 'artist-details' || activeView === 'event-details') ? 'artist-view-active' : ''}`}>
+        <main className={`user-home-content ${(activeView === 'artist-details' || activeView === 'event-details' || activeView === 'destination-details') ? 'artist-view-active' : ''}`}>
           {renderContent()}
         </main>
       </div>
