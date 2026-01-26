@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef } from 'react';
 import {
   Search,
   Calendar,
@@ -35,7 +35,105 @@ import {
   CalendarDays,
   Plane
 } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { format, parseISO, isWithinInterval, startOfDay } from 'date-fns';
 import './UserHome.css';
+
+// --- BLACKOUT DATES CONFIGURATION (Mirrored from SearchForm) ---
+const BLACKOUT_RANGES = [
+  // 2025
+  { start: "2025-01-01", end: "2025-01-01" },
+  { start: "2025-01-04", end: "2025-01-05" },
+  { start: "2025-01-16", end: "2025-01-17" },
+  { start: "2025-01-20", end: "2025-01-20" },
+  { start: "2025-02-13", end: "2025-02-14" },
+  { start: "2025-02-17", end: "2025-02-17" },
+  { start: "2025-03-14", end: "2025-03-16" },
+  { start: "2025-03-21", end: "2025-03-23" },
+  { start: "2025-03-28", end: "2025-03-30" },
+  { start: "2025-04-04", end: "2025-04-06" },
+  { start: "2025-04-11", end: "2025-04-13" },
+  { start: "2025-04-18", end: "2025-04-21" },
+  { start: "2025-05-22", end: "2025-05-23" },
+  { start: "2025-05-26", end: "2025-05-26" },
+  { start: "2025-06-22", end: "2025-06-22" },
+  { start: "2025-06-26", end: "2025-06-29" },
+  { start: "2025-07-03", end: "2025-07-07" },
+  { start: "2025-08-28", end: "2025-08-29" },
+  { start: "2025-09-01", end: "2025-09-01" },
+  { start: "2025-10-09", end: "2025-10-10" },
+  { start: "2025-10-12", end: "2025-10-13" },
+  { start: "2025-11-25", end: "2025-11-26" },
+  { start: "2025-11-29", end: "2025-11-30" },
+  { start: "2025-12-01", end: "2025-12-01" },
+  { start: "2025-12-20", end: "2025-12-23" },
+  { start: "2025-12-26", end: "2025-12-31" },
+  // 2026
+  { start: "2026-01-01", end: "2026-01-01" },
+  { start: "2026-01-03", end: "2026-01-04" },
+  { start: "2026-01-15", end: "2026-01-16" },
+  { start: "2026-01-19", end: "2026-01-19" },
+  { start: "2026-02-12", end: "2026-02-13" },
+  { start: "2026-02-16", end: "2026-02-16" },
+  { start: "2026-03-13", end: "2026-03-15" },
+  { start: "2026-03-20", end: "2026-03-22" },
+  { start: "2026-03-27", end: "2026-03-29" },
+  { start: "2026-04-03", end: "2026-04-06" },
+  { start: "2026-04-10", end: "2026-04-12" },
+  { start: "2026-05-21", end: "2026-05-22" },
+  { start: "2026-05-25", end: "2026-05-25" },
+  { start: "2026-06-25", end: "2026-06-28" },
+  { start: "2026-07-02", end: "2026-07-06" },
+  { start: "2026-09-03", end: "2026-09-04" },
+  { start: "2026-09-07", end: "2026-09-07" },
+  { start: "2026-10-08", end: "2026-10-09" },
+  { start: "2026-10-11", end: "2026-10-12" },
+  { start: "2026-11-24", end: "2026-11-25" },
+  { start: "2026-11-28", end: "2026-11-30" },
+  { start: "2026-12-19", end: "2026-12-24" },
+  { start: "2026-12-26", end: "2026-12-31" },
+  // 2027
+  { start: "2027-01-01", end: "2027-01-03" },
+  { start: "2027-01-14", end: "2027-01-15" },
+  { start: "2027-01-18", end: "2027-01-18" },
+  { start: "2027-02-11", end: "2027-02-12" },
+  { start: "2027-02-15", end: "2027-02-15" },
+  { start: "2027-03-12", end: "2027-03-14" },
+  { start: "2027-03-19", end: "2027-03-21" },
+  { start: "2027-03-26", end: "2027-03-29" },
+  { start: "2027-04-02", end: "2027-04-04" },
+];
+
+const isBlackoutDate = (date) => {
+  const checkDate = startOfDay(date);
+  return BLACKOUT_RANGES.some(({ start, end }) =>
+    isWithinInterval(checkDate, {
+      start: parseISO(start),
+      end: parseISO(end)
+    })
+  );
+};
+
+// --- Custom Calendar Input for Plan View ---
+const PlacesCustomInput = forwardRef(({ value, onClick, placeholder }, ref) => (
+  <div className="places-input-wrap" onClick={onClick} ref={ref} style={{ cursor: 'pointer' }}>
+    <Calendar size={18} className="places-input-icon" />
+    <span className={`places-date-text ${!value ? 'placeholder' : ''}`}>
+      {value || placeholder}
+    </span>
+  </div>
+));
+
+// --- Calendar Legend ---
+const CalendarLegend = () => (
+  <div className="calendar-legend">
+    <span className="legend-chip">
+      <span className="legend-dot"></span>
+      <span className="legend-text">Blackout Date</span>
+    </span>
+  </div>
+);
 
 // ✅ FIXED: Smart Image Component now accepts style/className for custom sizing
 const EventImage = ({ link, alt, className, style, mode = "background" }) => {
@@ -509,7 +607,7 @@ const DestinationDetailsView = ({ destination, onBack }) => {
             {cityName}
           </h1>
           
-          {/* ✅ UPDATED: Removed the "Destination" chip below the city name */}
+          {/* Removed "Destination" chip below the city name */}
         </div>
       </div>
 
@@ -1103,12 +1201,35 @@ const PlacesView = () => {
   );
 };
 
-const PlanView = () => (
-  <div className="dashboard-panel fade-in">
-    <h2>Plan Your Trip</h2>
-    <p>Create and manage your travel itineraries.</p>
-  </div>
-);
+// --- ✅ NEW: Plan View with Calendar & Blackout Logic ---
+const PlanView = () => {
+  const [startDate, setStartDate] = useState(null);
+
+  return (
+    <div className="dashboard-panel fade-in">
+      <div className="headliners-section">
+        <h3 className="section-title">PLAN YOUR TRIP</h3>
+        
+        {/* Full Calendar Display - Inline with 100% width */}
+        <div style={{ marginTop: '24px', marginBottom: '24px' }}>
+            <DatePicker
+              selected={startDate}
+              onChange={(date) => setStartDate(date)}
+              inline // Renders calendar directly in DOM
+              calendarClassName="plan-view-calendar" // Custom class for 100% width override
+              dateFormat="EEE, MMM do, yyyy"
+              minDate={new Date()}
+              fixedHeight
+              dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
+            >
+              <CalendarLegend />
+            </DatePicker>
+        </div>
+        {/* Removed text as requested */}
+      </div>
+    </div>
+  );
+};
 
 const FriendsView = () => (
   <div className="dashboard-panel fade-in">

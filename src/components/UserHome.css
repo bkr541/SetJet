@@ -1843,3 +1843,108 @@ input[type="date"] {
   text-overflow: ellipsis;
   max-width: 250px;
 }
+
+/* --- PLAN VIEW CALENDAR OVERRIDES (Reference Image Style) --- */
+.plan-view-calendar {
+  width: 100% !important;
+  border: none !important;
+  font-family: 'Nunito', sans-serif !important;
+  background-color: #fff !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+/* Header: Solid Color (Coral/Red to match reference image) */
+.plan-view-calendar .react-datepicker__header {
+  background-color: #004e5a !important; 
+  padding: 20px 0 !important;
+  border-bottom: none !important;
+}
+
+/* Month/Year Title */
+.plan-view-calendar .react-datepicker__current-month {
+  color: #ffffff !important;
+  font-weight: 400 !important;
+  font-size: 1.4rem !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px !important;
+}
+
+/* Day Names (Sun, Mon...) */
+.plan-view-calendar .react-datepicker__day-name {
+  color: rgba(255,255,255,0.9) !important;
+  font-weight: 600 !important;
+  width: 3rem !important; /* Wider spacing */
+}
+
+/* Arrows */
+.plan-view-calendar .react-datepicker__navigation-icon::before {
+  border-color: #ffffff !important;
+  border-width: 2px 2px 0 0 !important;
+}
+
+.plan-view-calendar .react-datepicker__navigation {
+  top: 24px !important; /* Vertically center in the larger header */
+}
+
+/* Body */
+.plan-view-calendar .react-datepicker__month {
+  margin: 15px !important;
+}
+
+/* Day Cells */
+.plan-view-calendar .react-datepicker__day {
+  width: 3rem !important;
+  height: 3rem !important;
+  line-height: 3rem !important;
+  margin: 4px !important;
+  border-radius: 50% !important; 
+  color: #4a4a4a !important;
+  font-weight: 600 !important;
+}
+
+/* Selected Day (Outline style per reference image '20') */
+.plan-view-calendar .react-datepicker__day--selected {
+  background-color: transparent !important;
+  border: 2px solid #004e5a !important; /* Match header color */
+  color: #004e5a !important;
+  font-weight: 800 !important;
+}
+
+.plan-view-calendar .react-datepicker__day--keyboard-selected {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Today (if not selected) */
+.plan-view-calendar .react-datepicker__day--today {
+  color: #004e5a !important;
+  font-weight: 800 !important;
+}
+
+/* Hover */
+.plan-view-calendar .react-datepicker__day:hover {
+  background-color: #fdecec !important;
+  color: #004e5a !important;
+}
+
+/* Blackout Dots */
+.plan-view-calendar .react-datepicker__day.blackout-date::after {
+  background-color: #333 !important; /* Black dot */
+  width: 5px;
+  height: 5px;
+  bottom: 5px;
+}
+
+/* Mobile Adjustments for full calendar */
+@media (max-width: 768px) {
+  .plan-view-calendar .react-datepicker__day,
+  .plan-view-calendar .react-datepicker__day-name {
+    width: 2.2rem !important;
+    height: 2.2rem !important;
+    line-height: 2.2rem !important;
+    font-size: 0.9rem !important;
+  }
+}
