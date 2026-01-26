@@ -124,7 +124,7 @@
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .main-wrapper.collapsed {
@@ -148,7 +148,9 @@
   top: 0;
   z-index: 100;
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  overflow: visible;
 }
+
 
 /* Header Left */
 .header-left {
@@ -180,11 +182,95 @@
   flex: 1;
   max-width: 500px;
   margin: 0 24px;
+  position: relative;
+  z-index: 600;
 }
+
 
 /* Header search uses the same input styling as airport inputs */
 .header-airport-search {
   width: 100%;
+  overflow: visible !important; /* FIXED: Allow dropdown to overflow */
+}
+
+/* Global header search dropdown */
+.header-airport-search.focused{
+  border-color: #0096a6;
+  box-shadow: 0 0 0 1px rgba(0, 150, 166, 0.55);
+}
+
+.global-search-dropdown{
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 10px);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.10);
+  overflow: hidden;
+  z-index: 999;
+}
+
+.global-search-row{
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.global-search-row.muted{
+  color: #64748b;
+  font-weight: 600;
+}
+
+.global-search-group{
+  padding: 8px 8px 10px 8px;
+}
+
+.global-search-group + .global-search-group{
+  border-top: 1px solid #f1f5f9;
+}
+
+.global-search-group-title{
+  padding: 10px 10px 6px 10px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  font-weight: 800;
+}
+
+.global-search-item{
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 10px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.global-search-item:hover{
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.global-search-item-main{
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.global-search-item-sub{
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
 }
 
 .header-search-wrapper {
@@ -277,7 +363,7 @@
   overflow: hidden;
 }
 
-/* ✅ NEW: Override padding when Artist View is active */
+/* NEW: Override padding when Artist View is active */
 .user-home-content.artist-view-active {
   padding-left: 32px;
   padding-right: 32px;
@@ -444,7 +530,7 @@
   background-repeat: no-repeat;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14), 0 2px 6px rgba(15, 23, 42, 0.08);
   
-  /* ✅ THIS MAKES THEM "SHIFT" SMOOTHLY WHEN RESIZING */
+  /* THIS MAKES THEM "SHIFT" SMOOTHLY WHEN RESIZING */
   transition: transform 0.18s ease, box-shadow 0.18s ease, width 0.3s ease, height 0.3s ease;
 }
 
@@ -1475,6 +1561,15 @@ input[type="date"] {
   inset: 0;
 }
 
+/* Ensure clicks land on the card (defensive) */
+.artist-event-bg,
+.artist-event-overlay {
+  pointer-events: none;
+}
+.artist-event-content {
+  pointer-events: none;
+}
+
 /* Gradient Overlay */
 .artist-event-overlay {
   position: absolute;
@@ -1537,4 +1632,214 @@ input[type="date"] {
   font-size: 0.8rem;
   font-weight: 500;
   line-height: 1.2;
+}
+
+/* =========================================
+   EVENT DETAILS (mirrors Artist Details)
+   ========================================= */
+.event-hero{
+  position: relative;
+  height: 340px;
+  width: 100%;
+  flex-shrink: 0;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.event-hero-bg{
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.event-hero-overlay{
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  background: linear-gradient(to top, #0f172a 0%, rgba(15, 23, 42, 0.35) 55%, transparent 100%);
+}
+
+.event-hero-topbar{
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
+
+.event-hero-icon-btn{
+  background: rgba(0,0,0,0.3);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.event-hero-icon-btn.disabled{
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.event-hero-bottom{
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  right: 24px;
+  z-index: 5;
+}
+
+.event-hero-title{
+  color: white;
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.event-hero-tags{
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.event-hero-tag{
+  background: rgba(255,255,255,0.15);
+  color: #e2e8f0;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+
+/* Details body */
+.event-details-body{
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.event-details-row{
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.event-details-label{
+  width: 84px;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.event-details-value{
+  flex: 1;
+  color: #1e293b;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.event-details-note{
+  margin-top: 8px;
+  padding: 12px 14px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #64748b;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+/* --- Global Search Dropdown (match Onboarding_3 favorite artists dropdown) --- */
+.artist-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  max-height: 200px;
+  overflow-y: auto;
+  animation: slideDown 0.25s ease-out;
+}
+
+.artist-dropdown-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Add gap between icon and text */
+}
+
+.artist-dropdown-item:last-child { border-bottom: none; }
+.artist-dropdown-item:hover { background-color: #f8fafc; }
+
+.artist-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; 
+  justify-content: center;
+  flex: 1; 
+}
+
+.artist-main {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.95rem;
+  line-height: 1.1; 
+}
+
+/* New CSS for icons and group labels */
+.dropdown-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.global-dropdown-group-label {
+  padding: 8px 16px 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Keeping this if needed for other components, but effectively hidden in global search now */
+.artist-genres {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
 }

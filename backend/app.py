@@ -437,6 +437,126 @@ def db_artists():
     ])
 
 # --- ✅ NEW: GET GENRES ---
+
+# --- ✅ NEW: GLOBAL SEARCH (ARTISTS + LOCATIONS + AIRPORTS) ---
+@app.route('/api/search_global', methods=['GET'])
+def search_global():
+    """Unified search endpoint for the header search bar.
+
+    Returns:
+      {
+        "artists": [...],
+        "locations": [...],
+        "airports": [...]
+      }
+
+    Notes:
+    - Searches only your local DB tables (artists, locations, airports).
+    - This endpoint is designed to power a single global dropdown on the frontend.
+    """
+    keyword = request.args.get('keyword', '').strip()
+    limit = int(request.args.get('limit', 8))
+
+    if not keyword or len(keyword) < 2:
+        return jsonify({"artists": [], "locations": [], "airports": []})
+
+    like = f"%{keyword}%"
+
+    # -------------------------
+    # Artists (matches /api/db_artists)
+    # -------------------------
+    artist_rows = (Artist.query
+        .filter(db.or_(
+            Artist.display_name.ilike(like),
+            Artist.normalized_name.ilike(like)
+        ))
+        .order_by(Artist.display_name.asc())
+        .limit(limit)
+        .all()
+    )
+
+    artists = [{
+        "id": a.id,
+        "display_name": a.display_name,
+        "edmtrain_id": a.edmtrain_id,
+        "normalized_name": a.normalized_name,
+        "genres": a.genres,
+        "image_url": a.image_url,
+        # Unified display keys for the global search dropdown
+        "label": a.display_name,
+        "displayLabel": a.display_name
+    } for a in artist_rows]
+
+    # -------------------------
+    # Locations (matches /api/db_locations)
+    # -------------------------
+    location_rows = (Location.query
+        .filter(db.or_(Location.name.ilike(like), Location.city.ilike(like)))
+        .order_by(Location.city.asc())
+        .limit(limit)
+        .all()
+    )
+
+    locations = [{
+        "id": l.id,
+        "name": l.name,
+        "city": l.city,
+        "state": l.state,
+        "state_code": l.state_code,
+        "latitude": l.latitude,
+        "longitude": l.longitude,
+        "edmtrain_locationid": l.edmtrain_locationid,
+        "label": l.name,
+        "displayLabel": l.name
+    } for l in location_rows]
+
+    # -------------------------
+    # Airports (matches /api/db_airports join logic)
+    # -------------------------
+    airport_rows = (db.session.query(Airport, Location)
+        .outerjoin(Location, Airport.location_id == Location.id)
+        .filter(
+            db.or_(
+                Airport.iata_code.ilike(like),
+                Airport.name.ilike(like),
+                Location.name.ilike(like),
+                Location.city.ilike(like)
+            )
+        )
+        .order_by(Airport.iata_code.asc())
+        .limit(limit)
+        .all()
+    )
+
+    airports = []
+    for a, loc in airport_rows:
+        # Friendly label like: "Denver, CO" (or fallback to loc.name)
+        location_label = None
+        if loc:
+            if loc.city and loc.state_code:
+                location_label = f"{loc.city}, {loc.state_code}"
+            else:
+                location_label = loc.name
+
+        label = f"{a.iata_code} · {a.name}"
+        if location_label:
+            label = f"{label} ({location_label})"
+
+        airports.append({
+            "id": a.id,
+            "iata_code": a.iata_code,
+            "airport_name": a.name,
+            "location_label": location_label,
+            "label": label,
+            "displayLabel": label
+        })
+
+    return jsonify({
+        "artists": artists,
+        "locations": locations,
+        "airports": airports
+    })
+
 @app.route('/api/db_genres', methods=['GET'])
 def db_genres():
     keyword = request.args.get('keyword', '').strip()

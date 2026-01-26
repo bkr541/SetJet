@@ -29,7 +29,9 @@ import {
   Type,
   UserRound,
   MicVocal,
-  Heart
+  Heart,
+  TowerControl,
+  CircleUserRound
 } from 'lucide-react';
 import './UserHome.css';
 
@@ -111,7 +113,7 @@ const EventImage = ({ link, alt, className, style, mode = "background" }) => {
 
 
 // --- Artist Details View ---
-const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, eventsCacheByArtistId, setEventsCacheByArtistId }) => {
+const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, eventsCacheByArtistId, setEventsCacheByArtistId, onEventClick }) => {
   const [activeTab, setActiveTab] = useState('Upcoming Sets');
   const [artistEvents, setArtistEvents] = useState([]);
   
@@ -375,7 +377,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
                   const key = evt?.id || evt?.eventId || `${artist?.edmtrain_id || 'artist'}-${idx}`;
 
                   return (
-                    <div key={key} className="artist-event-card">
+                    <div key={key} className="artist-event-card" onClick={() => onEventClick && onEventClick(evt)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onEventClick && onEventClick(evt); } }}>
                       {/* Full Background Image */}
                       <EventImage 
                         link={evt?.link} 
@@ -422,6 +424,138 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
     </div>
   );
 };
+
+// --- Event Details View (mirrors ArtistDetails styling) ---
+const EventDetailsView = ({ event, onBack }) => {
+  const [activeTab, setActiveTab] = useState('Details');
+
+  const formatEventDate = (dateStr) => {
+    if (!dateStr) return "TBA";
+    const d = new Date(String(dateStr) + "T00:00:00");
+    if (Number.isNaN(d.getTime())) return String(dateStr);
+    return d.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const eventName = event?.name || "Event";
+  const eventDate = event?.date || event?.startTime || null;
+  const venueName = event?.venue?.name || "";
+  const venueLocation = event?.venue?.location || "";
+  const isFestival = !!event?.festivalInd;
+  const tagLabel = isFestival ? "Festival" : "Set";
+
+  const tabs = [
+    { name: 'Details', icon: Type },
+    { name: 'Plan It', icon: MapPin },
+    { name: 'More', icon: Sparkles },
+  ];
+
+  return (
+    <div className="dashboard-panel fade-in" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* 1. HERO SECTION */}
+      <div className="event-hero">
+        {/* Full Background Image */}
+        <EventImage
+          link={event?.link}
+          alt={eventName}
+          className="event-hero-bg"
+        />
+
+        {/* Gradient overlay */}
+        <div className="event-hero-overlay"></div>
+
+        <div className="event-hero-topbar">
+          <button onClick={onBack} className="event-hero-icon-btn" aria-label="Back">
+            <ArrowLeft size={24} />
+          </button>
+
+          {/* Attending toggle (disabled for now) */}
+          <button className="event-hero-icon-btn disabled" aria-label="Attending" disabled title="Attending toggle is disabled for now">
+            <Check size={22} />
+          </button>
+        </div>
+
+        <div className="event-hero-bottom">
+          <h1 className="event-hero-title">{eventName}</h1>
+
+          <div className="event-hero-tags">
+            <span className="event-hero-tag">{tagLabel}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. TAB NAVIGATION */}
+      <div className="artist-tabs-container">
+        <div className="artist-tabs-scroll">
+          {tabs.map(tab => {
+            const isActive = activeTab === tab.name;
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.name}
+                onClick={() => setActiveTab(tab.name)}
+                className={`artist-tab-btn ${isActive ? 'active' : ''}`}
+              >
+                <Icon size={18} className="artist-tab-icon" />
+                <span>{tab.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3. CONTENT AREA */}
+      <div className="artist-details-content">
+        {activeTab === 'Details' ? (
+          <div className="event-details-body">
+            <div className="event-details-row">
+              <div className="event-details-label">Date</div>
+              <div className="event-details-value">{formatEventDate(event?.date || event?.startTime)}</div>
+            </div>
+
+            {(venueName || venueLocation) && (
+              <div className="event-details-row">
+                <div className="event-details-label">Venue</div>
+                <div className="event-details-value">
+                  {venueName}{venueName && venueLocation ? " • " : ""}{venueLocation}
+                </div>
+              </div>
+            )}
+
+            {typeof event?.ages !== 'undefined' && event?.ages !== null && (
+              <div className="event-details-row">
+                <div className="event-details-label">Ages</div>
+                <div className="event-details-value">{String(event.ages)}</div>
+              </div>
+            )}
+
+            <div className="event-details-row">
+              <div className="event-details-label">Type</div>
+              <div className="event-details-value">{tagLabel}</div>
+            </div>
+
+            <div className="event-details-note">
+              More event details (tickets, lineup, schedule) can plug in here later.
+            </div>
+          </div>
+        ) : (
+          <div className="artist-tab-scroll">
+            <p style={{ color: '#64748b', lineHeight: 1.6, marginTop: 0 }}>
+              {activeTab === 'Plan It'
+                ? 'Plan It will live here (flights, lodging, itinerary).'
+                : 'More will live here (links, artists, share, extras).'}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 
 // --- Dashboard Sub-Views ---
 const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, tourCounts, toursLoading }) => {
@@ -1141,11 +1275,115 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
   const [activeView, setActiveView] = useState('home');
   const [userDestinations, setUserDestinations] = useState(favoriteDestinations || []);
   
+  // ✅ ADDED: State for favorite artists
+  const [userFavoriteArtists, setUserFavoriteArtists] = useState(favoriteArtists || []);
+
   const [selectedArtist, setSelectedArtist] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [viewStack, setViewStack] = useState([]);
 
   const [eventsCacheByArtistId, setEventsCacheByArtistId] = useState({});
   const [tourCounts, setTourCounts] = useState(null);
   const [toursLoading, setToursLoading] = useState(false);
+
+  // --- Global Header Search (Artists / Locations / Airports) ---
+  const [globalQuery, setGlobalQuery] = useState('');
+  const [globalFocused, setGlobalFocused] = useState(false);
+  const [globalOpen, setGlobalOpen] = useState(false);
+  const [globalLoading, setGlobalLoading] = useState(false);
+  const [globalResults, setGlobalResults] = useState({ artists: [], locations: [], airports: [] });
+
+  const globalSearchWrapRef = useRef(null);
+
+  // ✅ ADDED: Sync effect for favorite artists prop
+  useEffect(() => {
+    if (favoriteArtists) {
+      setUserFavoriteArtists(favoriteArtists);
+    }
+  }, [favoriteArtists]);
+
+  const closeGlobalSearch = () => {
+    setGlobalOpen(false);
+    setGlobalLoading(false);
+  };
+
+  const selectGlobalArtist = (artist) => {
+    // Normalize to the shape the UI expects elsewhere
+    const normalized = {
+      ...artist,
+      name: artist?.name || artist?.display_name || artist?.title || artist?.artist_name,
+      image: artist?.image || artist?.image_url || artist?.photo || artist?.photo_url
+    };
+    setGlobalQuery('');
+    closeGlobalSearch();
+    handleArtistClick(normalized);
+  };
+
+  const selectGlobalLocation = (loc) => {
+    // For now we just route the user to Places view (future: prefill fields).
+    setGlobalQuery(loc?.name || loc?.city || '');
+    closeGlobalSearch();
+    setActiveView('places');
+  };
+
+  const selectGlobalAirport = (ap) => {
+    // For now we just route the user to Places view (future: prefill fields).
+    setGlobalQuery(ap?.iata_code ? `${ap.iata_code} - ${ap.name || ''}` : (ap?.name || ''));
+    closeGlobalSearch();
+    setActiveView('places');
+  };
+
+  // Debounced fetch
+  useEffect(() => {
+    const q = (globalQuery || '').trim();
+    if (q.length < 2) {
+      setGlobalResults({ artists: [], locations: [], airports: [] });
+      setGlobalLoading(false);
+      setGlobalOpen(false);
+      return;
+    }
+
+    setGlobalLoading(true);
+    setGlobalOpen(true);
+
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`http://127.0.0.1:5001/api/search_global?keyword=${encodeURIComponent(q)}&limit=8`);
+        const data = await res.json();
+        if (!res.ok) {
+          console.error('Global search failed:', data);
+          setGlobalResults({ artists: [], locations: [], airports: [] });
+          setGlobalLoading(false);
+          return;
+        }
+        setGlobalResults({
+          artists: Array.isArray(data?.artists) ? data.artists : [],
+          locations: Array.isArray(data?.locations) ? data.locations : [],
+          airports: Array.isArray(data?.airports) ? data.airports : []
+        });
+      } catch (err) {
+        console.error('Global search error:', err);
+        setGlobalResults({ artists: [], locations: [], airports: [] });
+      } finally {
+        setGlobalLoading(false);
+      }
+    }, 220);
+
+    return () => clearTimeout(t);
+  }, [globalQuery]);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (!globalSearchWrapRef.current) return;
+      if (!globalSearchWrapRef.current.contains(e.target)) {
+        closeGlobalSearch();
+        setGlobalFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
 
   const MOBILE_BP = 768; 
@@ -1232,6 +1470,12 @@ const [userInfo, setUserInfo] = useState({
       if (data.favorite_destinations && Array.isArray(data.favorite_destinations)) {
         setUserDestinations(data.favorite_destinations);
       }
+
+      // ✅ ADDED: Update favorite artists from backend response
+      if (data.favorite_artists && Array.isArray(data.favorite_artists)) {
+        setUserFavoriteArtists(data.favorite_artists);
+      }
+
     } catch (err) {
       console.error('Failed to fetch user info:', err);
     }
@@ -1254,9 +1498,29 @@ const [userInfo, setUserInfo] = useState({
     setActiveView('artist-details');
   };
 
+  const pushView = (nextView) => {
+    setViewStack((prev) => [...prev, activeView]);
+    setActiveView(nextView);
+  };
+
+  const goBack = () => {
+    setViewStack((prev) => {
+      const next = [...prev];
+      const back = next.pop();
+      setActiveView(back || 'home');
+      return next;
+    });
+  };
+
+  const handleEventClick = (evt) => {
+    setSelectedEvent(evt);
+    pushView('event-details');
+  };
+
+  // ✅ UPDATED: Use dynamic state variable
   const isFavorite = (artist) => {
-    if (!favoriteArtists) return false;
-    return favoriteArtists.some(fav => fav.id === artist.id || fav.name === artist.name);
+    if (!userFavoriteArtists) return false;
+    return userFavoriteArtists.some(fav => fav.id === artist.id || fav.name === artist.name);
   };
 
   const handleToggleFavorite = async (artist) => {
@@ -1289,7 +1553,8 @@ const [userInfo, setUserInfo] = useState({
     switch (activeView) {
       case 'events': return <EventsView />;
       case 'places': return <PlacesView />;
-      case 'artists': return <ArtistsView favoriteArtists={favoriteArtists} />;
+      // ✅ UPDATED: Pass dynamic state
+      case 'artists': return <ArtistsView favoriteArtists={userFavoriteArtists} />;
       case 'plan': return <PlanView />;
       case 'friends': return <FriendsView />;
       
@@ -1297,11 +1562,20 @@ const [userInfo, setUserInfo] = useState({
         return (
           <ArtistDetailsView 
             artist={selectedArtist} 
-            onBack={() => setActiveView('home')} 
+            onBack={goBack} 
             isFavorite={isFavorite(selectedArtist)}
             onToggleFavorite={handleToggleFavorite}
             eventsCacheByArtistId={eventsCacheByArtistId}
             setEventsCacheByArtistId={setEventsCacheByArtistId}
+            onEventClick={handleEventClick}
+          />
+        );
+
+      case 'event-details':
+        return (
+          <EventDetailsView
+            event={selectedEvent}
+            onBack={goBack}
           />
         );
 
@@ -1323,7 +1597,7 @@ const [userInfo, setUserInfo] = useState({
       default:
         return (
           <HomeView 
-            favoriteArtists={favoriteArtists} 
+            favoriteArtists={userFavoriteArtists} // ✅ UPDATED: Pass dynamic state
             favoriteDestinations={userDestinations} 
             onArtistClick={handleArtistClick} 
             tourCounts={tourCounts || {}}
@@ -1408,9 +1682,101 @@ const [userInfo, setUserInfo] = useState({
           </div>
 
           <div className="header-center">
-            <div className="places-input-wrap header-airport-search">
+            <div
+              className={`places-input-wrap header-airport-search ${globalFocused ? 'focused' : ''}`}
+              style={{ position: 'relative', zIndex: 120, overflow: 'visible' }} // ✅ FIXED: Allow Dropdown Overflow
+              ref={globalSearchWrapRef}
+            >
               <Search size={18} className="places-input-icon" />
-              <input type="text" placeholder="Artists, venues..." className="places-airport-input" autoComplete="off" />
+              <input
+                type="text"
+                placeholder="Artists, venues..."
+                className="places-airport-input"
+                autoComplete="off"
+                value={globalQuery}
+                onChange={(e) => setGlobalQuery(e.target.value)}
+                onFocus={() => { setGlobalFocused(true); if ((globalQuery || '').trim().length >= 2) setGlobalOpen(true); }}
+                onBlur={() => { setTimeout(() => setGlobalOpen(false), 180); }}
+              />
+
+              {globalOpen && (
+                <div className="artist-dropdown" role="listbox">
+                  {globalLoading && (
+                    <div className="artist-dropdown-item" style={{ cursor: 'default' }}>
+                      <div className="artist-text-group">
+                        <div className="artist-main">Searching…</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {!globalLoading && (
+                    <>
+                      {/* ARTISTS GROUP */}
+                      {globalResults.artists && globalResults.artists.length > 0 && (
+                        <>
+                          <div className="global-dropdown-group-label">Artists</div>
+                          {globalResults.artists.map((item) => (
+                            <div
+                              key={`artist-${item.id}`}
+                              className="artist-dropdown-item"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => selectGlobalArtist(item)}
+                            >
+                              <CircleUserRound size={16} className="dropdown-icon" />
+                              <div className="artist-main">{item.label || item.display_name}</div>
+                            </div>
+                          ))}
+                        </>
+                      )}
+
+                      {/* LOCATIONS GROUP */}
+                      {globalResults.locations && globalResults.locations.length > 0 && (
+                        <>
+                          <div className="global-dropdown-group-label">Locations</div>
+                          {globalResults.locations.map((item) => (
+                            <div
+                              key={`loc-${item.id}`}
+                              className="artist-dropdown-item"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => selectGlobalLocation(item)}
+                            >
+                              <MapPin size={16} className="dropdown-icon" />
+                              <div className="artist-main">{item.label || item.name}</div>
+                            </div>
+                          ))}
+                        </>
+                      )}
+
+                      {/* AIRPORTS GROUP */}
+                      {globalResults.airports && globalResults.airports.length > 0 && (
+                        <>
+                          <div className="global-dropdown-group-label">Airports</div>
+                          {globalResults.airports.map((item) => (
+                            <div
+                              key={`ap-${item.id}`}
+                              className="artist-dropdown-item"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => selectGlobalAirport(item)}
+                            >
+                              <TowerControl size={16} className="dropdown-icon" />
+                              <div className="artist-main">{item.label || item.iata_code}</div>
+                            </div>
+                          ))}
+                        </>
+                      )}
+
+                      {/* NO RESULTS */}
+                      {(!globalResults.artists?.length && !globalResults.locations?.length && !globalResults.airports?.length) && (
+                        <div className="artist-dropdown-item" style={{ cursor: 'default' }}>
+                          <div className="artist-text-group">
+                            <div className="artist-main">No results</div>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -1425,7 +1791,7 @@ const [userInfo, setUserInfo] = useState({
           </div>
         </header>
 
-        <main className={`user-home-content ${activeView === 'artist-details' ? 'artist-view-active' : ''}`}>
+        <main className={`user-home-content ${(activeView === 'artist-details' || activeView === 'event-details') ? 'artist-view-active' : ''}`}>
           {renderContent()}
         </main>
       </div>
