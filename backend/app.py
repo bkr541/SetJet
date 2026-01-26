@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
+from datetime import datetime
 # from scraper import FrontierScraper  # Commented out - using Amadeus API instead
 from amadeus_api import AmadeusFlightSearch
 from edmtrain_api import EDMTrainAPI
@@ -147,7 +148,6 @@ class Location(db.Model):
     def __repr__(self):
         return f'<Location {self.name}>'
 
-
 class Airport(db.Model):
     __tablename__ = 'airports'
 
@@ -223,6 +223,62 @@ class User(db.Model):
 
     def __repr__(self):
         return f"User('{self.email}', '{self.first_name}', '{self.last_name}')"
+
+class UserEvents(db.Model):
+    __tablename__ = "user_events"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    # EDMTrain event id from JSON payload
+    edmtrain_event_id = db.Column(db.Integer, nullable=False, index=True)
+
+    # Unified time window (UTC)
+    start_time = db.Column(db.DateTime, nullable=False, index=True)
+    end_time = db.Column(db.DateTime, nullable=True, index=True)
+
+    saved_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "edmtrain_event_id", name="uq_user_edmtrain_event"),
+    )
+
+class UserFlights(db.Model):
+    __tablename__ = "user_flights"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    # Deterministic fingerprint for uniqueness
+    flight_key = db.Column(db.String(255), nullable=False, index=True)
+
+    provider = db.Column(db.String(32), nullable=True, index=True)
+    provider_offer_id = db.Column(db.String(128), nullable=True, index=True)
+
+    # Unified time window (UTC)
+    start_time = db.Column(db.DateTime, nullable=False, index=True)   # first departure
+    end_time = db.Column(db.DateTime, nullable=False, index=True)     # final arrival
+
+    saved_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    snapshot_json = db.Column(db.JSON, nullable=True)
+    snapshot_updated_at = db.Column(db.DateTime, nullable=True)
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "flight_key", name="uq_user_flight_key"),
+    )
 
 # ==========================================
 # 3. HELPER FUNCTIONS
@@ -807,6 +863,55 @@ def save_favorite_artists():
         traceback.print_exc()
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
+# --- ✅ NEW: TOGGLE EVENT ATTENDANCE (ADD/REMOVE) ---
+@app.route('/api/toggle_event_attendance', methods=['POST'])
+def toggle_event_attendance():
+    data = request.get_json() or {}
+    email = data.get('email')
+    event_id = data.get('event_id') # data.id from JSON
+    event_date_str = data.get('event_date') # data.date from JSON
+
+    if not email or not event_id or not event_date_str:
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    try:
+        # Check if user is already attending
+        attendance = UserEvents.query.filter_by(
+            user_id=user.id, 
+            edmtrain_event_id=event_id
+        ).first()
+
+        if attendance:
+            # If exists, remove it (un-toggle)
+            db.session.delete(attendance)
+            is_attending = False
+        else:
+            # If not exists, create it
+            # Convert "YYYY-MM-DD" to a datetime object
+            start_time = datetime.strptime(event_date_str, '%Y-%m-%d')
+            
+            new_attendance = UserEvents(
+                user_id=user.id,
+                edmtrain_event_id=event_id,
+                start_time=start_time
+            )
+            db.session.add(new_attendance)
+            is_attending = True
+
+        db.session.commit()
+        return jsonify({
+            'message': 'Attendance updated',
+            'is_attending': is_attending
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Toggle Attendance Error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # --- ✅ NEW: TOGGLE FAVORITE ARTIST (ADD/REMOVE) ---
 @app.route('/api/toggle_favorite_artist', methods=['POST'])

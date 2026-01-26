@@ -12,6 +12,13 @@ CREATE TABLE IF NOT EXISTS "airports" (
 	PRIMARY KEY("id"),
 	FOREIGN KEY("location_id") REFERENCES "locations"("id") ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS "artist_genres" (
+	"artist_id"	INTEGER NOT NULL,
+	"genre_id"	INTEGER NOT NULL,
+	PRIMARY KEY("artist_id","genre_id"),
+	FOREIGN KEY("artist_id") REFERENCES "artists"("id") ON DELETE CASCADE,
+	FOREIGN KEY("genre_id") REFERENCES "genres"("id") ON DELETE CASCADE
+);
 CREATE TABLE IF NOT EXISTS "artists" (
 	"id"	INTEGER NOT NULL,
 	"display_name"	VARCHAR(255) NOT NULL,
@@ -1839,36 +1846,22 @@ INSERT INTO "locations" ("id","name","city","state","state_code","latitude","lon
 INSERT INTO "locations" ("id","name","city","state","state_code","latitude","longitude","region","country","edmtrain_locationid") VALUES (150,'Port of Spain','Port of Spain','None','None',NULL,NULL,'None','None',NULL);
 INSERT INTO "locations" ("id","name","city","state","state_code","latitude","longitude","region","country","edmtrain_locationid") VALUES (151,'St. Croix','St. Croix','None','None',NULL,NULL,'None','None',NULL);
 INSERT INTO "locations" ("id","name","city","state","state_code","latitude","longitude","region","country","edmtrain_locationid") VALUES (152,'St. Thomas','St. Thomas','None','None',NULL,NULL,'None','None',NULL);
-INSERT INTO "user_favorite_artists" ("user_id","artist_id") VALUES (1,64);
+INSERT INTO "user_favorite_artists" ("user_id","artist_id") VALUES (1,3);
 INSERT INTO "user_favorite_artists" ("user_id","artist_id") VALUES (1,69);
+INSERT INTO "user_favorite_artists" ("user_id","artist_id") VALUES (1,216);
+INSERT INTO "user_favorite_artists" ("user_id","artist_id") VALUES (1,268);
 INSERT INTO "user_favorite_artists" ("user_id","artist_id") VALUES (1,1191);
+INSERT INTO "user_favorite_artists" ("user_id","artist_id") VALUES (1,41);
 INSERT INTO "user_favorite_artists" ("user_id","artist_id") VALUES (1,27);
-INSERT INTO "user_favorite_artists" ("user_id","artist_id") VALUES (3,69);
-INSERT INTO "user_favorite_artists" ("user_id","artist_id") VALUES (4,116);
-INSERT INTO "user_favorite_artists" ("user_id","artist_id") VALUES (4,268);
-INSERT INTO "user_favorite_genres" ("user_id","genre_id") VALUES (1,18);
 INSERT INTO "user_favorite_genres" ("user_id","genre_id") VALUES (1,88);
 INSERT INTO "user_favorite_genres" ("user_id","genre_id") VALUES (1,53);
-INSERT INTO "user_favorite_genres" ("user_id","genre_id") VALUES (3,18);
-INSERT INTO "user_favorite_genres" ("user_id","genre_id") VALUES (3,88);
-INSERT INTO "user_favorite_genres" ("user_id","genre_id") VALUES (4,88);
-INSERT INTO "user_favorite_genres" ("user_id","genre_id") VALUES (4,18);
-INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (1,16);
-INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (1,23);
+INSERT INTO "user_favorite_genres" ("user_id","genre_id") VALUES (1,18);
 INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (1,56);
-INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (2,9);
-INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (3,56);
-INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (4,28);
-INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (5,87);
-INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (6,6);
-INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (7,56);
-INSERT INTO "users" ("id","email","password","first_name","last_name","username","dob","image_file","home_location_id","bio","onboarding_complete") VALUES (1,'bkr_92_02@yahoo.com','Dvydrm30032!','Kody','Robinson','DVYDRM','1992-07-07','1_Screenshot_2026-01-21_at_8.34.30_PM.png',2,NULL,'Yes');
-INSERT INTO "users" ("id","email","password","first_name","last_name","username","dob","image_file","home_location_id","bio","onboarding_complete") VALUES (2,'asdf@gmail.com','Robinson02!','asdf','asdf','asdf','1990-12-12','default.jpg',23,'asdf','No');
-INSERT INTO "users" ("id","email","password","first_name","last_name","username","dob","image_file","home_location_id","bio","onboarding_complete") VALUES (3,'Nei@gmail.com','Robinson02!','Nei','Nei','nei','1990-09-09','default.jpg',23,'Bass','Yes');
-INSERT INTO "users" ("id","email","password","first_name","last_name","username","dob","image_file","home_location_id","bio","onboarding_complete") VALUES (4,'lol@gmail.com','Robinson02!','lol','lol','lol','1992-09-09','default.jpg',23,'Bass','Yes');
-INSERT INTO "users" ("id","email","password","first_name","last_name","username","dob","image_file","home_location_id","bio","onboarding_complete") VALUES (5,'Margot@gmail.com','Robinson02!','margot','margot','margot','1992-09-09','default.jpg',23,'adsf','No');
-INSERT INTO "users" ("id","email","password","first_name","last_name","username","dob","image_file","home_location_id","bio","onboarding_complete") VALUES (6,'aaaa@gmail.com','Robinson02!','aaaa','aaaa','awssss','1992-12-12','default.jpg',23,'ad','No');
-INSERT INTO "users" ("id","email","password","first_name","last_name","username","dob","image_file","home_location_id","bio","onboarding_complete") VALUES (7,'You@gmail.com','Robinson02!','You','You','you','1992-12-12','default.jpg',23,'bass','No');
+INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (1,23);
+INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (1,15);
+INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (1,16);
+INSERT INTO "user_favorite_locations" ("user_id","location_id") VALUES (1,96);
+INSERT INTO "users" ("id","email","password","first_name","last_name","username","dob","image_file","home_location_id","bio","onboarding_complete") VALUES (1,'bkr_92_02@yahoo.com','Dvydrm30032!','Kody','Robinson','DVYDRM','1992-07-07','1_Screenshot_2026-01-21_at_8.34.30_PM.png',2,'Bass Music','Yes');
 CREATE UNIQUE INDEX IF NOT EXISTS "ix_artists_edmtrain_id" ON "artists" (
 	"edmtrain_id"
 );

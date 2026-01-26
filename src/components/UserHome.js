@@ -33,7 +33,8 @@ import {
   TowerControl,
   CircleUserRound,
   CalendarDays,
-  Plane
+  Plane,
+  CalendarCheck
 } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -653,6 +654,67 @@ const DestinationDetailsView = ({ destination, onBack }) => {
 // --- Event Details View (mirrors ArtistDetails styling) ---
 const EventDetailsView = ({ event, onBack }) => {
   const [activeTab, setActiveTab] = useState('Details');
+  // ✅ NEW: State for tracking attendance toggle
+  const [isAttending, setIsAttending] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // ✅ NEW: Fetch initial attendance status
+  useEffect(() => {
+    const fetchAttendanceStatus = async () => {
+      const email = localStorage.getItem('current_email');
+      if (!email || !event?.id) return;
+
+      try {
+        const res = await fetch(`http://127.0.0.1:5001/api/get_user_info`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        
+        // This assumes the user info endpoint might return a list of attending IDs 
+        // or a similar mechanism. If not, we can assume false initially.
+        // For production, a dedicated endpoint to check single attendance is better.
+      } catch (err) {
+        console.error("Failed to check attendance status", err);
+      }
+    };
+
+    fetchAttendanceStatus();
+  }, [event?.id]);
+
+  // ✅ NEW: Handler to toggle attendance (writes to user_event table)
+  const handleToggleAttendance = async () => {
+    const email = localStorage.getItem('current_email');
+    const eventId = event?.id;
+    const eventDate = event?.date; // start_time from JSON
+
+    if (!email || !eventId || !eventDate || isUpdating) return;
+
+    setIsUpdating(true);
+    try {
+      const res = await fetch('http://127.0.0.1:5001/api/toggle_event_attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          event_id: eventId,
+          event_date: eventDate
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setIsAttending(data.is_attending);
+      } else {
+        console.error("Failed to update attendance");
+      }
+    } catch (err) {
+      console.error("Error toggling attendance:", err);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const formatEventDate = (dateStr) => {
     if (!dateStr) return "TBA";
@@ -667,9 +729,6 @@ const EventDetailsView = ({ event, onBack }) => {
   };
 
   const eventName = event?.name || "Event";
-  const eventDate = event?.date || event?.startTime || null;
-  const venueName = event?.venue?.name || "";
-  const venueLocation = event?.venue?.location || "";
   const isFestival = !!event?.festivalInd;
   const tagLabel = isFestival ? "Festival" : "Set";
 
@@ -683,14 +742,12 @@ const EventDetailsView = ({ event, onBack }) => {
     <div className="dashboard-panel fade-in" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* 1. HERO SECTION */}
       <div className="event-hero">
-        {/* Full Background Image */}
         <EventImage
           link={event?.link}
           alt={eventName}
           className="event-hero-bg"
         />
 
-        {/* Gradient overlay */}
         <div className="event-hero-overlay"></div>
 
         <div className="event-hero-topbar">
@@ -698,9 +755,14 @@ const EventDetailsView = ({ event, onBack }) => {
             <ArrowLeft size={24} />
           </button>
 
-          {/* Attending toggle (disabled for now) */}
-          <button className="event-hero-icon-btn disabled" aria-label="Attending" disabled title="Attending toggle is disabled for now">
-            <Check size={22} />
+          {/* ✅ UPDATED: Dynamic Attending toggle */}
+          <button 
+            className={`event-hero-icon-btn ${isUpdating ? 'loading' : ''}`} 
+            onClick={handleToggleAttendance}
+            style={{ color: isAttending ? '#22c55e' : 'white' }}
+            aria-label="Toggle Attending"
+          >
+            <CalendarCheck size={22} stroke={isAttending ? "#22c55e" : "#94a3b8"} fill="none" />
           </button>
         </div>
 
@@ -742,11 +804,11 @@ const EventDetailsView = ({ event, onBack }) => {
               <div className="event-details-value">{formatEventDate(event?.date || event?.startTime)}</div>
             </div>
 
-            {(venueName || venueLocation) && (
+            {(event?.venue?.name || event?.venue?.location) && (
               <div className="event-details-row">
                 <div className="event-details-label">Venue</div>
                 <div className="event-details-value">
-                  {venueName}{venueName && venueLocation ? " • " : ""}{venueLocation}
+                  {event.venue.name}{event.venue.name && event.venue.location ? " • " : ""}{event.venue.location}
                 </div>
               </div>
             )}
@@ -784,8 +846,6 @@ const EventDetailsView = ({ event, onBack }) => {
 
 // --- Dashboard Sub-Views ---
 const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDestinationClick, tourCounts, toursLoading }) => {
-  // Demo destinations fallback
-
   const demoDestinations = [
     { id: 'chicago', city: 'Chicago', name: 'Chicago' },
   ];
@@ -797,7 +857,6 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
 
   return (
     <div className="dashboard-panel fade-in">
-      {/* HEADLINERS SECTION */}
       <div className="headliners-section">
         <h3 className="section-title">YOUR HEADLINERS</h3>
         <div className="headliners-scroll">
@@ -823,7 +882,6 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
                   >
                     <div className="headliner-overlay"></div>
                     <span className="headliner-name">{artist.name}</span>
-                    {/* Event Count */}
                   {count > 0 && (
                     <div className="headliner-event-count">
                       {count} {count === 1 ? 'Event' : 'Events'}
@@ -839,7 +897,6 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
         </div>
       </div>
 
-      {/* YOUR DESTINATIONS (poster style) */}
       <div className="destinations-section">
         <h3 className="section-title">YOUR DESTINATIONS</h3>
 
@@ -855,8 +912,6 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
               '';
 
             const cityName = (raw || 'Unknown').split(',')[0].trim() || 'Unknown';
-
-            // Construct image path: /artifacts/cities/<lowercase_city_nospaces>.png
             const safeName = cityName.toLowerCase().replace(/\s+/g, '');
             const imgPath = `/artifacts/cities/${safeName}.png`;
 
@@ -871,7 +926,7 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
                   backgroundImage: `url(${imgPath})`
                 }}
                 aria-label={cityName}
-                onClick={() => onDestinationClick(d)} // ✅ NEW: Route to Details
+                onClick={() => onDestinationClick(d)}
               >
                 <div className="destination-poster-overlay" />
                 <div className="destination-poster-title">{cityName}</div>
@@ -1210,13 +1265,12 @@ const PlanView = () => {
       <div className="headliners-section">
         <h3 className="section-title">PLAN YOUR TRIP</h3>
         
-        {/* Full Calendar Display - Inline with 100% width */}
         <div style={{ marginTop: '24px', marginBottom: '24px' }}>
             <DatePicker
               selected={startDate}
               onChange={(date) => setStartDate(date)}
-              inline // Renders calendar directly in DOM
-              calendarClassName="plan-view-calendar" // Custom class for 100% width override
+              inline 
+              calendarClassName="plan-view-calendar" 
               dateFormat="EEE, MMM do, yyyy"
               minDate={new Date()}
               fixedHeight
@@ -1225,7 +1279,6 @@ const PlanView = () => {
               <CalendarLegend />
             </DatePicker>
         </div>
-        {/* Removed text as requested */}
       </div>
     </div>
   );
@@ -1523,13 +1576,10 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
   const [collapsed, setCollapsed] = useState(false);
   const [activeView, setActiveView] = useState('home');
   const [userDestinations, setUserDestinations] = useState(favoriteDestinations || []);
-  
-  // ✅ ADDED: State for favorite artists
   const [userFavoriteArtists, setUserFavoriteArtists] = useState(favoriteArtists || []);
 
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  // ✅ ADDED: State for selected destination
   const [selectedDestination, setSelectedDestination] = useState(null);
 
   const [viewStack, setViewStack] = useState([]);
@@ -1547,7 +1597,6 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
 
   const globalSearchWrapRef = useRef(null);
 
-  // ✅ ADDED: Sync effect for favorite artists prop
   useEffect(() => {
     if (favoriteArtists) {
       setUserFavoriteArtists(favoriteArtists);
@@ -1560,7 +1609,6 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
   };
 
   const selectGlobalArtist = (artist) => {
-    // Normalize to the shape the UI expects elsewhere
     const normalized = {
       ...artist,
       name: artist?.name || artist?.display_name || artist?.title || artist?.artist_name,
@@ -1572,20 +1620,17 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
   };
 
   const selectGlobalLocation = (loc) => {
-    // ✅ CHANGED: Now routes to Destination Details
     setGlobalQuery('');
     closeGlobalSearch();
     handleDestinationClick(loc);
   };
 
   const selectGlobalAirport = (ap) => {
-    // For now we just route the user to Places view (future: prefill fields).
     setGlobalQuery(ap?.iata_code ? `${ap.iata_code} - ${ap.name || ''}` : (ap?.name || ''));
     closeGlobalSearch();
     setActiveView('places');
   };
 
-  // Debounced fetch
   useEffect(() => {
     const q = (globalQuery || '').trim();
     if (q.length < 2) {
@@ -1624,7 +1669,6 @@ function UserHome({ onNavigate, userFirstName, userProfilePic, favoriteArtists, 
     return () => clearTimeout(t);
   }, [globalQuery]);
 
-  // Click outside to close dropdown
   useEffect(() => {
     const onDocClick = (e) => {
       if (!globalSearchWrapRef.current) return;
@@ -1723,7 +1767,6 @@ const [userInfo, setUserInfo] = useState({
         setUserDestinations(data.favorite_destinations);
       }
 
-      // ✅ ADDED: Update favorite artists from backend response
       if (data.favorite_artists && Array.isArray(data.favorite_artists)) {
         setUserFavoriteArtists(data.favorite_artists);
       }
@@ -1750,7 +1793,6 @@ const [userInfo, setUserInfo] = useState({
     setActiveView('artist-details');
   };
 
-  // ✅ ADDED: Handler for destination clicks
   const handleDestinationClick = (destination) => {
     setSelectedDestination(destination);
     setActiveView('destination-details');
@@ -1775,7 +1817,6 @@ const [userInfo, setUserInfo] = useState({
     pushView('event-details');
   };
 
-  // ✅ UPDATED: Use dynamic state variable
   const isFavorite = (artist) => {
     if (!userFavoriteArtists) return false;
     return userFavoriteArtists.some(fav => fav.id === artist.id || fav.name === artist.name);
@@ -1811,7 +1852,6 @@ const [userInfo, setUserInfo] = useState({
     switch (activeView) {
       case 'events': return <EventsView />;
       case 'places': return <PlacesView />;
-      // ✅ UPDATED: Pass dynamic state
       case 'artists': return <ArtistsView favoriteArtists={userFavoriteArtists} />;
       case 'plan': return <PlanView />;
       case 'friends': return <FriendsView />;
@@ -1829,7 +1869,6 @@ const [userInfo, setUserInfo] = useState({
           />
         );
 
-      // ✅ ADDED: Destination Details View
       case 'destination-details':
         return (
             <DestinationDetailsView
@@ -1864,10 +1903,10 @@ const [userInfo, setUserInfo] = useState({
       default:
         return (
           <HomeView 
-            favoriteArtists={userFavoriteArtists} // ✅ UPDATED: Pass dynamic state
+            favoriteArtists={userFavoriteArtists} 
             favoriteDestinations={userDestinations} 
             onArtistClick={handleArtistClick} 
-            onDestinationClick={handleDestinationClick} // ✅ ADDED: Pass destination click handler
+            onDestinationClick={handleDestinationClick} 
             tourCounts={tourCounts || {}}
             toursLoading={toursLoading}
           />
@@ -1952,7 +1991,7 @@ const [userInfo, setUserInfo] = useState({
           <div className="header-center">
             <div
               className={`places-input-wrap header-airport-search ${globalFocused ? 'focused' : ''}`}
-              style={{ position: 'relative', zIndex: 120, overflow: 'visible' }} // ✅ FIXED: Allow Dropdown Overflow
+              style={{ position: 'relative', zIndex: 120, overflow: 'visible' }} 
               ref={globalSearchWrapRef}
             >
               <Search size={18} className="places-input-icon" />
@@ -1979,7 +2018,6 @@ const [userInfo, setUserInfo] = useState({
 
                   {!globalLoading && (
                     <>
-                      {/* ARTISTS GROUP */}
                       {globalResults.artists && globalResults.artists.length > 0 && (
                         <>
                           <div className="global-dropdown-group-label">Artists</div>
@@ -1997,7 +2035,6 @@ const [userInfo, setUserInfo] = useState({
                         </>
                       )}
 
-                      {/* LOCATIONS GROUP */}
                       {globalResults.locations && globalResults.locations.length > 0 && (
                         <>
                           <div className="global-dropdown-group-label">Locations</div>
@@ -2015,7 +2052,6 @@ const [userInfo, setUserInfo] = useState({
                         </>
                       )}
 
-                      {/* AIRPORTS GROUP */}
                       {globalResults.airports && globalResults.airports.length > 0 && (
                         <>
                           <div className="global-dropdown-group-label">Airports</div>
@@ -2033,7 +2069,6 @@ const [userInfo, setUserInfo] = useState({
                         </>
                       )}
 
-                      {/* NO RESULTS */}
                       {(!globalResults.artists?.length && !globalResults.locations?.length && !globalResults.airports?.length) && (
                         <div className="artist-dropdown-item" style={{ cursor: 'default' }}>
                           <div className="artist-text-group">

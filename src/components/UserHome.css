@@ -1522,6 +1522,29 @@ input[type="date"] {
 }
 
 /* =========================================
+   Attending not Attending Toggle
+   ========================================= */
+.event-hero-icon-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.event-hero-icon-btn:active {
+  transform: scale(0.9);
+}
+
+/* Optional: Pulse effect while updating */
+.event-hero-icon-btn.loading {
+  opacity: 0.7;
+  pointer-events: none;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+/* =========================================
    ARTIST EVENTS GRID (Posters)
    ========================================= */
 
