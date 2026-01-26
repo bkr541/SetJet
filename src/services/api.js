@@ -1,7 +1,8 @@
-// Use environment variable if available, otherwise default to localhost:5001
+// Use environment variable if available, otherwise default to relative path
+// This allows the request to work on localhost, Ngrok, or production automatically.
 const API_BASE_URL = typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL
   ? process.env.REACT_APP_API_URL
-  : 'http://localhost:5001/api';
+  : '/api'; 
 
 // Cache utilities
 const CACHE_PREFIX = 'wildpass_';
@@ -101,8 +102,8 @@ export const searchFlightsStreaming = (searchParams, onFlights, onComplete, onEr
 
   // Check cache first
   const cacheKey = CacheManager.getCacheKey(origins, destinations, tripType, departureDate, returnDate);
-  console.log('🔑 Cache key:', cacheKey);
-  console.log('📋 Search params:', { origins, destinations, tripType, departureDate, returnDate });
+  console.log('🔍 Cache key:', cacheKey);
+  console.log('🔎 Search params:', { origins, destinations, tripType, departureDate, returnDate });
 
   const cachedData = CacheManager.getCache(cacheKey);
 
@@ -118,7 +119,7 @@ export const searchFlightsStreaming = (searchParams, onFlights, onComplete, onEr
     return;
   }
 
-  console.log('🌐 Fetching fresh data from API');
+  console.log('📡 Fetching fresh data from API');
 
   // Use fetch with stream for SSE
   fetch(`${API_BASE_URL}/search/stream`, {

@@ -458,15 +458,15 @@
 
 .headliner-event-count {
   position: absolute;
-  top: 60%; /* Positioned below the name */
+  top: 70%; /* Positioned below the name */
   left: 50%;
   transform: translateX(-50%);
   
-  font-size: 0.85rem;
-  font-weight: 400;
+  font-size: 1rem;
+  font-weight: 900;
   
   /* Use a bright accent color (Cyan/Teal) to distinguish from name */
-  color: #67e8f9; 
+  color: #e52c64; 
   text-shadow: 0 2px 3px rgba(0,0,0,0.9);
   
   /* Ensure it centers properly */

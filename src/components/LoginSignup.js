@@ -408,15 +408,6 @@ function LoginSignup({ onLogin, onDemoLogin, onSignupSuccess }) {
           <p>Already have an account? <button type="button" className="link-button" onClick={() => handleModeSwitch('login')}>Login</button></p>
         )}
       </div>
-
-      {mode === 'login' && (
-        <div className="demo-section">
-          <div className="divider"><span>or try without account</span></div>
-          <button type="button" className="demo-button" onClick={onDemoLogin}>
-            <Sparkles size={18} /><span>Demo Login</span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }

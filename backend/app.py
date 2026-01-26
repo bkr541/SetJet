@@ -1485,19 +1485,41 @@ with app.app_context():
 # ==========================================
 
 def _parse_dt(dt_str):
-    """Parse ISO-ish datetime strings safely."""
+    """Parse ISO-ish datetime strings safely, including 12-hour AM/PM formats."""
     if not dt_str:
         return None
+    
+    # Clean up the string
+    dt_str = dt_str.strip()
+    
+    # 1. Try Standard ISO (e.g. 2023-10-25T14:30:00)
     try:
-        # Handle trailing Z
         s = dt_str.replace('Z', '+00:00')
         return datetime.fromisoformat(s)
     except Exception:
-        # Best-effort fallback for 'YYYY-MM-DDTHH:MM' without seconds
-        try:
-            return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M")
-        except Exception:
-            return None
+        pass
+        
+    # 2. Try 24-hour format without seconds (e.g. 2023-10-25T14:30)
+    try:
+        return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M")
+    except Exception:
+        pass
+
+    # 3. Try 24-hour format WITH seconds (e.g. 2023-10-25T14:30:00)
+    try:
+        return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M:%S")
+    except Exception:
+        pass
+
+    # 4. Try 12-hour AM/PM format (Specific fix for your error)
+    # Matches: "2025-01-15T05:30 PM"
+    try:
+        return datetime.strptime(dt_str, "%Y-%m-%dT%I:%M %p")
+    except Exception:
+        pass
+
+    print(f"DEBUG: Failed to parse date string: '{dt_str}'")
+    return None
 
 
 @app.route('/api/user_flights/select', methods=['POST'])

@@ -868,7 +868,7 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
                     <span className="headliner-name">{artist.name}</span>
                   {count > 0 && (
                     <div className="headliner-event-count">
-                      {count} {count === 1 ? 'Event' : 'Events'}
+                      {count} 
                     </div>
                   )}
                   </div>
