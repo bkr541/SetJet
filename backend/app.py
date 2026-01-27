@@ -454,7 +454,15 @@ def _event_location_id(event: dict, city_state_to_id: dict):
         # 2) parse venue.location like "Tacoma, WA"
         loc_label = venue.get("location")
         if isinstance(loc_label, str) and loc_label.strip():
-            key = _normalize_city_state(loc_label)
+            # Venue location strings can be inconsistent: "City, ST", "City, State", or include country.
+            parts = [p.strip() for p in loc_label.split(',') if p.strip()]
+            if len(parts) >= 2:
+                city_part = parts[0]
+                state_part = parts[1].split()[0]  # take first token (e.g., 'WA')
+                normalized_label = f"{city_part}, {state_part}"
+            else:
+                normalized_label = loc_label
+            key = _normalize_city_state(normalized_label)
             if key in city_state_to_id:
                 return str(city_state_to_id[key])
 
@@ -812,7 +820,11 @@ def get_user_info():
         {
             "id": loc.id,
             "city": loc.city,
-            "name": loc.name
+            "name": loc.name,
+            "edmtrain_locationid": loc.edmtrain_locationid,
+            "state_code": getattr(loc, "state_code", None),
+            "latitude": getattr(loc, "latitude", None),
+            "longitude": getattr(loc, "longitude", None)
         }
         for loc in (user.fav_cities or [])
     ]
@@ -1595,9 +1607,16 @@ def edmtrain_destination_stats():
                 continue
 
             city = (loc.get('city') or '').strip()
-            state = (loc.get('state') or loc.get('stateCode') or loc.get('state_code') or '').strip()
-            if city and state:
-                city_state_to_id[_normalize_city_state(f"{city}, {state}")] = lid_s
+            # Prefer 2-letter state code when available (EDMTrain venues usually use 'City, ST')
+            state_code = (loc.get('stateCode') or loc.get('state_code') or '').strip()
+            state = (loc.get('state') or '').strip()
+            st = state_code if (state_code and len(state_code) == 2) else (state_code or state)
+            st = (st or '').strip()
+            if city and st:
+                city_state_to_id[_normalize_city_state(f"{city}, {st}")] = lid_s
+                # Also store full state name mapping if it's different from the code
+                if state and state.lower() != st.lower():
+                    city_state_to_id[_normalize_city_state(f"{city}, {state}")] = lid_s
     except Exception as e:
         app.logger.warning("Failed building city->id map: %s", e)
 

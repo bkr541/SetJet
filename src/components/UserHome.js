@@ -2146,6 +2146,13 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
 
       // If none of the destinations have a location id, just mark them missing
       if (uniqueLocIds.length === 0) {
+         console.warn(
+        "[UserHome] Skipping destination stats fetch – no edmtrain_locationid found on userDestinations",
+          {
+            userDestinations: destinations,
+            derivedRows: rows
+          }
+        );
         const next = {};
         rows.forEach((r, idx) => {
           next[r.key] = { totalSets: 0, totalFestivals: 0, headliners: 0, missingLocationId: true };
@@ -2159,16 +2166,102 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
 
         const qs = new URLSearchParams();
         qs.set('locationIds', uniqueLocIds.join(','));
-        if (favIds.size > 0) qs.set('favArtistIds', Array.from(favIds).join(','));
 
-        const res = await fetch(`${API_BASE_URL}/api/edmtrain/destination_stats?${qs.toString()}`);
+        const res = await fetch(
+          `${API_BASE_URL}/api/edmtrain/destination_stats?${qs.toString()}`
+        );
+
         const json = await res.json().catch(() => ({}));
 
         if (!res.ok) {
           console.error('Failed to fetch destination stats:', json);
         }
 
-        const statsByLocId = (json && typeof json === 'object' && json.data) ? json.data : {};
+        const data = (json && typeof json === 'object') ? json.data : null;
+
+        // We support two shapes from the backend:
+        // 1) { data: { "<locId>": { totalSets, totalFestivals, headliners } } }  (already aggregated)
+        // 2) { data: [ ...events ] }                                            (raw EDMTrain events)
+        const statsByLocId = {};
+
+        // Build helpers for matching events -> destination locationId (if the backend returns raw events)
+        const normalizeLabel = (s) =>
+          String(s || '')
+            .toLowerCase()
+            .replace(/\s+/g, ' ')
+            .replace(/\s*,\s*/g, ', ')
+            .trim();
+
+        const destLabelForRow = (dest, idx) => {
+          const raw =
+            dest?.city || dest?.location || dest?.name || dest?.title || dest?.location_label || dest?.label || '';
+          return String(raw || 'Unknown').trim() || `Unknown-${idx}`;
+        };
+
+        const locMetaById = {};
+        rows.forEach((r, idx) => {
+          if (!r.locId) return;
+          const label = destLabelForRow(destinations[idx], idx);
+          const cityOnly = label.split(',')[0].trim();
+          locMetaById[r.locId] = {
+            labelNorm: normalizeLabel(label),
+            cityNorm: normalizeLabel(cityOnly),
+          };
+        });
+
+        const ensureStat = (locId) => {
+          if (!statsByLocId[locId]) statsByLocId[locId] = { totalSets: 0, totalFestivals: 0, headliners: 0 };
+          return statsByLocId[locId];
+        };
+
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          // Aggregated shape
+          Object.keys(data).forEach((locId) => {
+            const s = data[locId];
+            if (!s || typeof s !== 'object') return;
+            statsByLocId[String(locId)] = {
+              totalSets: Number(s.totalSets || 0),
+              totalFestivals: Number(s.totalFestivals || 0),
+              headliners: Number(s.headliners || 0),
+            };
+          });
+        } else if (Array.isArray(data)) {
+          // Raw events shape: compute counts client-side
+          data.forEach((evt) => {
+            // Some payloads might include a direct location id, but most EDMTrain events don't.
+            const directLocId =
+              evt?.locationId ??
+              evt?.location_id ??
+              evt?.edmtrain_locationid ??
+              evt?.edmtrain_location_id ??
+              null;
+
+            let locId = directLocId ? String(directLocId) : null;
+
+            if (!locId) {
+              const evtLocLabel = normalizeLabel(evt?.venue?.location || evt?.location || '');
+              if (evtLocLabel) {
+                // Try exact label match first, then city-only startsWith.
+                const match = Object.keys(locMetaById).find((lid) => {
+                  const meta = locMetaById[lid];
+                  return evtLocLabel === meta.labelNorm || evtLocLabel.startsWith(meta.cityNorm);
+                });
+                if (match) locId = String(match);
+              }
+            }
+
+            if (!locId) return; // couldn't match the event to one of the requested destinations
+
+            const s = ensureStat(locId);
+            s.totalSets += 1;
+            if (evt?.festivalInd) s.totalFestivals += 1;
+
+            if (favIds.size > 0 && Array.isArray(evt?.artistList)) {
+              const hasFav = evt.artistList.some((a) => a?.id != null && favIds.has(String(a.id)));
+              if (hasFav) s.headliners += 1;
+            }
+          });
+        }
 
         const next = {};
         rows.forEach((r) => {
