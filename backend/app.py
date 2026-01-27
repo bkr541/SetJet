@@ -236,14 +236,15 @@ class UserEvents(db.Model):
         index=True
     )
 
-    # EDMTrain event id from JSON payload
     edmtrain_event_id = db.Column(db.Integer, nullable=False, index=True)
 
-    # Unified time window (UTC)
     start_time = db.Column(db.DateTime, nullable=False, index=True)
     end_time = db.Column(db.DateTime, nullable=True, index=True)
 
     saved_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    
+    # ✅ NEW: Snapshot Column
+    snapshot_json = db.Column(db.JSON, nullable=True)
 
     __table_args__ = (
         db.UniqueConstraint("user_id", "edmtrain_event_id", name="uq_user_edmtrain_event"),
@@ -390,6 +391,80 @@ try:
 except Exception as e:
     app.logger.warning('EDMTrain API not configured: %s', e)
     edmtrain_client = None
+
+
+
+# ==========================================
+# EDMTrain Locations Cache (to avoid hammering /locations)
+# ==========================================
+_EDMTRAIN_LOCATIONS_CACHE = {"ts": 0.0, "data": []}
+_EDMTRAIN_LOCATIONS_TTL_SECONDS = 60 * 60  # 1 hour
+
+def _normalize_city_state(value: str) -> str:
+    if not value:
+        return ""
+    v = value.strip()
+    # Common input forms: "City, ST" or "City, State"
+    v = re.sub(r"\s+", " ", v)
+    return v.lower()
+
+def _get_edmtrain_locations_cached():
+    """Fetch EDMTrain locations list with a simple in-memory TTL cache."""
+    if not edmtrain_client:
+        return []
+    now = time.time()
+    cached = _EDMTRAIN_LOCATIONS_CACHE
+    if cached["data"] and (now - cached["ts"]) < _EDMTRAIN_LOCATIONS_TTL_SECONDS:
+        return cached["data"]
+
+    resp = edmtrain_client.get_locations()
+    data = resp.get("data") if isinstance(resp, dict) else None
+    if isinstance(data, list):
+        cached["data"] = data
+        cached["ts"] = now
+        return data
+
+    # If EDMTrain errored, keep old cache (if any) and return []
+    return cached.get("data") or []
+
+def _parse_csv_ids(raw: str):
+    if not raw:
+        return []
+    parts = [p.strip() for p in str(raw).split(",") if p.strip()]
+    return parts
+
+def _event_location_id(event: dict, city_state_to_id: dict):
+    """Best-effort extraction of a locationId for an event."""
+    if not isinstance(event, dict):
+        return None
+
+    # 1) direct fields
+    for k in ("locationId", "location_id", "edmtrain_locationid", "edmtrainLocationId"):
+        v = event.get(k)
+        if v is not None:
+            return str(v)
+
+    venue = event.get("venue") if isinstance(event.get("venue"), dict) else None
+    if venue:
+        for k in ("locationId", "location_id", "edmtrain_locationid", "edmtrainLocationId"):
+            v = venue.get(k)
+            if v is not None:
+                return str(v)
+
+        # 2) parse venue.location like "Tacoma, WA"
+        loc_label = venue.get("location")
+        if isinstance(loc_label, str) and loc_label.strip():
+            key = _normalize_city_state(loc_label)
+            if key in city_state_to_id:
+                return str(city_state_to_id[key])
+
+            # Sometimes venue.location is "City, ST" but spacing/case differs
+            # Normalize "City,ST" too
+            key2 = _normalize_city_state(re.sub(r",\s*", ", ", loc_label))
+            if key2 in city_state_to_id:
+                return str(city_state_to_id[key2])
+
+    return None
 
 
 # ==========================================
@@ -890,50 +965,98 @@ def save_favorite_artists():
 @app.route('/api/toggle_event_attendance', methods=['POST'])
 def toggle_event_attendance():
     data = request.get_json() or {}
-    email = data.get('email')
-    event_id = data.get('event_id') # data.id from JSON
-    event_date_str = data.get('event_date') # data.date from JSON
 
-    if not email or not event_id or not event_date_str:
+    email = data.get('email')
+    event_id = data.get('event_id')  # EDMTrain event id (integer-ish)
+    event_date_str = data.get('event_date')  # "YYYY-MM-DD"
+    action = (data.get('action') or 'toggle').lower()  # 'add' | 'remove' | 'toggle'
+    event_snapshot = data.get('event_snapshot')
+
+    if not email or event_id is None or not event_date_str:
         return jsonify({'error': 'Missing required fields'}), 400
 
     user = User.query.filter_by(email=email).first()
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
+    # Normalize event_id to int when possible
     try:
-        # Check if user is already attending
+        event_id_int = int(event_id)
+    except Exception:
+        return jsonify({'error': 'event_id must be an integer'}), 400
+
+    # Make snapshot JSON-friendly:
+    # - If the frontend accidentally sends a JSON string, parse it
+    # - Otherwise store the dict/list as-is
+    snapshot_payload = None
+    try:
+        if isinstance(event_snapshot, str) and event_snapshot.strip():
+            snapshot_payload = json.loads(event_snapshot)
+        elif isinstance(event_snapshot, (dict, list)):
+            snapshot_payload = event_snapshot
+    except Exception:
+        # If snapshot is malformed, don't fail the attendance toggle
+        snapshot_payload = None
+
+    try:
         attendance = UserEvents.query.filter_by(
-            user_id=user.id, 
-            edmtrain_event_id=event_id
+            user_id=user.id,
+            edmtrain_event_id=event_id_int
         ).first()
 
+        # Convert "YYYY-MM-DD" -> datetime (local midnight)
+        start_time = datetime.strptime(event_date_str, '%Y-%m-%d')
+
+        # -------------------------
+        # Explicit actions
+        # -------------------------
+        if action == 'remove':
+            if attendance:
+                db.session.delete(attendance)
+            db.session.commit()
+            return jsonify({'message': 'Attendance updated', 'is_attending': False}), 200
+
+        if action == 'add':
+            if attendance:
+                # ✅ Upsert snapshot into existing row (fix for rows created before snapshot support)
+                attendance.start_time = start_time
+                if snapshot_payload is not None:
+                    attendance.snapshot_json = snapshot_payload
+                db.session.commit()
+                return jsonify({'message': 'Attendance updated', 'is_attending': True}), 200
+
+            new_attendance = UserEvents(
+                user_id=user.id,
+                edmtrain_event_id=event_id_int,
+                start_time=start_time,
+                snapshot_json=snapshot_payload
+            )
+            db.session.add(new_attendance)
+            db.session.commit()
+            return jsonify({'message': 'Attendance updated', 'is_attending': True}), 200
+
+        # -------------------------
+        # Backwards-compatible toggle behavior
+        # -------------------------
         if attendance:
-            # If exists, remove it (un-toggle)
             db.session.delete(attendance)
             is_attending = False
         else:
-            # If not exists, create it
-            # Convert "YYYY-MM-DD" to a datetime object
-            start_time = datetime.strptime(event_date_str, '%Y-%m-%d')
-            
             new_attendance = UserEvents(
                 user_id=user.id,
-                edmtrain_event_id=event_id,
-                start_time=start_time
+                edmtrain_event_id=event_id_int,
+                start_time=start_time,
+                snapshot_json=snapshot_payload
             )
             db.session.add(new_attendance)
             is_attending = True
 
         db.session.commit()
-        return jsonify({
-            'message': 'Attendance updated',
-            'is_attending': is_attending
-        }), 200
+        return jsonify({'message': 'Attendance updated', 'is_attending': is_attending}), 200
 
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"Toggle Attendance Error: {e}")
+        app.logger.error("Toggle Attendance Error: %s", e)
         return jsonify({'error': str(e)}), 500
 
 # --- ✅ NEW: TOGGLE FAVORITE ARTIST (ADD/REMOVE) ---
@@ -1419,6 +1542,92 @@ def edmtrain_city_events():
     results = edmtrain_client.get_city_events(location_ids, start_date, end_date)
     return jsonify(results)
 
+
+@app.route('/api/edmtrain/destination_stats', methods=['GET'])
+def edmtrain_destination_stats():
+    """Batch destination stats for many EDMTrain locationIds in one call.
+
+    Query params:
+      - locationIds=1,2,3
+      - favArtistIds=10,11,12   (optional; used for "headliners" counts)
+      - startDate=YYYY-MM-DD    (optional)
+      - endDate=YYYY-MM-DD      (optional)
+
+    Response:
+      {
+        "data": {
+          "1": {"totalSets": 12, "totalFestivals": 1, "headliners": 3},
+          "2": {"totalSets": 5, "totalFestivals": 0, "headliners": 1},
+          ...
+        }
+      }
+    """
+    if not edmtrain_client:
+        return jsonify({'error': 'EDMTrain API not configured'}), 503
+
+    location_ids_raw = request.args.get('locationIds')
+    if not location_ids_raw:
+        return jsonify({'error': 'Missing locationIds parameter'}), 400
+
+    start_date = request.args.get('startDate')
+    end_date = request.args.get('endDate')
+
+    location_ids = _parse_csv_ids(location_ids_raw)
+    # Keep as strings for mapping stability
+    requested_ids = [str(x) for x in location_ids]
+    requested_id_set = set(requested_ids)
+
+    fav_artist_ids_raw = request.args.get('favArtistIds') or request.args.get('favoriteArtistIds')
+    fav_artist_ids = set(str(x) for x in _parse_csv_ids(fav_artist_ids_raw)) if fav_artist_ids_raw else set()
+
+    # Build a mapping from normalized "City, ST" -> locationId for requested IDs
+    city_state_to_id = {}
+    try:
+        locations = _get_edmtrain_locations_cached()
+        for loc in locations:
+            if not isinstance(loc, dict):
+                continue
+            lid = loc.get('id')
+            if lid is None:
+                continue
+            lid_s = str(lid)
+            if lid_s not in requested_id_set:
+                continue
+
+            city = (loc.get('city') or '').strip()
+            state = (loc.get('state') or loc.get('stateCode') or loc.get('state_code') or '').strip()
+            if city and state:
+                city_state_to_id[_normalize_city_state(f"{city}, {state}")] = lid_s
+    except Exception as e:
+        app.logger.warning("Failed building city->id map: %s", e)
+
+    # Query EDMTrain once with all locationIds
+    resp = edmtrain_client.events(location_ids=requested_ids, start_date=start_date, end_date=end_date)
+    events = resp.get('data') if isinstance(resp, dict) else None
+    if not isinstance(events, list):
+        # Preserve error if present
+        return jsonify(resp if isinstance(resp, dict) else {'error': 'Unexpected response from EDMTrain'}), 502
+
+    stats = {lid: {'totalSets': 0, 'totalFestivals': 0, 'headliners': 0} for lid in requested_ids}
+
+    for e in events:
+        if not isinstance(e, dict):
+            continue
+        lid = _event_location_id(e, city_state_to_id)
+        if not lid or lid not in requested_id_set:
+            continue
+
+        stats[lid]['totalSets'] += 1
+        if bool(e.get('festivalInd')):
+            stats[lid]['totalFestivals'] += 1
+
+        if fav_artist_ids:
+            artists = e.get('artistList')
+            if isinstance(artists, list) and any(str(a.get('id')) in fav_artist_ids for a in artists if isinstance(a, dict) and a.get('id') is not None):
+                stats[lid]['headliners'] += 1
+
+    return jsonify({'data': stats})
+
 @app.route('/api/edmtrain/events/nearby', methods=['GET'])
 def edmtrain_nearby_events():
     """Get events based on geo-coordinates"""
@@ -1618,7 +1827,54 @@ def is_user_flight_selected():
     exists = UserFlights.query.filter_by(user_id=user.id, flight_key=flight_key).first() is not None
     return jsonify({'selected': exists}), 200
 
+# --- GET USER ITINERARY (Events + Flights) ---
+@app.route('/api/user_itinerary', methods=['POST'])
+def get_user_itinerary():
+    data = request.get_json()
+    email = data.get('email')
+    
+    if not email:
+        return jsonify({'error': 'Email required'}), 400
+        
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+        
+    try:
+        # 1. Fetch User Events
+        events = UserEvents.query.filter_by(user_id=user.id).all()
+        events_data = []
+        for e in events:
+            # Format date as YYYY-MM-DD for matching
+            events_data.append({
+                'type': 'event',
+                'id': e.edmtrain_event_id,
+                'date': e.start_time.strftime('%Y-%m-%d'),
+                'title': f"Event #{e.edmtrain_event_id}", # You can enhance this if you store event names
+                'time': e.start_time.strftime('%I:%M %p')
+            })
 
+        # 2. Fetch User Flights
+        flights = UserFlights.query.filter_by(user_id=user.id).all()
+        flights_data = []
+        for f in flights:
+            flights_data.append({
+                'type': 'flight',
+                'id': f.id,
+                'date': f.start_time.strftime('%Y-%m-%d'),
+                'title': f"Flight to {f.destination_iata}",
+                'subtitle': f"{f.airline} • {f.origin_iata} -> {f.destination_iata}",
+                'time': f.start_time.strftime('%I:%M %p')
+            })
+            
+        return jsonify({
+            'events': events_data,
+            'flights': flights_data
+        }), 200
+        
+    except Exception as e:
+        app.logger.error(f"Itinerary fetch error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001, host='0.0.0.0', use_reloader=False)

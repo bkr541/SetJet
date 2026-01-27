@@ -419,7 +419,7 @@
   width: 132px;
   height: 132px;
   border-radius: 50%;
-  border: 4px solid #235a76;
+  border: 6px solid #235a76;
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
@@ -458,26 +458,27 @@
 
 .headliner-event-count {
   position: absolute;
-  top: 70%; /* Positioned below the name */
+  top: 73%;
   left: 50%;
   transform: translateX(-50%);
-  
+
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #235a76; /* primary green */
+  color: #ffffff;
+
   font-size: 1rem;
   font-weight: 900;
-  
-  /* Use a bright accent color (Cyan/Teal) to distinguish from name */
-  color: #e52c64; 
-  text-shadow: 0 2px 3px rgba(0,0,0,0.9);
-  
-  /* Ensure it centers properly */
-  width: 100%; 
-  text-align: center;
+  line-height: 1;
+
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.35);
   z-index: 2;
-  
-  /* Reset previous pill styles if not needed inside the circle */
-  background: transparent;
-  padding: 0;
-  margin: 0;
 }
 
 .no-data-msg {
@@ -515,16 +516,16 @@
   flex-shrink: 0;
   
   /* Desktop Default Sizes */
-  width: 240px;
+  width: 248px;
   height: 160px;
   
   border-radius: 8px;
   overflow: hidden;
-  border: none;
+  border: 3px solid #235a76;
   padding: 0;
   text-align: left;
   cursor: pointer;
-  background-color: #0f172a;
+  background-color: #235a76;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -548,6 +549,7 @@
   inset: 0;
   background: radial-gradient(120% 90% at 30% 10%, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.00) 55%),
     linear-gradient(180deg, rgba(2, 6, 23, 0.10) 0%, rgba(2, 6, 23, 0.80) 100%);
+  z-index: 1;
 }
 
 .destination-poster-title {
@@ -567,6 +569,69 @@
   /* Smooth font resizing */
   transition: font-size 0.3s ease; 
 }
+
+.destination-poster-content{
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 14px;
+  pointer-events: none; /* click stays on card button */
+}
+
+.destination-poster-title{
+  text-align: left;
+  cursor: default;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  font-size: 1.25rem;
+  line-height: 1.05;
+  margin-bottom: 10px;
+}
+
+.destination-poster-metrics{
+  display: flex;
+  gap: 10px;
+}
+
+.destination-metric{
+  flex: 1;
+  min-width: 0;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 8px 10px;
+  backdrop-filter: blur(6px);
+}
+
+.destination-metric-num{
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.destination-metric-label{
+  margin-top: 4px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+@media (max-width: 600px){
+  .destination-card.destination-poster{
+    width: 210px;
+    height: 150px;
+  }
+  .destination-poster-title{
+    font-size: 1.15rem;
+  }
+}
+
 
 
 /* Trip Type label */
@@ -2306,4 +2371,482 @@ input[type="date"] {
   text-shadow: 0 2px 12px rgba(2, 6, 23, 0.85) !important;
   position: relative;
   z-index: 6;
+}
+
+/* =========================================
+   ITINERARY VIEW STYLES
+   ========================================= */
+
+/* --- Itinerary Calendar: Custom Header (Month + Arrows on one row) --- */
+.itinerary-calendar-header{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+ 
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.itinerary-calendar-header-row{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* month text stays centered */
+  gap: 14px;
+}
+
+.itinerary-month-text{
+  font-size: 1.45rem;
+  font-weight: 900;
+  margin: 16px;
+  color: #0f172a;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.calendar-nav-btn{
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.calendar-nav-btn:hover{
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.calendar-nav-btn:active{
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.calendar-nav-btn:focus{
+  outline: none;
+}
+
+.calendar-nav-btn:focus-visible{
+  box-shadow: 0 0 0 3px rgba(0, 150, 166, 0.25);
+  border-color: #0096a6;
+}
+
+@media (max-width: 600px){
+  .itinerary-month-text{
+    font-size: 1.2rem;
+  }
+  .calendar-nav-btn{
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+  }
+}
+
+
+.itinerary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.view-toggle {
+  display: flex;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 12px;
+  gap: 4px;
+}
+
+.view-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.view-toggle-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* --- Calendar View Overrides --- */
+.large-itinerary-calendar {
+  width: 100% !important;
+  border: none !important;
+  font-family: 'Nunito', sans-serif !important;
+  background-color: transparent !important;
+}
+
+.large-itinerary-calendar .react-datepicker__header {
+  background: transparent !important;
+  border-bottom: none !important;
+}
+
+.large-itinerary-calendar .react-datepicker__day-name,
+.large-itinerary-calendar .react-datepicker__current-month {
+  color: #1e293b !important;
+}
+
+.large-itinerary-calendar .react-datepicker__day {
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  margin: 6px !important;
+  border-radius: 12px !important;
+  border: 1px solid #f1f5f9 !important;
+  background: white !important;
+  display: inline-flex !important;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 6px;
+}
+
+.large-itinerary-calendar .react-datepicker__day:hover {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+.large-itinerary-calendar .react-datepicker__day--selected {
+  background: #f0f9ff !important;
+  border-color: #0ea5e9 !important;
+  color: #0ea5e9 !important;
+}
+
+/* Dots in Calendar */
+.custom-calendar-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+.day-dots {
+  display: flex;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot.blackout { background-color: #1e293b; }
+.dot.flight { background-color: #06b6d4; } /* Cyan */
+.dot.event { background-color: #8b5cf6; } /* Purple */
+
+.calendar-legend-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* --- Timeline View --- */
+.itinerary-timeline-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timeline-month-label {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1e293b;
+  padding-left: 4px;
+}
+
+.timeline-days-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+}
+
+.timeline-day-item {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 80px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.timeline-day-item:hover {
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+}
+
+.timeline-day-item.selected {
+  background: #0f172a;
+  color: white;
+  border-color: #0f172a;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+}
+
+.timeline-day-item.today {
+  border-color: #06b6d4;
+  color: #06b6d4;
+}
+
+.timeline-day-item.selected.today {
+  color: white;
+}
+
+.timeline-day-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.timeline-day-num {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.timeline-dots {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+  margin-top: 4px;
+}
+
+/* Timeline Cards */
+.timeline-details-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timeline-date-header {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #334155;
+  margin: 0;
+}
+
+.timeline-card {
+  display: flex;
+  gap: 16px;
+  position: relative;
+}
+
+.timeline-time {
+  width: 60px;
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  padding-top: 14px;
+  flex-shrink: 0;
+}
+
+.timeline-line {
+  width: 2px;
+  background: #e2e8f0;
+  position: relative;
+}
+
+.timeline-line::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: 2px solid white;
+}
+
+.timeline-card.flight .timeline-line::before { background: #06b6d4; }
+.timeline-card.event .timeline-line::before { background: #8b5cf6; }
+
+.timeline-card-content {
+  flex: 1;
+  background: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border-left: 4px solid #cbd5e1;
+}
+
+.timeline-card.blackout .timeline-card-content { 
+  background: #1e293b; 
+  border-left-color: #0f172a; 
+  color: white;
+}
+.timeline-card.blackout .timeline-card-title { color: white; }
+.timeline-card.blackout .timeline-card-sub { color: #94a3b8; }
+
+.timeline-card.flight .timeline-card-content { 
+  background: #ecfeff; 
+  border-left-color: #06b6d4; 
+}
+
+.timeline-card.event .timeline-card-content { 
+  background: #f5f3ff; 
+  border-left-color: #8b5cf6; 
+}
+
+.timeline-card-tag {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.timeline-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.timeline-card-sub {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.empty-state {
+  padding: 32px;
+  text-align: center;
+  color: #94a3b8;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px dashed #e2e8f0;
+}
+
+
+/* =========================================
+   MOBILE FIXES FOR CALENDAR (v3 - Full Width)
+   ========================================= */
+
+@media (max-width: 600px) {
+  /* 1. Wrapper fills the screen */
+  .itinerary-calendar-wrapper {
+    width: 100% !important;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+
+  .itinerary-header {
+    margin-bottom: 4px !important; /* Reduced from 24px */
+  }
+
+  /* 2. Remove box-shadow and border from the calendar */
+  .large-itinerary-calendar {
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important; /* Optional: blends better if shadow is gone */
+  }
+  
+  /* Ensure the wrapper doesn't add extra spacing or shadow */
+  .itinerary-calendar-wrapper {
+    box-shadow: none !important;
+    margin-top: 0 !important;
+  }
+
+  /* 2. Calendar takes 100% width, no max-width */
+  .large-itinerary-calendar {
+    width: 100% !important;
+    max-width: none !important; 
+    border: none !important;
+    font-size: 0.85rem !important;
+  }
+
+  .large-itinerary-calendar .react-datepicker__month-container {
+    width: 100% !important;
+    float: none !important;
+  }
+
+  /* 3. Force Weeks & Headers to be Flex Rows (Stretches contents) */
+  .large-itinerary-calendar .react-datepicker__day-names,
+  .large-itinerary-calendar .react-datepicker__week {
+    display: flex !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  /* 4. Make Days Expand to Fill Available Space */
+  .large-itinerary-calendar .react-datepicker__day,
+  .large-itinerary-calendar .react-datepicker__day-name {
+    flex: 1 !important;        /* Grow to fill width */
+    width: auto !important;    /* Ignore fixed width */
+    margin: 1px !important;    /* Tiny gap between days */
+    height: 3.5rem !important; /* Tall enough for dots */
+    border-radius: 4px !important;
+  }
+
+  /* 5. Center content inside the day cell */
+  .custom-calendar-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Start at top */
+    padding-top: 4px;
+    height: 100%;
+    width: 100%;
+  }
+
+  /* 6. Adjust Dots */
+  .day-dots {
+    display: flex;
+    gap: 2px !important;
+    margin-top: 4px !important;
+  }
+  
+  .dot {
+    width: 4px !important;
+    height: 4px !important;
+  }
+
+  /* 7. Month Header Text */
+  .large-itinerary-calendar .react-datepicker__current-month {
+    font-size: 1.2rem !important;
+    padding-bottom: 8px !important;
+  }
 }

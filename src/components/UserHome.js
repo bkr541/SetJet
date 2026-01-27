@@ -22,6 +22,7 @@ import {
   Bell,
   History,
   ChevronRight,
+  ChevronLeft,
   ArrowLeft,
   Check,
   Camera,
@@ -34,7 +35,10 @@ import {
   CircleUserRound,
   CalendarDays,
   Plane,
-  CalendarCheck
+  CalendarCheck,
+  BookOpen,      // Icon for Itinerary
+  LayoutList,    // Icon for Timeline View
+  Calendar as CalendarIcon // Alias for Calendar View Icon
 } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -141,7 +145,7 @@ const CalendarLegend = () => (
   </div>
 );
 
-// ✅ FIXED: Smart Image Component now accepts style/className for custom sizing
+// Smart Image Component
 const EventImage = ({ link, alt, className, style, mode = "background" }) => {
   const [src, setSrc] = useState("/artifacts/defaultevent.png");
   const [isVisible, setIsVisible] = useState(false);
@@ -217,6 +221,282 @@ const EventImage = ({ link, alt, className, style, mode = "background" }) => {
   );
 };
 
+// --- Itinerary View ---
+const ItineraryView = () => {
+  const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'timeline'
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [itineraryData, setItineraryData] = useState({ events: [], flights: [] });
+  const [loading, setLoading] = useState(false);
+
+  // Fetch Data on Mount
+  useEffect(() => {
+    const fetchItinerary = async () => {
+      const email = localStorage.getItem('current_email');
+      if (!email) return;
+      
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/user_itinerary`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        
+        if (res.ok) {
+           const data = await res.json();
+           setItineraryData({
+            events: data.events || [],
+            flights: data.flights || []
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load itinerary", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchItinerary();
+  }, []);
+
+  // Helper to check what's on a specific date
+  const getDataForDate = (date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const dayEvents = itineraryData.events.filter(e => e.date === dateStr);
+    const dayFlights = itineraryData.flights.filter(f => f.date === dateStr);
+    const isBlackout = isBlackoutDate(date);
+    return { dayEvents, dayFlights, isBlackout };
+  };
+
+
+  // Normalize snapshot_json that may arrive as an object or a JSON string
+  const normalizeSnapshot = (snap) => {
+    if (!snap) return null;
+    if (typeof snap === 'string') {
+      try { return JSON.parse(snap); } catch { return null; }
+    }
+    return snap;
+  };
+
+  const getEventDisplayTitle = (evt) => {
+    const snap = normalizeSnapshot(evt?.snapshot_json ?? evt?.snapshotJson ?? evt?.snapshot ?? null);
+
+    const artistName =
+      snap?.artist?.name ||
+      snap?.artistName ||
+      (Array.isArray(snap?.artistList) ? snap.artistList?.[0]?.name : null) ||
+      (Array.isArray(snap?.artists) ? snap.artists?.[0]?.name : null) ||
+      null;
+
+    const eventName =
+      snap?.name ||
+      snap?.event?.name ||
+      snap?.eventName ||
+      evt?.title ||
+      null;
+
+    if (artistName && eventName) return `${artistName} • ${eventName}`;
+    return artistName || eventName || evt?.title || 'Event';
+  };
+
+  // --- Render Calendar Cell (Custom Dots) ---
+  const renderDayContents = (day, date) => {
+    const { dayEvents, dayFlights, isBlackout } = getDataForDate(date);
+    const hasEvent = dayEvents.length > 0;
+    const hasFlight = dayFlights.length > 0;
+
+    return (
+      <div className="custom-calendar-day">
+        <span>{day}</span>
+        <div className="day-dots">
+          {isBlackout && <span className="dot blackout" title="Blackout Date" />}
+          {hasFlight && <span className="dot flight" title="Flight" />}
+          {hasEvent && <span className="dot event" title="Event" />}
+        </div>
+      </div>
+    );
+  };
+
+  // --- Render Timeline Horizontal Scroll ---
+  const renderTimelineDays = () => {
+    // Generate +/- 14 days around selected date
+    const days = [];
+    for (let i = -14; i <= 14; i++) {
+      const d = new Date(selectedDate);
+      d.setDate(d.getDate() + i);
+      days.push(d);
+    }
+
+    return (
+      <div className="timeline-days-scroll">
+        {days.map((d, i) => {
+          const isSelected = format(d, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+          const isToday = format(d, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+          const { dayEvents, dayFlights, isBlackout } = getDataForDate(d);
+          const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+          
+          return (
+            <button 
+              key={i} 
+              className={`timeline-day-item ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
+              onClick={() => setSelectedDate(d)}
+            >
+              <span className="timeline-day-name" style={isWeekend ? { color: "#ef4444" } : undefined}>{format(d, 'EEE')}</span>
+              <span className="timeline-day-num">{format(d, 'd')}</span>
+              <div className="timeline-dots">
+                 {isBlackout && <span className="dot blackout" title="Blackout Date" />}
+                 {dayFlights.length > 0 && <span className="dot flight" title="Flight" />}
+                 {dayEvents.length > 0 && <span className="dot event" title="Event" />}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // --- Render Timeline Details List ---
+  const renderTimelineDetails = () => {
+    const { dayEvents, dayFlights, isBlackout } = getDataForDate(selectedDate);
+    const nothingScheduled = dayEvents.length === 0 && dayFlights.length === 0 && !isBlackout;
+
+    return (
+      <div className="timeline-details-list fade-in">
+        <h3 className="timeline-date-header">
+          {format(selectedDate, 'EEEE, MMMM do')}
+        </h3>
+
+        {isBlackout && (
+           <div className="timeline-card blackout">
+             <div className="timeline-time">ALL DAY</div>
+             <div className="timeline-line"></div>
+             <div className="timeline-card-content">
+               <div className="timeline-card-title">Blackout Date</div>
+               <div className="timeline-card-sub">GoWild Pass not eligible today</div>
+             </div>
+           </div>
+        )}
+
+        {dayFlights.map((flight, i) => (
+          <div key={`f-${i}`} className="timeline-card flight">
+            <div className="timeline-time">{flight.time}</div>
+            <div className="timeline-line"></div>
+            <div className="timeline-card-content">
+              <div className="timeline-card-tag">Flight</div>
+              <div className="timeline-card-title">{flight.title}</div>
+              <div className="timeline-card-sub">{flight.subtitle}</div>
+            </div>
+          </div>
+        ))}
+
+        {dayEvents.map((evt, i) => (
+          <div key={`e-${i}`} className="timeline-card event">
+            <div className="timeline-time">{evt.time}</div>
+            <div className="timeline-line"></div>
+            <div className="timeline-card-content">
+              <div className="timeline-card-tag">Event</div>
+              <div className="timeline-card-title">{getEventDisplayTitle(evt)}</div>
+              <div className="timeline-card-sub">Artist Event</div>
+            </div>
+          </div>
+        ))}
+
+        {nothingScheduled && (
+          <div className="empty-state">
+            <p>No plans for this day.</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="dashboard-panel fade-in">
+      <div className="itinerary-header">
+        <h2 className="section-title" style={{ margin: 0 }}>ITINERARY</h2>
+        
+        <div className="view-toggle">
+          <button 
+            className={`view-toggle-btn ${viewMode === 'calendar' ? 'active' : ''}`}
+            onClick={() => setViewMode('calendar')}
+          >
+            <CalendarIcon size={16} /> Calendar
+          </button>
+          <button 
+            className={`view-toggle-btn ${viewMode === 'timeline' ? 'active' : ''}`}
+            onClick={() => setViewMode('timeline')}
+          >
+            <LayoutList size={16} /> Timeline
+          </button>
+        </div>
+      </div>
+
+      {loading && <div className="loading-message">Loading itinerary...</div>}
+
+      {!loading && viewMode === 'calendar' && (
+        <div className="itinerary-calendar-wrapper fade-in">
+          <DatePicker
+            selected={selectedDate}
+            onChange={(date) => setSelectedDate(date)}
+            inline
+            calendarClassName="large-itinerary-calendar"
+            renderCustomHeader={({
+              date,
+              decreaseMonth,
+              increaseMonth
+            }) => (
+              <div className="itinerary-calendar-header">
+                {/* Navigation Row */}
+                <div 
+                  className="itinerary-calendar-header-top" 
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <button className="calendar-nav-btn" onClick={decreaseMonth} aria-label="Previous Month">
+                    <ChevronLeft size={18} />
+                  </button>
+
+                  <div className="itinerary-month-text">
+                    {format(date, 'MMMM yyyy')}
+                  </div>
+
+                  <button className="calendar-nav-btn" onClick={increaseMonth} aria-label="Next Month">
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+
+                {/* Legend Row (Moved inside header, below month) */}
+                <div className="calendar-legend-row" style={{ display: 'flex', justifyContent: 'center', marginTop: '12px', gap: '16px' }}>
+                  <div className="legend-item"><span className="dot blackout"/> Blackout</div>
+                  <div className="legend-item"><span className="dot flight"/> Flight</div>
+                  <div className="legend-item"><span className="dot event"/> Event</div>
+                </div>
+              </div>
+            )}
+            renderDayContents={renderDayContents}
+          />
+
+          {/* Show details for selected date below calendar */}
+          <div style={{ marginTop: '24px' }}>
+            {renderTimelineDetails()}
+          </div>
+        </div>
+      )}
+
+      {!loading && viewMode === 'timeline' && (
+        <div className="itinerary-timeline-wrapper fade-in">
+          {/* Month/Year selector could go here, simplified to current view context */}
+          <div className="timeline-month-label">
+             {format(selectedDate, 'MMMM yyyy')}
+          </div>
+          
+          {renderTimelineDays()}
+          {renderTimelineDetails()}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
 // --- Artist Details View ---
 const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, eventsCacheByArtistId, setEventsCacheByArtistId, onEventClick }) => {
   const [activeTab, setActiveTab] = useState('Upcoming Sets');
@@ -248,8 +528,6 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
     const month = d.toLocaleString("en-US", { month: "short" }).toUpperCase();
     return { day, month };
   };
-
-
 
   const sortedArtistEvents = (() => {
     const base = Array.isArray(artistEvents) ? [...artistEvents] : [];
@@ -433,11 +711,10 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
             ) : artistEvents.length === 0 ? (
               <div style={{ color: '#64748b' }}>No upcoming events found.</div>
             ) : (
-              // ✅ Updated to use CSS classes instead of inline styles
               <div className="artist-events-grid">
                 {sortedArtistEvents.map((evt, idx) => {
                   const name = evt?.name || evt?.venue?.name || artist?.name || "Event";
-                  const eventDate = evt?.date; // ✅ use EDMTrain "date"
+                  const eventDate = evt?.date; // use EDMTrain "date"
                   const venueName = evt?.venue?.name || "";
                   const venueLocation = evt?.venue?.location || "";
                   const key = evt?.id || evt?.eventId || `${artist?.edmtrain_id || 'artist'}-${idx}`;
@@ -468,7 +745,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
 
                       {/* Text Content Layer */}
                       <div className="artist-event-content">
-<div className="artist-event-name">
+                        <div className="artist-event-name">
                           {name}
                         </div>
 
@@ -514,7 +791,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
 };
 
 
-// --- Destination Details View (New) ---
+// --- Destination Details View ---
 const DestinationDetailsView = ({ destination, onBack }) => {
   const [activeTab, setActiveTab] = useState('Upcoming Sets');
 
@@ -552,7 +829,6 @@ const DestinationDetailsView = ({ destination, onBack }) => {
           <h1 className="hero-title">
             {cityName}
           </h1>
-          {/* Removed "Destination" chip below the city name */}
         </div>
       </div>
 
@@ -595,14 +871,14 @@ const DestinationDetailsView = ({ destination, onBack }) => {
 };
 
 
-// --- Event Details View (mirrors ArtistDetails styling) ---
+// --- Event Details View ---
 const EventDetailsView = ({ event, onBack }) => {
   const [activeTab, setActiveTab] = useState('Details');
-  // ✅ NEW: State for tracking attendance toggle
+  // State for tracking attendance toggle
   const [isAttending, setIsAttending] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // ✅ NEW: Fetch initial attendance status
+  // Fetch initial attendance status
   useEffect(() => {
     const fetchAttendanceStatus = async () => {
       const email = localStorage.getItem('current_email');
@@ -615,10 +891,8 @@ const EventDetailsView = ({ event, onBack }) => {
           body: JSON.stringify({ email })
         });
         const data = await res.json();
-        
-        // This assumes the user info endpoint might return a list of attending IDs 
-        // or a similar mechanism. If not, we can assume false initially.
-        // For production, a dedicated endpoint to check single attendance is better.
+        // Placeholder: Check if event is in user's list.
+        // Ideally a specific endpoint like /api/is_attending would be better.
       } catch (err) {
         console.error("Failed to check attendance status", err);
       }
@@ -627,38 +901,45 @@ const EventDetailsView = ({ event, onBack }) => {
     fetchAttendanceStatus();
   }, [event?.id]);
 
-  // ✅ NEW: Handler to toggle attendance (writes to user_event table)
-  const handleToggleAttendance = async () => {
-    const email = localStorage.getItem('current_email');
-    const eventId = event?.id;
-    const eventDate = event?.date; // start_time from JSON
+  // ✅ UPDATED: Handler to toggle attendance with SNAPSHOT + explicit action
+const handleToggleAttendance = async () => {
+  const email = localStorage.getItem('current_email');
+  const eventId = event?.id;
 
-    if (!email || !eventId || !eventDate || isUpdating) return;
+  // EDMTrain events sometimes have `date` (YYYY-MM-DD) and sometimes `startTime`/`endTime`
+  const eventDate =
+    event?.date ||
+    (typeof event?.startTime === 'string' ? event.startTime.slice(0, 10) : null);
 
-    setIsUpdating(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/toggle_event_attendance`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email,
-          event_id: eventId,
-          event_date: eventDate
-        })
-      });
+  if (!email || !eventId || !eventDate || isUpdating) return;
 
-      if (res.ok) {
-        const data = await res.json();
-        setIsAttending(data.is_attending);
-      } else {
-        console.error("Failed to update attendance");
-      }
-    } catch (err) {
-      console.error("Error toggling attendance:", err);
-    } finally {
-      setIsUpdating(false);
+  setIsUpdating(true);
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/toggle_event_attendance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email,
+        event_id: eventId,
+        event_date: eventDate,
+        action: isAttending ? 'remove' : 'add', // ✅ NEW: explicit action so backend can upsert snapshot
+        event_snapshot: event // ✅ Pass full event object as snapshot
+      })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok) {
+      setIsAttending(!!data.is_attending);
+    } else {
+      console.error("Failed to update attendance", data);
     }
-  };
+  } catch (err) {
+    console.error("Error toggling attendance:", err);
+  } finally {
+    setIsUpdating(false);
+  }
+};
 
   const formatEventDate = (dateStr) => {
     if (!dateStr) return "TBA";
@@ -700,7 +981,7 @@ const EventDetailsView = ({ event, onBack }) => {
             <ArrowLeft size={24} />
           </button>
 
-          {/* ✅ UPDATED: Dynamic Attending toggle */}
+          {/* Dynamic Attending toggle */}
           <button 
             className={`event-hero-icon-btn ${isUpdating ? 'loading' : ''}`} 
             onClick={handleToggleAttendance}
@@ -829,7 +1110,7 @@ const EventDetailsView = ({ event, onBack }) => {
 
 
 // --- Dashboard Sub-Views ---
-const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDestinationClick, tourCounts, toursLoading }) => {
+const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDestinationClick, tourCounts, toursLoading, destinationStatsByKey, destinationStatsLoading }) => {
   const demoDestinations = [
     { id: 'chicago', city: 'Chicago', name: 'Chicago' },
   ];
@@ -901,6 +1182,8 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
 
             const key = d?.id || d?.location_id || d?.iata_code || `${cityName}-${idx}`;
 
+            const stats = (destinationStatsByKey && destinationStatsByKey[key]) ? destinationStatsByKey[key] : null;
+
             return (
               <button
                 key={key}
@@ -913,7 +1196,32 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
                 onClick={() => onDestinationClick(d)}
               >
                 <div className="destination-poster-overlay" />
-                <div className="destination-poster-title">{cityName}</div>
+                <div className="destination-poster-content">
+                  <div className="destination-poster-title">{cityName}</div>
+
+                  <div className="destination-poster-metrics">
+                    <div className="destination-metric">
+                      <div className="destination-metric-num">
+                        {destinationStatsLoading ? '…' : (stats ? stats.totalSets : 0)}
+                      </div>
+                      <div className="destination-metric-label">Total Sets</div>
+                    </div>
+
+                    <div className="destination-metric">
+                      <div className="destination-metric-num">
+                        {destinationStatsLoading ? '…' : (stats ? stats.totalFestivals : 0)}
+                      </div>
+                      <div className="destination-metric-label">Total Festivals</div>
+                    </div>
+
+                    <div className="destination-metric">
+                      <div className="destination-metric-num">
+                        {destinationStatsLoading ? '…' : (stats ? stats.headliners : 0)}
+                      </div>
+                      <div className="destination-metric-label">Headliners</div>
+                    </div>
+                  </div>
+                </div>
               </button>
             );
           })}
@@ -1313,7 +1621,7 @@ const PlacesView = () => {
   );
 };
 
-// --- ✅ NEW: Plan View with Calendar & Blackout Logic ---
+// --- Plan View ---
 const PlanView = () => {
   const [startDate, setStartDate] = useState(null);
 
@@ -1635,6 +1943,15 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
   const [userDestinations, setUserDestinations] = useState(favoriteDestinations || []);
   const [userFavoriteArtists, setUserFavoriteArtists] = useState(favoriteArtists || []);
 
+  // Keep local state in sync when props arrive/refresh (e.g., after user_info fetch)
+  useEffect(() => {
+    setUserDestinations(Array.isArray(favoriteDestinations) ? favoriteDestinations : []);
+  }, [favoriteDestinations]);
+
+  useEffect(() => {
+    setUserFavoriteArtists(Array.isArray(favoriteArtists) ? favoriteArtists : []);
+  }, [favoriteArtists]);
+
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedDestination, setSelectedDestination] = useState(null);
@@ -1644,6 +1961,10 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
   const [eventsCacheByArtistId, setEventsCacheByArtistId] = useState({});
   const [tourCounts, setTourCounts] = useState(null);
   const [toursLoading, setToursLoading] = useState(false);
+
+  // Destination stats (Sets / Festivals / Headliners) keyed by destination key
+  const [destinationStatsByKey, setDestinationStatsByKey] = useState({});
+  const [destinationStatsLoading, setDestinationStatsLoading] = useState(false);
 
   // --- Global Header Search (Artists / Locations / Airports) ---
   const [globalQuery, setGlobalQuery] = useState('');
@@ -1782,6 +2103,115 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
     };
   }, [tourCounts]);
 
+  // Fetch destination-level EDMTrain stats on load (batched by locationIds)
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchDestinationStats = async () => {
+      const destinations = Array.isArray(userDestinations) ? userDestinations : [];
+      if (destinations.length === 0) {
+        if (!cancelled) setDestinationStatsByKey({});
+        return;
+      }
+
+      // Map favorite artist EDMTrain IDs (used to detect "Headliners" per destination)
+      const favIds = new Set(
+        (Array.isArray(userFavoriteArtists) ? userFavoriteArtists : [])
+          .map((a) => a?.edmtrain_id)
+          .filter(Boolean)
+          .map((v) => String(v))
+      );
+
+      const buildDestinationKey = (d, idx) => {
+        const raw =
+          d?.city || d?.location || d?.name || d?.title || d?.location_label || d?.label || '';
+        const cityName = (raw || 'Unknown').split(',')[0].trim() || 'Unknown';
+        return d?.id || d?.location_id || d?.iata_code || `${cityName}-${idx}`;
+      };
+
+      // Build per-destination rows
+      const rows = destinations.map((d, idx) => {
+        const key = buildDestinationKey(d, idx);
+        const locId =
+          d?.edmtrain_locationid ??
+          d?.edmtrain_location_id ??
+          d?.edmtrainLocationId ??
+          d?.edmtrainLocationID ??
+          null;
+        return { key, locId: locId ? String(locId) : null };
+      });
+
+      // Unique list of locationIds to batch query
+      const uniqueLocIds = Array.from(new Set(rows.map((r) => r.locId).filter(Boolean)));
+
+      // If none of the destinations have a location id, just mark them missing
+      if (uniqueLocIds.length === 0) {
+        const next = {};
+        rows.forEach((r, idx) => {
+          next[r.key] = { totalSets: 0, totalFestivals: 0, headliners: 0, missingLocationId: true };
+        });
+        if (!cancelled) setDestinationStatsByKey(next);
+        return;
+      }
+
+      try {
+        setDestinationStatsLoading(true);
+
+        const qs = new URLSearchParams();
+        qs.set('locationIds', uniqueLocIds.join(','));
+        if (favIds.size > 0) qs.set('favArtistIds', Array.from(favIds).join(','));
+
+        const res = await fetch(`${API_BASE_URL}/api/edmtrain/destination_stats?${qs.toString()}`);
+        const json = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          console.error('Failed to fetch destination stats:', json);
+        }
+
+        const statsByLocId = (json && typeof json === 'object' && json.data) ? json.data : {};
+
+        const next = {};
+        rows.forEach((r) => {
+          if (!r.locId) {
+            next[r.key] = { totalSets: 0, totalFestivals: 0, headliners: 0, missingLocationId: true };
+            return;
+          }
+
+          const s = statsByLocId[r.locId];
+          if (s && typeof s === 'object') {
+            next[r.key] = {
+              totalSets: Number(s.totalSets || 0),
+              totalFestivals: Number(s.totalFestivals || 0),
+              headliners: Number(s.headliners || 0)
+            };
+          } else {
+            // If the locationId wasn't returned (or the call errored), treat as 0s with error flag
+            next[r.key] = { totalSets: 0, totalFestivals: 0, headliners: 0, error: true };
+          }
+        });
+
+        if (!cancelled) setDestinationStatsByKey(next);
+      } catch (err) {
+        console.error('Failed to fetch destination stats:', err);
+        const next = {};
+        rows.forEach((r) => {
+          next[r.key] = r.locId
+            ? { totalSets: 0, totalFestivals: 0, headliners: 0, error: true }
+            : { totalSets: 0, totalFestivals: 0, headliners: 0, missingLocationId: true };
+        });
+        if (!cancelled) setDestinationStatsByKey(next);
+      } finally {
+        if (!cancelled) setDestinationStatsLoading(false);
+      }
+    };
+
+    fetchDestinationStats();
+    return () => {
+      cancelled = true;
+    };
+  }, [userDestinations, userFavoriteArtists]);
+
+
 const handleNav = (action) => {
   if (typeof action === 'function') action();
   if (isMobile()) setCollapsed(true);
@@ -1919,6 +2349,8 @@ const [userInfo, setUserInfo] = useState({
         );
       case 'artists': return <ArtistsView favoriteArtists={userFavoriteArtists} />;
       case 'plan': return <PlanView />;
+      // Itinerary View Case
+      case 'itinerary': return <ItineraryView />;
       case 'friends': return <FriendsView />;
       
       case 'artist-details': 
@@ -1974,12 +2406,14 @@ const [userInfo, setUserInfo] = useState({
             onDestinationClick={handleDestinationClick} 
             tourCounts={tourCounts || {}}
             toursLoading={toursLoading}
+            destinationStatsByKey={destinationStatsByKey}
+            destinationStatsLoading={destinationStatsLoading}
           />
         );
     }
   };
 
-  // ✅ Calculate if we are in a details view to toggle header visibility
+  // Calculate if we are in a details view to toggle header visibility
   const isDetailsView = ['artist-details', 'event-details', 'destination-details'].includes(activeView);
 
   return (
@@ -2037,6 +2471,13 @@ const [userInfo, setUserInfo] = useState({
             <Map size={20} />
             <span>Plan</span>
           </button>
+          
+          {/* ITINERARY MENU OPTION */}
+          <button onClick={() => handleNav(() => setActiveView('itinerary'))} className={activeView === 'itinerary' ? 'active' : ''}>
+            <BookOpen size={20} />
+            <span>Itinerary</span>
+          </button>
+
           <button onClick={() => handleNav(() => setActiveView('friends'))} className={activeView === 'friends' ? 'active' : ''}>
             <Users size={20} />
             <span>Friends</span>
@@ -2048,7 +2489,7 @@ const [userInfo, setUserInfo] = useState({
   <div className="sidebar-overlay" onClick={() => setCollapsed(true)} />
 )}
 
-      {/* ✅ ADDED CLASS: details-view-mode based on the check above */}
+      {/* details-view-mode based on the check above */}
       <div className={`main-wrapper ${collapsed ? 'collapsed' : ''} ${isDetailsView ? 'details-view-mode' : ''}`}>
         <header className="main-header">
           <div className="header-left">
