@@ -1044,7 +1044,7 @@ const handleToggleAttendance = async () => {
 
 
 // --- Dashboard Sub-Views ---
-const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDestinationClick, tourCounts, toursLoading, destinationStatsByKey, destinationStatsLoading }) => {
+const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDestinationClick, tourCounts, toursLoading }) => {
   const demoDestinations = [
     { id: 'chicago', city: 'Chicago', name: 'Chicago' },
   ];
@@ -1054,111 +1054,157 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
       ? favoriteDestinations
       : demoDestinations;
 
+  // --- Home date scroller (mirrors Itinerary timeline dots: blackout + flights + events) ---
+  const [homeItinerary, setHomeItinerary] = useState({ events: [], flights: [] });
+  const [homeDatesLoading, setHomeDatesLoading] = useState(false);
+  const [homeSelectedDate, setHomeSelectedDate] = useState(new Date());
+
+  useEffect(() => {
+    const fetchItinerary = async () => {
+      const email = localStorage.getItem('current_email');
+      if (!email) return;
+
+      setHomeDatesLoading(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/user_itinerary`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setHomeItinerary({
+            events: data?.events || [],
+            flights: data?.flights || []
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load itinerary (home scroller)", err);
+      } finally {
+        setHomeDatesLoading(false);
+      }
+    };
+
+    fetchItinerary();
+  }, []);
+
+  const getHomeDataForDate = (date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const dayEvents = (homeItinerary?.events || []).filter(e => e?.date === dateStr);
+    const dayFlights = (homeItinerary?.flights || []).filter(f => f?.date === dateStr);
+    const isBlackout = isBlackoutDate(date);
+    return { dayEvents, dayFlights, isBlackout };
+  };
+
+  const renderHomeTimelineDays = () => {
+    // Keep it similar to Itinerary timeline: a centered window around selected date
+    const days = [];
+    for (let i = -14; i <= 14; i++) {
+      const d = new Date(homeSelectedDate);
+      d.setDate(d.getDate() + i);
+      days.push(d);
+    }
+
+    return (
+      <div className="timeline-days-scroll home-timeline-days-scroll">
+        {days.map((d, i) => {
+          const isSelected = format(d, 'yyyy-MM-dd') === format(homeSelectedDate, 'yyyy-MM-dd');
+          const isToday = format(d, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+          const { dayEvents, dayFlights, isBlackout } = getHomeDataForDate(d);
+          const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+
+          return (
+            <button
+              key={i}
+              className={`timeline-day-item ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
+              onClick={() => setHomeSelectedDate(d)}
+              type="button"
+            >
+              <span className="timeline-day-name" style={isWeekend ? { color: "#ef4444" } : undefined}>
+                {format(d, 'EEE')}
+              </span>
+              <span className="timeline-day-num">{format(d, 'd')}</span>
+              <div className="timeline-dots">
+                {isBlackout && <span className="dot blackout" title="Blackout Date" />}
+                {dayFlights.length > 0 && <span className="dot flight" title="Flight" />}
+                {dayEvents.length > 0 && <span className="dot event" title="Event" />}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div className="dashboard-panel fade-in">
       <div className="headliners-section">
-        <h3 className="section-title">YOUR HEADLINERS</h3>
-        <div className="headliners-scroll">
-          {favoriteArtists && favoriteArtists.length > 0 ? (
-            favoriteArtists.map((artist, index) => {
-              
-              const count = artist.edmtrain_id ? tourCounts[artist.edmtrain_id] : 0;
-              
-              return (
-                <div 
-                  key={index} 
-                  className="headliner-card"
-                  onClick={() => onArtistClick(artist)} 
-                >
-                  <div
-                    className="headliner-image-wrapper"
-                    style={{
-                      backgroundImage: `url(${artist.image || "/artifacts/defaultprofileillenium.png"})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      backgroundRepeat: 'no-repeat'
-                    }}
-                  >
-                    <div className="headliner-overlay"></div>
-                    <span className="headliner-name">{artist.name}</span>
-                  {count > 0 && (
-                    <div className="headliner-event-count">
-                      {count} 
-                    </div>
-                  )}
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <p className="no-data-msg">No favorite artists added yet.</p>
-          )}
-        </div>
-      </div>
+        <h3 className="section-title">
+          <span>YOUR </span>
+          <span className="accent">HEADLINERS</span>
+        </h3>
 
-      <div className="destinations-section">
-        <h3 className="section-title">YOUR DESTINATIONS</h3>
+        {/* Headliners + Home Timeline Row (same height containers) */}
+        <div className="home-headliners-row">
+          <div className="home-headliners-card">
+            <div className="headliners-card-shell">
+              <div className="headliners-scroll">
+                {favoriteArtists && favoriteArtists.length > 0 ? (
+                  favoriteArtists.map((artist, index) => {
+                    const count =
+                      artist?.edmtrain_id && tourCounts
+                        ? (tourCounts[artist.edmtrain_id] || 0)
+                        : 0;
 
-        <div className="destinations-scroll">
-          {destinations.map((d, idx) => {
-            const raw =
-              d?.city ||
-              d?.location ||
-              d?.name ||
-              d?.title ||
-              d?.location_label ||
-              d?.label ||
-              '';
+                    return (
+                      <div
+                        key={index}
+                        className="headliner-card"
+                        onClick={() => onArtistClick(artist)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') onArtistClick(artist);
+                        }}
+                      >
+                        <div
+                          className="headliner-image-wrapper"
+                          style={{
+                            backgroundImage: `url(${artist.image || "/artifacts/defaultprofileillenium.png"})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat'
+                          }}
+                          aria-label={artist?.name || "Artist"}
+                        >
+                          {count > 0 && (
+                            <div className="headliner-event-count">
+                              {count}
+                            </div>
+                          )}
+                        </div>
 
-            const cityName = (raw || 'Unknown').split(',')[0].trim() || 'Unknown';
-            const safeName = cityName.toLowerCase().replace(/\s+/g, '');
-            const imgPath = `/artifacts/cities/${safeName}.png`;
-
-            const key = d?.id || d?.location_id || d?.iata_code || `${cityName}-${idx}`;
-
-            const stats = (destinationStatsByKey && destinationStatsByKey[key]) ? destinationStatsByKey[key] : null;
-
-            return (
-              <button
-                key={key}
-                type="button"
-                className="destination-card destination-poster"
-                style={{
-                  backgroundImage: `url(${imgPath})`
-                }}
-                aria-label={cityName}
-                onClick={() => onDestinationClick(d)}
-              >
-                <div className="destination-poster-overlay" />
-                <div className="destination-poster-content">
-                  <div className="destination-poster-title">{cityName}</div>
-
-                  <div className="destination-poster-metrics">
-                    <div className="destination-metric">
-                      <div className="destination-metric-label"><Ticket size={32} /></div>
-                      <div className="destination-metric-num">
-                        {destinationStatsLoading ? '…' : (stats ? stats.totalSets : 0)}
+                        <div className="headliner-label">{artist.name}</div>
                       </div>
-                    </div>
+                    );
+                  })
+                ) : (
+                  <p className="no-data-msg">No favorite artists added yet.</p>
+                )}
+              </div>
+            </div>
+          </div>
 
-                    <div className="destination-metric">
-                      <div className="destination-metric-num">
-                        {destinationStatsLoading ? '…' : (stats ? stats.totalFestivals : 0)}
-                      </div>
-                      <div className="destination-metric-label"><PartyPopper size={24} /></div>
-                    </div>
-
-                    <div className="destination-metric">
-                      <div className="destination-metric-num">
-                        {destinationStatsLoading ? '…' : (stats ? stats.headliners : 0)}
-                      </div>
-                      <div className="destination-metric-label"><UserStar size={24} /></div>
-                    </div>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+          <div className="home-dates-card">
+            <div className="home-dates-shell">
+              <div className="home-dates-title-row">
+                <div className="home-dates-title">YOUR DATES</div>
+                {homeDatesLoading && <div className="home-dates-sub">Loading…</div>}
+              </div>
+              {renderHomeTimelineDays()}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1616,9 +1662,6 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
   const [tourCounts, setTourCounts] = useState(null);
   const [toursLoading, setToursLoading] = useState(false);
 
-  const [destinationStatsByKey, setDestinationStatsByKey] = useState({});
-  const [destinationStatsLoading, setDestinationStatsLoading] = useState(false);
-
   const [globalQuery, setGlobalQuery] = useState('');
   const [globalFocused, setGlobalFocused] = useState(false);
   const [globalOpen, setGlobalOpen] = useState(false);
@@ -1756,103 +1799,7 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
 
   useEffect(() => {
     let cancelled = false;
-
-    const fetchDestinationStats = async () => {
-      const destinations = Array.isArray(userDestinations) ? userDestinations : [];
-      if (destinations.length === 0) {
-        if (!cancelled) setDestinationStatsByKey({});
-        return;
-      }
-
-      const favIds = new Set(
-        (Array.isArray(userFavoriteArtists) ? userFavoriteArtists : [])
-          .map((a) => a?.edmtrain_id)
-          .filter(Boolean)
-          .map((v) => String(v))
-      );
-
-      const buildDestinationKey = (d, idx) => {
-        const raw =
-          d?.city || d?.location || d?.name || d?.title || d?.location_label || d?.label || '';
-        const cityName = (raw || 'Unknown').split(',')[0].trim() || 'Unknown';
-        return d?.id || d?.location_id || d?.iata_code || `${cityName}-${idx}`;
-      };
-
-      const rows = destinations.map((d, idx) => {
-        const key = buildDestinationKey(d, idx);
-        const locId =
-          d?.edmtrain_locationid ??
-          d?.edmtrain_location_id ??
-          d?.edmtrainLocationId ??
-          d?.edmtrainLocationID ??
-          null;
-        return { key, locId: locId ? String(locId) : null };
-      });
-
-      const uniqueLocIds = Array.from(new Set(rows.map((r) => r.locId).filter(Boolean)));
-
-      if (uniqueLocIds.length === 0) {
-        const next = {};
-        rows.forEach((r, idx) => {
-          next[r.key] = { totalSets: 0, totalFestivals: 0, headliners: 0, missingLocationId: true };
-        });
-        if (!cancelled) setDestinationStatsByKey(next);
-        return;
-      }
-
-      try {
-        setDestinationStatsLoading(true);
-
-        const qs = new URLSearchParams();
-        qs.set('locationIds', uniqueLocIds.join(','));
-
-        const res = await fetch(
-          `${API_BASE_URL}/api/edmtrain/destination_stats?${qs.toString()}`
-        );
-
-        const json = await res.json().catch(() => ({}));
-
-        const statsByLocId = (json && typeof json === 'object' && json.data) ? json.data : {};
-
-        const next = {};
-        rows.forEach((r) => {
-          if (!r.locId) {
-            next[r.key] = { totalSets: 0, totalFestivals: 0, headliners: 0, missingLocationId: true };
-            return;
-          }
-
-          const s = statsByLocId[r.locId];
-          if (s && typeof s === 'object') {
-            next[r.key] = {
-              totalSets: Number(s.totalSets || 0),
-              totalFestivals: Number(s.totalFestivals || 0),
-              headliners: Number(s.headliners || 0)
-            };
-          } else {
-            next[r.key] = { totalSets: 0, totalFestivals: 0, headliners: 0, error: true };
-          }
-        });
-
-        if (!cancelled) setDestinationStatsByKey(next);
-      } catch (err) {
-        console.error('Failed to fetch destination stats:', err);
-        const next = {};
-        rows.forEach((r) => {
-          next[r.key] = r.locId
-            ? { totalSets: 0, totalFestivals: 0, headliners: 0, error: true }
-            : { totalSets: 0, totalFestivals: 0, headliners: 0, missingLocationId: true };
-        });
-        if (!cancelled) setDestinationStatsByKey(next);
-      } finally {
-        if (!cancelled) setDestinationStatsLoading(false);
-      }
-    };
-
-    fetchDestinationStats();
-    return () => {
-      cancelled = true;
-    };
-  }, [userDestinations, userFavoriteArtists]);
+  }, [userFavoriteArtists]);
 
 
 const handleNav = (action) => {
@@ -2062,8 +2009,6 @@ const [userInfo, setUserInfo] = useState({
             onDestinationClick={handleDestinationClick} 
             tourCounts={tourCounts || {}}
             toursLoading={toursLoading}
-            destinationStatsByKey={destinationStatsByKey}
-            destinationStatsLoading={destinationStatsLoading}
           />
         );
     }

@@ -365,8 +365,8 @@
 
 /* NEW: Override padding when Artist View is active */
 .user-home-content.artist-view-active {
-  padding-left: 32px;
-  padding-right: 32px;
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 .user-home-content h2 {
@@ -381,110 +381,199 @@
 }
 
 /* --- HEADLINERS SECTION --- */
-.headliners-section {
+.headliners-section{
   margin-top: 12px;
 }
 
-.section-title {
+/* Keep a global baseline for section titles (used across views) */
+.section-title{
   font-size: 1.5rem;
-  font-weight: 300;
+  font-weight: 200;
   text-transform: uppercase;
   color: #2c4f63;
   letter-spacing: 0.05em;
 }
 
-.headliners-scroll {
+/* Headliners title with accent word (matches reference) */
+.headliners-section .section-title{
+  color: #64748b;
+  margin: 0;
+}
+
+.headliners-section .section-title .accent{
+  color: #0096a6;
+  font-weight: 700;
+}
+
+/* White rounded container card */
+.headliners-card-shell{
+  margin-top: 0px;
+  background: transparent;;
+  border: none;
+  padding: 0px;
+  box-shadow: none;
+}
+
+/* Horizontal scroller */
+.headliners-scroll{
   display: flex;
-  gap: 2rem;
+  gap: 18px;
   overflow-x: auto;
-  padding-bottom: 16px;
-  padding-top: 16px;
+  padding: 12px 2px 6px 2px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-.headliners-scroll::-webkit-scrollbar { display: none; }
+.headliners-scroll::-webkit-scrollbar{ display: none; }
 
-.headliner-card {
+/* Individual profile item */
+.headliner-card{
   flex-shrink: 0;
-  text-align: center;
-  position: relative;
+  width: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   cursor: pointer;
-  transition: transform 0.2s;
+  user-select: none;
+  transition: transform 0.18s ease;
 }
 
-.headliner-card:hover { transform: translateY(-5px); }
+.headliner-card:hover{
+  transform: translateY(-3px);
+}
 
-.headliner-image-wrapper {
-  width: 132px;
-  height: 132px;
-  border-radius: 50%;
-  border: 6px solid #235a76;
+/* Avatar */
+.headliner-image-wrapper{
   position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  width: 84px;
+  height: 84px;
+  border-radius: 999px;
+  overflow: visible;
+
+  border: 3px solid #0096a6;
+  background: #0f172a;
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.14);
 }
 
-.headliner-image-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.headliner-card:hover img { transform: scale(1.1); }
-
-.headliner-overlay {
+/* Count badge floats at the bottom of the avatar (as requested) */
+.headliner-event-count{
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: 1;
-}
-
-.headliner-name {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-weight: 700;
-  font-size: 16px;
-  text-transform: uppercase;
-  text-align: center;
-  width: 100%;
-  padding: 0 5px;
-  z-index: 2;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-}
-
-.headliner-event-count {
-  position: absolute;
-  top: 73%;
   left: 50%;
+  bottom: -16px;                 /* moved inside the avatar */
   transform: translateX(-50%);
+  z-index: 3;                  /* ensure it sits above the image */
 
-  width: 38px;
-  height: 38px;
+  min-width: 32px;
+  height: 32px;
+  padding: 10px 4px;
   border-radius: 999px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  background: #235a76; /* primary green */
+  background: #0096a6;
   color: #ffffff;
 
-  font-size: 1rem;
-  font-weight: 900;
+  font-size: 0.9rem;
+  font-weight: 700;
   line-height: 1;
 
-  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.35);
-  z-index: 2;
+  border: none;
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.22);
 }
 
-.no-data-msg {
+
+/* Name under avatar */
+.headliner-label{
+  max-width: 96px;
+  margin-top: 12px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #6b7280;
+  line-height: 1.05;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.no-data-msg{
   color: #94a3b8;
   font-style: italic;
 }
+
+/* --- HOME: Headliners + Dates row --- */
+.home-headliners-row{
+  display: flex;
+  gap: 18px;
+  align-items: stretch;
+  margin-top: 10px;
+}
+
+.home-headliners-card,
+.home-dates-card{
+  flex: 1;
+  min-width: 0;
+}
+
+/* Make both containers feel like paired cards, same height */
+.home-headliners-card .headliners-card-shell,
+.home-dates-shell{
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 14px 14px 12px 14px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+  min-height: 150px; /* match Headliners container height */
+}
+
+/* Headliners container already has its own padding rules; keep scroll spacing nice */
+.home-headliners-card .headliners-card-shell{
+  padding: 8px 10px 10px 10px;
+}
+
+/* Home dates header */
+.home-dates-title-row{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px 8px 4px;
+}
+
+.home-dates-title{
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 900;
+  color: #64748b;
+}
+
+.home-dates-sub{
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+/* Slightly tighter timeline pills for the home card */
+.home-timeline-days-scroll{
+  padding: 0px 2px 0px 2px;
+}
+
+/* Stack on mobile */
+@media (max-width: 860px){
+  .home-headliners-row{
+    flex-direction: column;
+  }
+
+  .home-headliners-card .headliners-card-shell,
+  .home-dates-shell{
+    min-height: 0;
+  }
+}
+
 
 /* =========================================
    DESTINATIONS SECTION (Poster style)
