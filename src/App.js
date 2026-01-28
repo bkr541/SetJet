@@ -116,6 +116,17 @@ function App() {
     setBuildYourOwnStep('outbound');
   };
 
+  // Clear local cache + reset in-memory flight/search state (used by sidebar Tools)
+  const handleClearCache = () => {
+    try {
+      clearLocalCache();
+    } catch (e) {
+      console.error('Failed to clear local cache', e);
+    }
+    handleClearFlightSearch();
+    alert('Cache cleared!');
+  };
+
   /* ... Flight Handlers ... */
 
   const handleSelectOutboundFlight = (flight) => {
@@ -258,6 +269,7 @@ function App() {
                 // Embedded Flights (SearchForm + results) inside UserHome
                 onSearchFlights={handleSearch}
                 onClearFlightSearch={handleClearFlightSearch}
+                onClearCache={handleClearCache}
                 flightState={{
                   searchParams,
                   flights,
@@ -332,15 +344,6 @@ function App() {
 
         </div>
       </main>
-
-      <footer className="footer">
-        <div className="container">
-          <p>&copy; 2025 WildPass. Flight data will be scraped from Frontier Airlines.</p>
-          <button className="clear-cache-btn" onClick={() => { clearLocalCache(); alert('Cache cleared!'); setFlights([]); setSearchParams(null); }}>
-            Clear Cache
-          </button>
-        </div>
-      </footer>
     </div>
   );
 }

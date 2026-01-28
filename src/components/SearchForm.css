@@ -44,7 +44,7 @@
   box-sizing: border-box;
   max-width: 100%;
 
-  /* âœ… lock height so it NEVER changes based on pills */
+  /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ lock height so it NEVER changes based on pills */
   height: 56px;
   max-height: 56px;
   overflow: hidden;
@@ -74,7 +74,7 @@
   border-color: #0096a6;
 }
 
-/* Keep has-value behavior, donâ€™t tint outer pill */
+/* Keep has-value behavior, donÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢t tint outer pill */
 .search-input-wrapper.has-value {
   border-color: #0096a6;
 }
@@ -105,15 +105,15 @@
 .pills-container {
   display: flex;
 
-  /* âœ… prevent wrapping so height never grows */
+  /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ prevent wrapping so height never grows */
   flex-wrap: nowrap;
 
-  /* âœ… horizontal scroll when too many selections */
+  /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ horizontal scroll when too many selections */
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
 
-  /* âœ… requested spacing between values */
+  /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ requested spacing between values */
   gap: 6px;
 
   flex: 1 1 auto;
@@ -130,7 +130,7 @@
   scrollbar-width: none;
 }
 
-/* âœ… UPDATED: CHIP STYLING (Like uploaded image) */
+/* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATED: CHIP STYLING (Like uploaded image) */
 .airport-pill {
   display: inline-flex;
   align-items: center;
@@ -199,7 +199,7 @@
   cursor: pointer;
 }
 
-/* âœ… UPDATED: Date display text matches input font */
+/* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATED: Date display text matches input font */
 .date-display-text {
   font-size: 1rem;
   color: #111827;
@@ -556,7 +556,7 @@
   display: flex;
   align-items: stretch;
   background-color: #f1f5f9;
-  /* âœ… UPDATED: Removed left/right padding as requested */
+  /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATED: Removed left/right padding as requested */
   padding: 4px 0; 
   border-radius: 50px;
   border: 1px solid #e2e8f0;
@@ -631,7 +631,7 @@
   justify-content: flex-end;
 }
 
-/* âœ… UPDATED: Smaller Toggle Switch */
+/* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATED: Smaller Toggle Switch */
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -678,7 +678,7 @@ input:checked + .toggle-slider:before {
   transform: translateX(16px);
 }
 
-/* âœ… UPDATED: Smaller font size and weight */
+/* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATED: Smaller font size and weight */
 .toggle-label {
   font-weight: 400; 
   font-size: 0.85rem;
@@ -724,7 +724,7 @@ input:checked + .toggle-slider:before {
   cursor: not-allowed;
 }
 
-/* âœ… UPDATED: "Searching All Airports..." style matches Origin Input style */
+/* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATED: "Searching All Airports..." style matches Origin Input style */
 .input-disabled-placeholder::placeholder {
   color: #111827; /* Dark text like Origin Input */
   font-weight: 400;
@@ -775,7 +775,7 @@ input:checked + .toggle-slider:before {
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 2px;
-    padding: 4px 0; /* âœ… Updated mobile padding too */
+    padding: 4px 0; /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Updated mobile padding too */
     border-radius: 18px;
   }
 
@@ -947,7 +947,7 @@ input:checked + .toggle-slider:before {
   box-shadow: none;
 }
 
-/* Remove the â€œinner pillâ€ look (keep it structurally, but visually flat) */
+/* Remove the ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œinner pillÃƒÂ¢Ã¢â€šÂ¬Ã‚Â look (keep it structurally, but visually flat) */
 .search-form .search-input-inner {
   border: none;
   background: transparent;
@@ -993,4 +993,125 @@ input:checked + .toggle-slider:before {
 /* Optional: slightly softer placeholder like Places */
 .search-form .search-box-input::placeholder {
   color: #94a3b8;
+}
+
+
+/* =========================================================
+   Trip Type toggle: icon-only when not selected, expand label on select
+   ========================================================= */
+.trip-type-selector--triptype .trip-type-option{
+  justify-content: center;
+}
+
+.trip-type-selector--triptype .trip-type-option .option-icon{
+  margin-right: 0;
+  transition: margin-right 0.22s ease, transform 0.22s ease;
+}
+
+.trip-type-selector--triptype .trip-type-option .trip-type-text{
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  margin-left: 0;
+  transform: translateX(-4px);
+  transition: max-width 0.22s ease, opacity 0.18s ease, transform 0.22s ease, margin-left 0.22s ease;
+}
+
+.trip-type-selector--triptype .trip-type-option.active .option-icon{
+  margin-right: 8px;
+}
+
+.trip-type-selector--triptype .trip-type-option.active .trip-type-text{
+  max-width: 160px;
+  opacity: 1;
+  margin-left: 0;
+  transform: translateX(0);
+}
+
+/* Mobile: slightly tighter label width */
+@media (max-width: 768px){
+  .trip-type-selector--triptype .trip-type-option.active .trip-type-text{
+    max-width: 120px;
+  }
+}
+
+
+/* =========================================================
+   Search Mode toggle: icon-only when not selected, expand label on select
+   ========================================================= */
+.trip-type-selector--searchmode .trip-type-option{
+  justify-content: center;
+}
+
+.trip-type-selector--searchmode .trip-type-option .option-icon{
+  margin-right: 0;
+  transition: margin-right 0.22s ease, transform 0.22s ease;
+}
+
+.trip-type-selector--searchmode .trip-type-option .search-mode-text{
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  margin-left: 0;
+  transform: translateX(-4px);
+  transition: max-width 0.22s ease, opacity 0.18s ease, transform 0.22s ease, margin-left 0.22s ease;
+}
+
+.trip-type-selector--searchmode .trip-type-option.active .option-icon{
+  margin-right: 8px;
+}
+
+.trip-type-selector--searchmode .trip-type-option.active .search-mode-text{
+  max-width: 180px;
+  opacity: 1;
+  margin-left: 0;
+  transform: translateX(0);
+}
+
+@media (max-width: 768px){
+  .trip-type-selector--searchmode .trip-type-option.active .search-mode-text{
+    max-width: 140px;
+  }
+}
+
+
+
+/* --- TOGGLE ROW (Trip Type + Search Mode) --- */
+.toggle-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* Mobile: stack toggles */
+@media (max-width: 768px) {
+  .toggle-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}
+
+
+/* --- Toggles row (Search Mode + Trip Type) --- */
+.toggles-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.toggles-row .toggle-group {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .toggles-row {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
 }

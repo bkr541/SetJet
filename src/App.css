@@ -16,19 +16,6 @@
   padding: 2rem 0;
 }
 
-.footer {
-  background-color: #2d3748;
-  color: white;
-  padding: 1.5rem 0;
-  text-align: center;
-  margin-top: auto;
-}
-
-.footer p {
-  opacity: 0.8;
-  font-size: 0.9rem;
-}
-
 .error-message {
   background-color: #fed7d7;
   border: 2px solid #fc8181;
@@ -86,30 +73,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.footer .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.clear-cache-btn {
-  background-color: #e53e3e;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.clear-cache-btn:hover {
-  background-color: #c53030;
-}
-
 .auth-screen {
   width: 100%;
   overflow: hidden; 
@@ -143,7 +106,7 @@
   }
 }
 
-/* ✅ NEW: Full width styles for UserHome Dashboard */
+/* âœ… NEW: Full width styles for UserHome Dashboard */
 .main-dashboard {
   padding: 0 !important; /* Removes the 2rem top/bottom padding */
   padding-left: 6px !important; /* Removes the 2rem top/bottom padding */

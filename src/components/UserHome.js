@@ -36,9 +36,13 @@ import {
   CalendarDays,
   Plane,
   CalendarCheck,
-  BookOpen,      // Icon for Itinerary
-  LayoutList,    // Icon for Timeline View
-  Calendar as CalendarIcon // Alias for Calendar View Icon
+  BookOpen,
+  LayoutList,
+  Calendar as CalendarIcon,
+  Ticket,
+  PartyPopper,
+  UserStar,
+  Trash
 } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -223,12 +227,11 @@ const EventImage = ({ link, alt, className, style, mode = "background" }) => {
 
 // --- Itinerary View ---
 const ItineraryView = () => {
-  const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'timeline'
+  const [viewMode, setViewMode] = useState('calendar'); 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [itineraryData, setItineraryData] = useState({ events: [], flights: [] });
   const [loading, setLoading] = useState(false);
 
-  // Fetch Data on Mount
   useEffect(() => {
     const fetchItinerary = async () => {
       const email = localStorage.getItem('current_email');
@@ -258,7 +261,6 @@ const ItineraryView = () => {
     fetchItinerary();
   }, []);
 
-  // Helper to check what's on a specific date
   const getDataForDate = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayEvents = itineraryData.events.filter(e => e.date === dateStr);
@@ -267,8 +269,6 @@ const ItineraryView = () => {
     return { dayEvents, dayFlights, isBlackout };
   };
 
-
-  // Normalize snapshot_json that may arrive as an object or a JSON string
   const normalizeSnapshot = (snap) => {
     if (!snap) return null;
     if (typeof snap === 'string') {
@@ -298,7 +298,6 @@ const ItineraryView = () => {
     return artistName || eventName || evt?.title || 'Event';
   };
 
-  // --- Render Calendar Cell (Custom Dots) ---
   const renderDayContents = (day, date) => {
     const { dayEvents, dayFlights, isBlackout } = getDataForDate(date);
     const hasEvent = dayEvents.length > 0;
@@ -316,9 +315,7 @@ const ItineraryView = () => {
     );
   };
 
-  // --- Render Timeline Horizontal Scroll ---
   const renderTimelineDays = () => {
-    // Generate +/- 14 days around selected date
     const days = [];
     for (let i = -14; i <= 14; i++) {
       const d = new Date(selectedDate);
@@ -354,7 +351,6 @@ const ItineraryView = () => {
     );
   };
 
-  // --- Render Timeline Details List ---
   const renderTimelineDetails = () => {
     const { dayEvents, dayFlights, isBlackout } = getDataForDate(selectedDate);
     const nothingScheduled = dayEvents.length === 0 && dayFlights.length === 0 && !isBlackout;
@@ -445,7 +441,6 @@ const ItineraryView = () => {
               increaseMonth
             }) => (
               <div className="itinerary-calendar-header">
-                {/* Navigation Row */}
                 <div 
                   className="itinerary-calendar-header-top" 
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -463,7 +458,6 @@ const ItineraryView = () => {
                   </button>
                 </div>
 
-                {/* Legend Row (Moved inside header, below month) */}
                 <div className="calendar-legend-row" style={{ display: 'flex', justifyContent: 'center', marginTop: '12px', gap: '16px' }}>
                   <div className="legend-item"><span className="dot blackout"/> Blackout</div>
                   <div className="legend-item"><span className="dot flight"/> Flight</div>
@@ -474,7 +468,6 @@ const ItineraryView = () => {
             renderDayContents={renderDayContents}
           />
 
-          {/* Show details for selected date below calendar */}
           <div style={{ marginTop: '24px' }}>
             {renderTimelineDetails()}
           </div>
@@ -483,7 +476,6 @@ const ItineraryView = () => {
 
       {!loading && viewMode === 'timeline' && (
         <div className="itinerary-timeline-wrapper fade-in">
-          {/* Month/Year selector could go here, simplified to current view context */}
           <div className="timeline-month-label">
              {format(selectedDate, 'MMMM yyyy')}
           </div>
@@ -496,7 +488,6 @@ const ItineraryView = () => {
   );
 };
 
-
 // --- Artist Details View ---
 const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, eventsCacheByArtistId, setEventsCacheByArtistId, onEventClick }) => {
   const [activeTab, setActiveTab] = useState('Upcoming Sets');
@@ -507,11 +498,8 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
 
   const formatEventDate = (dateStr) => {
     if (!dateStr) return "TBA";
-
-    // EDMTrain sends date like "YYYY-MM-DD" (no time). Force local midnight.
     const d = new Date(String(dateStr) + "T00:00:00");
     if (Number.isNaN(d.getTime())) return String(dateStr);
-
     return d.toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",
@@ -523,7 +511,6 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
     if (!dateStr) return { day: "--", month: "TBA" };
     const d = new Date(String(dateStr) + "T00:00:00");
     if (Number.isNaN(d.getTime())) return { day: "--", month: "TBA" };
-
     const day = String(d.getDate());
     const month = d.toLocaleString("en-US", { month: "short" }).toUpperCase();
     return { day, month };
@@ -531,30 +518,21 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
 
   const sortedArtistEvents = (() => {
     const base = Array.isArray(artistEvents) ? [...artistEvents] : [];
-
     const getTime = (e) => {
-      // Prefer EDMTrain "date" (YYYY-MM-DD)
       const ds = e?.date;
       const msFromDate = ds ? Date.parse(String(ds) + "T00:00:00") : NaN;
       if (Number.isFinite(msFromDate)) return msFromDate;
-
-      // Fallback to startTime if it exists
       const t = e?.startTime;
       const msFromStart = t ? Date.parse(t) : NaN;
       if (Number.isFinite(msFromStart)) return msFromStart;
-
-      // Unknown date goes to the end
       return Number.POSITIVE_INFINITY;
     };
-
     base.sort((a, b) => getTime(a) - getTime(b));
     return base;
   })();
 
-
   useEffect(() => {
     if (activeTab !== 'Upcoming Sets') return;
-
     const edmtrainId = artist?.edmtrain_id;
     if (!edmtrainId) {
       setArtistEvents([]);
@@ -577,16 +555,13 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
     }
 
     let cancelled = false;
-
     const fetchEvents = async () => {
       try {
         setEventsLoading(true);
         setEventsError(null);
-
         const url = `${API_BASE_URL}/api/edmtrain/events/artist?artistIds=${encodeURIComponent(edmtrainId)}`;
         const res = await fetch(url);
         const json = await res.json();
-
         const events = Array.isArray(json?.data) ? json.data : [];
         if (!cancelled) {
           setArtistEvents(events);
@@ -605,15 +580,10 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
         if (!cancelled) setEventsLoading(false);
       }
     };
-
     fetchEvents();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [artist?.edmtrain_id, activeTab]);
 
-  
   const tabs = [
     { name: 'Upcoming Sets', icon: Calendar },
     { name: 'Set Map', icon: Map },
@@ -627,39 +597,42 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
 
   return (
     <div className="dashboard-panel fade-in full">
-      
-      {/* 1. HERO SECTION */}
       <div className="hero" style={{
         backgroundImage: `url(${bgImage})`,
-        backgroundSize: 'cover', backgroundPosition: 'center',
+        backgroundSize: 'cover', 
+        backgroundPosition: 'center',
         flexShrink: 0,
-         
       }}>
         <div className="hero-overlay"></div>
 
         <div className="hero-topbar">
-          <button onClick={onBack} className="hero-back-btn">
-            <ArrowLeft size={24} />
-          </button>
-
-          <button onClick={() => onToggleFavorite(artist)} className="hero-icon-btn" style={{ color: isFavorite ? "#22c55e" : "white" }}>
-            <Heart size={24} fill={isFavorite ? "#22c55e" : "none"} />
-          </button>
+          <div className="hero-topbar-left">
+            <button onClick={onBack} className="hero-back-btn" aria-label="Back">
+              <ArrowLeft size={24} />
+            </button>
+          </div>
+          <div className="hero-topbar-right">
+            <button
+              onClick={() => onToggleFavorite(artist)}
+              className="hero-icon-btn"
+              style={{ color: isFavorite ? "#22c55e" : "white" }}
+              aria-label={isFavorite ? "Unfavorite" : "Favorite"}
+            >
+              <Heart size={24} fill={isFavorite ? "#22c55e" : "none"} />
+            </button>
+          </div>
         </div>
 
         <div className="hero-bottom">
-          <h1 className="hero-title">
-            {artist.name}
-          </h1>
-          
-          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+          <h1 className="hero-title">{artist.name}</h1>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {artist.genres && Array.isArray(artist.genres) ? (
                artist.genres.slice(0, 3).map((g, i) => (
                  <span key={i} style={{
                    background: 'rgba(255,255,255,0.15)',
                    color: '#e2e8f0',
                    padding: '4px 10px',
-                   borderRadius: 'px',
+                   borderRadius: '4px',
                    fontSize: '0.75rem',
                    fontWeight: 600,
                    backdropFilter: 'blur(4px)'
@@ -672,7 +645,6 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
         </div>
       </div>
 
-      {/* 2. TAB NAVIGATION */}
       <div className="artist-tabs-container">
         <div className="artist-tabs-scroll">
           {tabs.map(tab => {
@@ -692,15 +664,10 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
         </div>
       </div>
 
-      {/* 3. CONTENT AREA */}
       <div className="artist-details-content">
-        {activeTab === 'Upcoming Sets' ? (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-         
-        </div>
-      ) : (
-        <h3 style={{ marginTop: 0, color: '#1e293b' }}>{activeTab}</h3>
-      )}
+        {activeTab !== 'Upcoming Sets' && (
+          <h3 style={{ marginTop: 0, color: '#1e293b' }}>{activeTab}</h3>
+        )}
 
         {activeTab === 'Upcoming Sets' ? (
           <div style={{ marginTop: 16 }}>
@@ -714,24 +681,14 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
               <div className="artist-events-grid">
                 {sortedArtistEvents.map((evt, idx) => {
                   const name = evt?.name || evt?.venue?.name || artist?.name || "Event";
-                  const eventDate = evt?.date; // use EDMTrain "date"
-                  const venueName = evt?.venue?.name || "";
+                  const eventDate = evt?.date;
                   const venueLocation = evt?.venue?.location || "";
                   const key = evt?.id || evt?.eventId || `${artist?.edmtrain_id || 'artist'}-${idx}`;
 
                   return (
                     <div key={key} className="artist-event-card" onClick={() => onEventClick && onEventClick(evt)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onEventClick && onEventClick(evt); } }}>
-                      {/* Full Background Image */}
-                      <EventImage 
-                        link={evt?.link} 
-                        alt={name}
-                        className="artist-event-bg"
-                      />
-
-                      {/* Gradient Overlay */}
+                      <EventImage link={evt?.link} alt={name} className="artist-event-bg" />
                       <div className="artist-event-overlay" />
-
-                      {/* Date Badge */}
                       {(() => {
                         const { day, month } = formatEventDateParts(eventDate);
                         return (
@@ -741,31 +698,20 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
                           </div>
                         );
                       })()}
-
-
-                      {/* Text Content Layer */}
                       <div className="artist-event-content">
-                        <div className="artist-event-name">
-                          {name}
-                        </div>
-
+                        <div className="artist-event-name">{name}</div>
                         {(() => {
                           const list = Array.isArray(evt?.artistList) ? evt.artistList : [];
                           const names = list.map(a => a?.name).filter(Boolean);
-
-                          // Only hide if there is exactly ONE artist total
-                          if (names.length === 1) return null;
-
+                          if (names.length <= 1) return null;
                           const second = names[1];
                           const remaining = Math.max(0, names.length - 2);
-
                           return (
                             <div className="artist-event-artists">
                               + {second}{remaining > 0 ? ` and ${remaining} others` : ""}
                             </div>
                           );
                         })()}
-
                         <div className="artist-event-location">
                           <MapPin size={14} className="artist-event-location-icon" />
                           {venueLocation}
@@ -780,12 +726,11 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
         ) : (
           <div className="artist-tab-scroll">
             <p style={{ color: '#64748b', lineHeight: 1.6 }}>
-            Content for {activeTab} will appear here. This section will connect to backend endpoints to show tour dates, tracks, or bio information for {artist.name}.
-          </p>
+              Content for {activeTab} will appear here. This section will connect to backend endpoints to show information for {artist.name}.
+            </p>
           </div>
         )}
       </div>
-
     </div>
   );
 };
@@ -795,7 +740,6 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
 const DestinationDetailsView = ({ destination, onBack }) => {
   const [activeTab, setActiveTab] = useState('Upcoming Sets');
 
-  // Derive Image (reuse logic from HomeView)
   const rawName = destination?.name || destination?.city || 'Unknown';
   const cityName = rawName.split(',')[0].trim();
   const safeName = cityName.toLowerCase().replace(/\s+/g, '');
@@ -809,13 +753,11 @@ const DestinationDetailsView = ({ destination, onBack }) => {
 
   return (
     <div className="dashboard-panel fade-in full">
-      
-      {/* 1. HERO SECTION */}
       <div className="hero" style={{
         backgroundImage: `url(${bgImage})`,
         backgroundSize: 'cover', backgroundPosition: 'center',
         flexShrink: 0,
-        backgroundColor: '#0f172a' // Fallback
+        backgroundColor: '#0f172a' 
       }}>
         <div className="hero-overlay"></div>
 
@@ -832,7 +774,6 @@ const DestinationDetailsView = ({ destination, onBack }) => {
         </div>
       </div>
 
-      {/* 2. TAB NAVIGATION */}
       <div className="artist-tabs-container">
         <div className="artist-tabs-scroll">
           {tabs.map(tab => {
@@ -852,13 +793,11 @@ const DestinationDetailsView = ({ destination, onBack }) => {
         </div>
       </div>
 
-      {/* 3. CONTENT AREA */}
       <div className="artist-details-content">
         <h3 style={{ marginTop: 0, color: '#1e293b' }}>{activeTab}</h3>
 
         <div className="artist-tab-scroll">
             <p style={{ color: '#64748b', lineHeight: 1.6 }}>
-               {/* Placeholder content for now */}
                {activeTab === 'Upcoming Sets' && `Events in ${cityName} will appear here.`}
                {activeTab === 'Calendar' && `A calendar of events for ${cityName} will live here.`}
                {activeTab === 'Flights' && `Flight deals to ${cityName} will appear here.`}
@@ -874,11 +813,9 @@ const DestinationDetailsView = ({ destination, onBack }) => {
 // --- Event Details View ---
 const EventDetailsView = ({ event, onBack }) => {
   const [activeTab, setActiveTab] = useState('Details');
-  // State for tracking attendance toggle
   const [isAttending, setIsAttending] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Fetch initial attendance status
   useEffect(() => {
     const fetchAttendanceStatus = async () => {
       const email = localStorage.getItem('current_email');
@@ -891,8 +828,6 @@ const EventDetailsView = ({ event, onBack }) => {
           body: JSON.stringify({ email })
         });
         const data = await res.json();
-        // Placeholder: Check if event is in user's list.
-        // Ideally a specific endpoint like /api/is_attending would be better.
       } catch (err) {
         console.error("Failed to check attendance status", err);
       }
@@ -901,12 +836,10 @@ const EventDetailsView = ({ event, onBack }) => {
     fetchAttendanceStatus();
   }, [event?.id]);
 
-  // ✅ UPDATED: Handler to toggle attendance with SNAPSHOT + explicit action
 const handleToggleAttendance = async () => {
   const email = localStorage.getItem('current_email');
   const eventId = event?.id;
 
-  // EDMTrain events sometimes have `date` (YYYY-MM-DD) and sometimes `startTime`/`endTime`
   const eventDate =
     event?.date ||
     (typeof event?.startTime === 'string' ? event.startTime.slice(0, 10) : null);
@@ -922,8 +855,8 @@ const handleToggleAttendance = async () => {
         email: email,
         event_id: eventId,
         event_date: eventDate,
-        action: isAttending ? 'remove' : 'add', // ✅ NEW: explicit action so backend can upsert snapshot
-        event_snapshot: event // ✅ Pass full event object as snapshot
+        action: isAttending ? 'remove' : 'add', 
+        event_snapshot: event 
       })
     });
 
@@ -966,7 +899,6 @@ const handleToggleAttendance = async () => {
 
   return (
     <div className="dashboard-panel fade-in full">
-      {/* 1. HERO SECTION */}
       <div className="event-hero">
         <EventImage
           link={event?.link}
@@ -977,19 +909,23 @@ const handleToggleAttendance = async () => {
         <div className="event-hero-overlay"></div>
 
         <div className="event-hero-topbar">
-          <button onClick={onBack} className="event-hero-icon-btn" aria-label="Back">
-            <ArrowLeft size={24} />
-          </button>
+          <div className="event-hero-topbar-left">
+            <button onClick={onBack} className="event-hero-icon-btn" aria-label="Back">
+              <ArrowLeft size={24} />
+            </button>
+          </div>
 
-          {/* Dynamic Attending toggle */}
-          <button 
-            className={`event-hero-icon-btn ${isUpdating ? 'loading' : ''}`} 
-            onClick={handleToggleAttendance}
-            style={{ color: isAttending ? '#22c55e' : 'white' }}
-            aria-label="Toggle Attending"
-          >
-            <CalendarCheck size={22} stroke={isAttending ? "#22c55e" : "#94a3b8"} fill="none" />
-          </button>
+          <div className="event-hero-topbar-right">
+            <button
+              className={`event-hero-icon-btn ${isUpdating ? 'loading' : ''}`}
+              onClick={handleToggleAttendance}
+              style={{ color: isAttending ? '#22c55e' : 'white' }}
+              aria-label={isAttending ? "Not attending" : "Attending"}
+              title={isAttending ? "Attending" : "Mark attending"}
+            >
+              <CalendarCheck size={22} stroke={isAttending ? "#22c55e" : "#94a3b8"} fill="none" />
+            </button>
+          </div>
         </div>
 
         <div className="event-hero-bottom">
@@ -1001,7 +937,6 @@ const handleToggleAttendance = async () => {
         </div>
       </div>
 
-      {/* 2. TAB NAVIGATION */}
       <div className="artist-tabs-container">
         <div className="artist-tabs-scroll">
           {tabs.map(tab => {
@@ -1021,7 +956,6 @@ const handleToggleAttendance = async () => {
         </div>
       </div>
 
-      {/* 3. CONTENT AREA */}
       <div className="artist-details-content">
         {activeTab === 'Details' ? (
           <div className="event-details-body">
@@ -1201,24 +1135,24 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
 
                   <div className="destination-poster-metrics">
                     <div className="destination-metric">
+                      <div className="destination-metric-label"><Ticket size={32} /></div>
                       <div className="destination-metric-num">
                         {destinationStatsLoading ? '…' : (stats ? stats.totalSets : 0)}
                       </div>
-                      <div className="destination-metric-label">Total Sets</div>
                     </div>
 
                     <div className="destination-metric">
                       <div className="destination-metric-num">
                         {destinationStatsLoading ? '…' : (stats ? stats.totalFestivals : 0)}
                       </div>
-                      <div className="destination-metric-label">Total Festivals</div>
+                      <div className="destination-metric-label"><PartyPopper size={24} /></div>
                     </div>
 
                     <div className="destination-metric">
                       <div className="destination-metric-num">
                         {destinationStatsLoading ? '…' : (stats ? stats.headliners : 0)}
                       </div>
-                      <div className="destination-metric-label">Headliners</div>
+                      <div className="destination-metric-label"><UserStar size={24} /></div>
                     </div>
                   </div>
                 </div>
@@ -1259,7 +1193,6 @@ const ArtistsView = ({ favoriteArtists }) => (
   </div>
 );
 
-// --- Flights View (embedded SearchForm + results) ---
 const FlightsView = ({ onBack, onSearchFlights, flightState }) => {
   const {
     searchParams,
@@ -1332,291 +1265,12 @@ const FlightsView = ({ onBack, onSearchFlights, flightState }) => {
   );
 };
 
+// --- RESTORED: PlacesView (Necessary for sub-components to not crash) ---
 const PlacesView = () => {
-  const [tripMode, setTripMode] = useState('one-way');
-  const [departingQuery, setDepartingQuery] = useState('');
-  const [arrivalQuery, setArrivalQuery] = useState('');
-  const [departureDate, setDepartureDate] = useState('');
-  const [arrivalDate, setArrivalDate] = useState('');
-  const [departingSelections, setDepartingSelections] = useState([]);
-  const [arrivalSelections, setArrivalSelections] = useState([]);
-  const [isAllDestinations, setIsAllDestinations] = useState(false);
-  const [departingSuggestions, setDepartingSuggestions] = useState([]);
-  const [arrivalSuggestions, setArrivalSuggestions] = useState([]);
-  const [isDepartingFocused, setIsDepartingFocused] = useState(false);
-  const [isArrivalFocused, setIsArrivalFocused] = useState(false);
-  const departInputRef = useRef(null);
-  const arriveInputRef = useRef(null);
-
-  const tripOptions = [
-    { key: 'one-way', label: 'One Way', Icon: ArrowRight },
-    { key: 'round-trip', label: 'Round Trip', Icon: ArrowLeftRight },
-    { key: 'day-trip', label: 'Day Trip', Icon: Sunrise },
-    { key: 'trip-planner', label: 'Trip Planner', Icon: Calendar },
-  ];
-
-  useEffect(() => {
-    if (tripMode === 'one-way') setArrivalDate('');
-  }, [tripMode]);
-
-  useEffect(() => {
-    const q = departingQuery;
-    if (!q || q.length < 2) {
-      setDepartingSuggestions([]);
-      return;
-    }
-    const t = setTimeout(async () => {
-      try {
-        const url = `${API_BASE_URL}/api/db_airports?keyword=${encodeURIComponent(q)}&limit=25`;
-        const res = await fetch(url);
-        const data = await res.json();
-        setDepartingSuggestions(Array.isArray(data) ? data : []);
-      } catch (e) {
-        console.error(e);
-        setDepartingSuggestions([]);
-      }
-    }, 150);
-    return () => clearTimeout(t);
-  }, [departingQuery]);
-
-  useEffect(() => {
-    const q = arrivalQuery;
-    if (!q || q.length < 2) {
-      setArrivalSuggestions([]);
-      return;
-    }
-    const t = setTimeout(async () => {
-      try {
-        const url = `${API_BASE_URL}/api/db_airports?keyword=${encodeURIComponent(q)}&limit=25`;
-        const res = await fetch(url);
-        const data = await res.json();
-        setArrivalSuggestions(Array.isArray(data) ? data : []);
-      } catch (e) {
-        console.error(e);
-        setArrivalSuggestions([]);
-      }
-    }, 150);
-    return () => clearTimeout(t);
-  }, [arrivalQuery]);
-
-  const groupAirportsByCity = (airports) => {
-    const groups = {};
-    const result = [];
-    airports.forEach(airport => {
-      const city = airport.location_label || 'Other';
-      if (!groups[city]) groups[city] = [];
-      groups[city].push(airport);
-    });
-    Object.keys(groups).forEach(city => {
-      const items = groups[city];
-      if (items.length > 1) {
-        result.push({ type: 'header', label: city, items: items });
-        items.forEach(item => result.push({ type: 'item', data: item, indented: true }));
-      } else {
-        result.push({ type: 'item', data: items[0], indented: false });
-      }
-    });
-    return result;
-  };
-
-  const handleSelectDeparting = (airport) => {
-    if (!departingSelections.some(s => s.iata_code === airport.iata_code)) {
-      setDepartingSelections([...departingSelections, airport]);
-    }
-    setDepartingQuery('');
-    departInputRef.current?.focus();
-  };
-  const handleSelectDepartingGroup = (groupAirports) => {
-    const newToAdd = groupAirports.filter(a => !departingSelections.some(s => s.iata_code === a.iata_code));
-    if (newToAdd.length > 0) setDepartingSelections([...departingSelections, ...newToAdd]);
-    setDepartingQuery('');
-    departInputRef.current?.focus();
-  };
-  const handleRemoveDeparting = (code) => setDepartingSelections(departingSelections.filter(s => s.iata_code !== code));
-
-  const handleSelectArrival = (airport) => {
-    if (!arrivalSelections.some(s => s.iata_code === airport.iata_code)) {
-      setArrivalSelections([...arrivalSelections, airport]);
-    }
-    setArrivalQuery('');
-    arriveInputRef.current?.focus();
-  };
-  const handleSelectArrivalGroup = (groupAirports) => {
-    const newToAdd = groupAirports.filter(a => !arrivalSelections.some(s => s.iata_code === a.iata_code));
-    if (newToAdd.length > 0) setArrivalSelections([...arrivalSelections, ...newToAdd]);
-    setArrivalQuery('');
-    arriveInputRef.current?.focus();
-  };
-  const handleRemoveArrival = (code) => setArrivalSelections(arrivalSelections.filter(s => s.iata_code !== code));
-
-  const handleToggleAllDestinations = (e) => {
-    const checked = e.target.checked;
-    setIsAllDestinations(checked);
-    if (checked) {
-      setArrivalSelections([]);
-      setArrivalQuery('');
-    }
-  };
-
-  const airportKey = (a) => (a && (a.id || a.iata_code)) ? (a.id || a.iata_code) : Math.random().toString(36);
-
-  const renderDropdown = (suggestions, onSelect, onSelectGroup) => {
-    const groupedItems = groupAirportsByCity(suggestions);
-    return (
-      <div className="places-dropdown">
-        {groupedItems.map((obj, i) => {
-          if (obj.type === 'header') {
-            return (
-              <div
-                key={`header-${i}`}
-                className="places-dropdown-group-label"
-                onMouseDown={(e) => { e.preventDefault(); onSelectGroup(obj.items); }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <Map size={14} style={{ marginRight: 6 }}/>
-                  {obj.label}
-                </div>
-                <span className="places-group-action">Select All</span>
-              </div>
-            );
-          }
-          const a = obj.data;
-          const isIndented = obj.indented;
-          return (
-            <div
-              key={airportKey(a)}
-              className={`places-dropdown-item ${isIndented ? 'indented' : ''}`}
-              onMouseDown={() => onSelect(a)}
-            >
-              <div className="places-dropdown-icon-wrap">
-                <PlaneTakeoff size={16} className="places-dropdown-icon" />
-              </div>
-              <div className="places-dropdown-stack">
-                <div className="places-dropdown-top">
-                  <span className="places-dropdown-code">{a.iata_code || ''}</span>
-                  {!isIndented && <span className="places-dropdown-city">{a.location_label || ''}</span>}
-                </div>
-                <div className="places-dropdown-sub">{a.airport_name || ''}</div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
     <div className="dashboard-panel fade-in">
-      <div className="headliners-section">
         <h3 className="section-title">EXPLORE PLACES</h3>
-        <div className="trip-type-label">Trip Type</div>
-        <div className="trip-mode-toggle" role="tablist">
-          {tripOptions.map(({ key, label, Icon }) => (
-            <button
-              key={key}
-              type="button"
-              className={`trip-mode-option ${tripMode === key ? 'active' : ''}`}
-              onClick={() => setTripMode(key)}
-            >
-              <Icon size={18} />
-              <span>{label}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="places-airport-row">
-          <div className="places-airport-field">
-            <div className="places-field-label">Departing Airport</div>
-            <div className="places-input-wrap">
-              <PlaneTakeoff size={18} className="places-input-icon" />
-              <div className="places-input-scroll">
-                {departingSelections.map((sel) => (
-                  <div key={sel.iata_code} className="places-chip fade-in">
-                    <span className="places-chip-text">{sel.iata_code}</span>
-                    <button className="places-chip-remove" onClick={() => handleRemoveDeparting(sel.iata_code)}><X size={12} /></button>
-                  </div>
-                ))}
-                <input
-                  ref={departInputRef}
-                  type="text"
-                  value={departingQuery}
-                  onChange={(e) => setDepartingQuery(e.target.value)}
-                  onFocus={() => setIsDepartingFocused(true)}
-                  onBlur={() => setTimeout(() => setIsDepartingFocused(false), 200)}
-                  placeholder={departingSelections.length > 0 ? "" : "e.g. DEN"}
-                  className="places-airport-input"
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-            {isDepartingFocused && departingSuggestions.length > 0 && renderDropdown(departingSuggestions, handleSelectDeparting, handleSelectDepartingGroup)}
-          </div>
-
-          <div className="places-airport-field">
-            <div className="places-field-label">Arrival Airport</div>
-            <div className={`places-input-wrap ${isAllDestinations ? 'disabled' : ''}`}>
-              <PlaneLanding size={18} className="places-input-icon" />
-              <div className="places-input-scroll">
-                {arrivalSelections.map((sel) => (
-                  <div key={sel.iata_code} className="places-chip fade-in">
-                    <span className="places-chip-text">{sel.iata_code}</span>
-                    <button className="places-chip-remove" onClick={() => handleRemoveArrival(sel.iata_code)}><X size={12} /></button>
-                  </div>
-                ))}
-                <input
-                  ref={arriveInputRef}
-                  type="text"
-                  value={arrivalQuery}
-                  onChange={(e) => setArrivalQuery(e.target.value)}
-                  onFocus={() => !isAllDestinations && setIsArrivalFocused(true)}
-                  onBlur={() => setTimeout(() => setIsArrivalFocused(false), 200)}
-                  placeholder={isAllDestinations ? "Anywhere" : (arrivalSelections.length > 0 ? "" : "e.g. MIA")}
-                  className="places-airport-input"
-                  autoComplete="off"
-                  disabled={isAllDestinations}
-                />
-              </div>
-            </div>
-            <div className="places-destination-toggle-row">
-              <span className="places-toggle-text">All Destinations</span>
-              <label className="switch-container">
-                <input type="checkbox" checked={isAllDestinations} onChange={handleToggleAllDestinations} />
-                <span className="switch-slider"></span>
-              </label>
-            </div>
-            {!isAllDestinations && isArrivalFocused && arrivalSuggestions.length > 0 && renderDropdown(arrivalSuggestions, handleSelectArrival, handleSelectArrivalGroup)}
-          </div>
-        </div>
-
-        <div className="places-airport-row">
-          <div className="places-airport-field">
-            <div className="places-field-label">Departure Date</div>
-            <div className="places-input-wrap">
-              <Calendar size={18} className="places-input-icon" />
-              <input
-                type="date"
-                value={departureDate}
-                onChange={(e) => setDepartureDate(e.target.value)}
-                className="places-airport-input"
-                onClick={(e) => e.target.showPicker && e.target.showPicker()}
-              />
-            </div>
-          </div>
-          <div className="places-airport-field">
-            <div className="places-field-label">Arrival Date</div>
-            <div className={`places-input-wrap ${tripMode === 'one-way' ? 'disabled' : ''}`}>
-              <Calendar size={18} className="places-input-icon" />
-              <input
-                type="date"
-                value={arrivalDate}
-                onChange={(e) => setArrivalDate(e.target.value)}
-                className="places-airport-input"
-                disabled={tripMode === 'one-way'}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+        <p>This feature is currently unavailable.</p>
     </div>
   );
 };
@@ -1656,7 +1310,6 @@ const FriendsView = () => (
   </div>
 );
 
-// ✅ Profile Main View
 const ProfileView = ({ userFirstName, userProfilePic, onEditProfile }) => (
   <div className="dashboard-panel fade-in profile-container">
     <div className="profile-header-card">
@@ -1713,7 +1366,6 @@ const ProfileView = ({ userFirstName, userProfilePic, onEditProfile }) => (
   </div>
 );
 
-// ✅ Edit Profile View
 const EditProfileView = ({ userInfo, onBack, onSaved }) => {
   const fileInputRef = useRef(null);
 
@@ -1937,13 +1589,12 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
   );
 };
 
-function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDestinations, onSearchFlights, flightState, onClearFlightSearch }) {
+function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDestinations, onSearchFlights, flightState, onClearFlightSearch, onClearCache }) {
   const [collapsed, setCollapsed] = useState(false);
   const [activeView, setActiveView] = useState('home');
   const [userDestinations, setUserDestinations] = useState(favoriteDestinations || []);
   const [userFavoriteArtists, setUserFavoriteArtists] = useState(favoriteArtists || []);
 
-  // Keep local state in sync when props arrive/refresh (e.g., after user_info fetch)
   useEffect(() => {
     setUserDestinations(Array.isArray(favoriteDestinations) ? favoriteDestinations : []);
   }, [favoriteDestinations]);
@@ -1962,11 +1613,9 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
   const [tourCounts, setTourCounts] = useState(null);
   const [toursLoading, setToursLoading] = useState(false);
 
-  // Destination stats (Sets / Festivals / Headliners) keyed by destination key
   const [destinationStatsByKey, setDestinationStatsByKey] = useState({});
   const [destinationStatsLoading, setDestinationStatsLoading] = useState(false);
 
-  // --- Global Header Search (Artists / Locations / Airports) ---
   const [globalQuery, setGlobalQuery] = useState('');
   const [globalFocused, setGlobalFocused] = useState(false);
   const [globalOpen, setGlobalOpen] = useState(false);
@@ -2006,7 +1655,6 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
   const selectGlobalAirport = (ap) => {
     setGlobalQuery(ap?.iata_code ? `${ap.iata_code} - ${ap.name || ''}` : (ap?.name || ''));
     closeGlobalSearch();
-    setActiveView('places');
   };
 
   useEffect(() => {
@@ -2103,7 +1751,6 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
     };
   }, [tourCounts]);
 
-  // Fetch destination-level EDMTrain stats on load (batched by locationIds)
   useEffect(() => {
     let cancelled = false;
 
@@ -2114,24 +1761,11 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
         return;
       }
 
-      // Map favorite artist EDMTrain IDs (used to detect "Headliners" per destination)
-      const favIds = new Set(
-        (Array.isArray(userFavoriteArtists) ? userFavoriteArtists : [])
-          .map((a) => a?.edmtrain_id)
-          .filter(Boolean)
-          .map((v) => String(v))
-      );
-
-      const buildDestinationKey = (d, idx) => {
+      const rows = destinations.map((d, idx) => {
         const raw =
           d?.city || d?.location || d?.name || d?.title || d?.location_label || d?.label || '';
         const cityName = (raw || 'Unknown').split(',')[0].trim() || 'Unknown';
-        return d?.id || d?.location_id || d?.iata_code || `${cityName}-${idx}`;
-      };
-
-      // Build per-destination rows
-      const rows = destinations.map((d, idx) => {
-        const key = buildDestinationKey(d, idx);
+        const key = d?.id || d?.location_id || d?.iata_code || `${cityName}-${idx}`;
         const locId =
           d?.edmtrain_locationid ??
           d?.edmtrain_location_id ??
@@ -2141,18 +1775,9 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
         return { key, locId: locId ? String(locId) : null };
       });
 
-      // Unique list of locationIds to batch query
       const uniqueLocIds = Array.from(new Set(rows.map((r) => r.locId).filter(Boolean)));
 
-      // If none of the destinations have a location id, just mark them missing
       if (uniqueLocIds.length === 0) {
-         console.warn(
-        "[UserHome] Skipping destination stats fetch – no edmtrain_locationid found on userDestinations",
-          {
-            userDestinations: destinations,
-            derivedRows: rows
-          }
-        );
         const next = {};
         rows.forEach((r, idx) => {
           next[r.key] = { totalSets: 0, totalFestivals: 0, headliners: 0, missingLocationId: true };
@@ -2173,95 +1798,7 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
 
         const json = await res.json().catch(() => ({}));
 
-        if (!res.ok) {
-          console.error('Failed to fetch destination stats:', json);
-        }
-
-        const data = (json && typeof json === 'object') ? json.data : null;
-
-        // We support two shapes from the backend:
-        // 1) { data: { "<locId>": { totalSets, totalFestivals, headliners } } }  (already aggregated)
-        // 2) { data: [ ...events ] }                                            (raw EDMTrain events)
-        const statsByLocId = {};
-
-        // Build helpers for matching events -> destination locationId (if the backend returns raw events)
-        const normalizeLabel = (s) =>
-          String(s || '')
-            .toLowerCase()
-            .replace(/\s+/g, ' ')
-            .replace(/\s*,\s*/g, ', ')
-            .trim();
-
-        const destLabelForRow = (dest, idx) => {
-          const raw =
-            dest?.city || dest?.location || dest?.name || dest?.title || dest?.location_label || dest?.label || '';
-          return String(raw || 'Unknown').trim() || `Unknown-${idx}`;
-        };
-
-        const locMetaById = {};
-        rows.forEach((r, idx) => {
-          if (!r.locId) return;
-          const label = destLabelForRow(destinations[idx], idx);
-          const cityOnly = label.split(',')[0].trim();
-          locMetaById[r.locId] = {
-            labelNorm: normalizeLabel(label),
-            cityNorm: normalizeLabel(cityOnly),
-          };
-        });
-
-        const ensureStat = (locId) => {
-          if (!statsByLocId[locId]) statsByLocId[locId] = { totalSets: 0, totalFestivals: 0, headliners: 0 };
-          return statsByLocId[locId];
-        };
-
-        if (data && typeof data === 'object' && !Array.isArray(data)) {
-          // Aggregated shape
-          Object.keys(data).forEach((locId) => {
-            const s = data[locId];
-            if (!s || typeof s !== 'object') return;
-            statsByLocId[String(locId)] = {
-              totalSets: Number(s.totalSets || 0),
-              totalFestivals: Number(s.totalFestivals || 0),
-              headliners: Number(s.headliners || 0),
-            };
-          });
-        } else if (Array.isArray(data)) {
-          // Raw events shape: compute counts client-side
-          data.forEach((evt) => {
-            // Some payloads might include a direct location id, but most EDMTrain events don't.
-            const directLocId =
-              evt?.locationId ??
-              evt?.location_id ??
-              evt?.edmtrain_locationid ??
-              evt?.edmtrain_location_id ??
-              null;
-
-            let locId = directLocId ? String(directLocId) : null;
-
-            if (!locId) {
-              const evtLocLabel = normalizeLabel(evt?.venue?.location || evt?.location || '');
-              if (evtLocLabel) {
-                // Try exact label match first, then city-only startsWith.
-                const match = Object.keys(locMetaById).find((lid) => {
-                  const meta = locMetaById[lid];
-                  return evtLocLabel === meta.labelNorm || evtLocLabel.startsWith(meta.cityNorm);
-                });
-                if (match) locId = String(match);
-              }
-            }
-
-            if (!locId) return; // couldn't match the event to one of the requested destinations
-
-            const s = ensureStat(locId);
-            s.totalSets += 1;
-            if (evt?.festivalInd) s.totalFestivals += 1;
-
-            if (favIds.size > 0 && Array.isArray(evt?.artistList)) {
-              const hasFav = evt.artistList.some((a) => a?.id != null && favIds.has(String(a.id)));
-              if (hasFav) s.headliners += 1;
-            }
-          });
-        }
+        const statsByLocId = (json && typeof json === 'object' && json.data) ? json.data : {};
 
         const next = {};
         rows.forEach((r) => {
@@ -2278,7 +1815,6 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
               headliners: Number(s.headliners || 0)
             };
           } else {
-            // If the locationId wasn't returned (or the call errored), treat as 0s with error flag
             next[r.key] = { totalSets: 0, totalFestivals: 0, headliners: 0, error: true };
           }
         });
@@ -2431,7 +1967,6 @@ const [userInfo, setUserInfo] = useState({
   const renderContent = () => {
     switch (activeView) {
       case 'events': return <EventsView />;
-      case 'places': return <PlacesView />;
       case 'flights':
         return (
           <FlightsView
@@ -2442,7 +1977,6 @@ const [userInfo, setUserInfo] = useState({
         );
       case 'artists': return <ArtistsView favoriteArtists={userFavoriteArtists} />;
       case 'plan': return <PlanView />;
-      // Itinerary View Case
       case 'itinerary': return <ItineraryView />;
       case 'friends': return <FriendsView />;
       
@@ -2506,7 +2040,6 @@ const [userInfo, setUserInfo] = useState({
     }
   };
 
-  // Calculate if we are in a details view to toggle header visibility
   const isDetailsView = ['artist-details', 'event-details', 'destination-details'].includes(activeView);
 
   return (
@@ -2547,11 +2080,6 @@ const [userInfo, setUserInfo] = useState({
             <span>Events</span>
           </button>
 
-          <button onClick={() => handleNav(() => setActiveView('places'))} className={activeView === 'places' ? 'active' : ''}>
-            <MapPin size={20} />
-            <span>Places</span>
-          </button>
-
           <button onClick={() => handleNav(() => setActiveView('artists'))} className={activeView === 'artists' ? 'active' : ''}>
             <MicVocal size={20} />
             <span>Artists</span>
@@ -2560,12 +2088,7 @@ const [userInfo, setUserInfo] = useState({
 
         <div className="sidebar-section">
           <h4>Tools</h4>
-          <button onClick={() => handleNav(() => setActiveView('plan'))} className={activeView === 'plan' ? 'active' : ''}>
-            <Map size={20} />
-            <span>Plan</span>
-          </button>
           
-          {/* ITINERARY MENU OPTION */}
           <button onClick={() => handleNav(() => setActiveView('itinerary'))} className={activeView === 'itinerary' ? 'active' : ''}>
             <BookOpen size={20} />
             <span>Itinerary</span>
@@ -2575,6 +2098,12 @@ const [userInfo, setUserInfo] = useState({
             <Users size={20} />
             <span>Friends</span>
           </button>
+
+          <button onClick={() => onClearCache && onClearCache()}>
+            <Trash size={20} />
+            <span>Clear Cache</span>
+          </button>
+
         </div>
       </aside>
 
@@ -2582,7 +2111,6 @@ const [userInfo, setUserInfo] = useState({
   <div className="sidebar-overlay" onClick={() => setCollapsed(true)} />
 )}
 
-      {/* details-view-mode based on the check above */}
       <div className={`main-wrapper ${collapsed ? 'collapsed' : ''} ${isDetailsView ? 'details-view-mode' : ''}`}>
         <header className="main-header">
           <div className="header-left">

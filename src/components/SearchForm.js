@@ -315,92 +315,94 @@ function SearchForm({ onSearch, loading }) {
       
       <form onSubmit={handleSubmit} className="search-form">
         
-        {/* Search Mode Toggle */}
-        <div className="form-group">
-          <label>Search Mode</label>
-          <div className="trip-type-selector">
-            <label className={`trip-type-option ${searchMode === 'package' ? 'active' : ''}`}>
-              <input
-                type="radio"
-                name="searchMode"
-                value="package"
-                checked={searchMode === 'package'}
-                onChange={(e) => setSearchMode(e.target.value)}
-              />
-              <Package size={18} className="option-icon" />
-              <span>Package Trip</span>
-            </label>
-            <label className={`trip-type-option ${searchMode === 'build-your-own' ? 'active' : ''}`}>
-              <input
-                type="radio"
-                name="searchMode"
-                value="build-your-own"
-                checked={searchMode === 'build-your-own'}
-                onChange={(e) => setSearchMode(e.target.value)}
-              />
-              <Wrench size={18} className="option-icon" />
-              <span>Build Your Own</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Trip Type Toggle */}
-        {searchMode === 'package' && (
-          <div className="form-group">
-            <label>Trip Type</label>
-            <div className="trip-type-selector">
-              <label className={`trip-type-option ${tripType === 'one-way' ? 'active' : ''}`}>
+        {/* Search Mode + Trip Type (single row on desktop, stacked on mobile) */}
+        <div className="toggles-row">
+          <div className="form-group toggle-group">
+            <label>Search Mode</label>
+            <div className="trip-type-selector trip-type-selector--searchmode">
+              <label className={`trip-type-option ${searchMode === 'package' ? 'active' : ''}`}>
                 <input
                   type="radio"
-                  name="tripType"
-                  value="one-way"
-                  checked={tripType === 'one-way'}
-                  onChange={(e) => setTripType(e.target.value)}
+                  name="searchMode"
+                  value="package"
+                  checked={searchMode === 'package'}
+                  onChange={(e) => setSearchMode(e.target.value)}
                 />
-                <ArrowRight size={18} className="option-icon" />
-                <span>One Way</span>
+                <Package size={18} className="option-icon" />
+                <span className="search-mode-text">Package Trip</span>
               </label>
 
-              <label className={`trip-type-option ${tripType === 'round-trip' ? 'active' : ''}`}>
+              <label className={`trip-type-option ${searchMode === 'build-your-own' ? 'active' : ''}`}>
                 <input
                   type="radio"
-                  name="tripType"
-                  value="round-trip"
-                  checked={tripType === 'round-trip'}
-                  onChange={(e) => setTripType(e.target.value)}
+                  name="searchMode"
+                  value="build-your-own"
+                  checked={searchMode === 'build-your-own'}
+                  onChange={(e) => setSearchMode(e.target.value)}
                 />
-                <Repeat size={18} className="option-icon" />
-                <span>Round Trip</span>
-              </label>
-
-              <label className={`trip-type-option ${tripType === 'day-trip' ? 'active' : ''}`}>
-                <input
-                  type="radio"
-                  name="tripType"
-                  value="day-trip"
-                  checked={tripType === 'day-trip'}
-                  onChange={(e) => setTripType(e.target.value)}
-                />
-                <Sun size={18} className="option-icon" />
-                <span>Day Trip</span>
-              </label>
-
-              <label className={`trip-type-option ${tripType === 'trip-planner' ? 'active' : ''}`}>
-                <input
-                  type="radio"
-                  name="tripType"
-                  value="trip-planner"
-                  checked={tripType === 'trip-planner'}
-                  onChange={(e) => setTripType(e.target.value)}
-                />
-                <CalendarRange size={18} className="option-icon" />
-                <span>Trip Planner</span>
+                <Wrench size={18} className="option-icon" />
+                <span className="search-mode-text">Build Your Own</span>
               </label>
             </div>
           </div>
-        )}
 
-        {/* Origin and Destination Row */}
+          {searchMode === 'package' && (
+            <div className="form-group toggle-group">
+              <label>Trip Type</label>
+              <div className="trip-type-selector trip-type-selector--triptype">
+                <label className={`trip-type-option ${tripType === 'one-way' ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="tripType"
+                    value="one-way"
+                    checked={tripType === 'one-way'}
+                    onChange={(e) => setTripType(e.target.value)}
+                  />
+                  <ArrowRight size={18} className="option-icon" />
+                  <span className="trip-type-text">One Way</span>
+                </label>
+
+                <label className={`trip-type-option ${tripType === 'round-trip' ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="tripType"
+                    value="round-trip"
+                    checked={tripType === 'round-trip'}
+                    onChange={(e) => setTripType(e.target.value)}
+                  />
+                  <Repeat size={18} className="option-icon" />
+                  <span className="trip-type-text">Round Trip</span>
+                </label>
+
+                <label className={`trip-type-option ${tripType === 'day-trip' ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="tripType"
+                    value="day-trip"
+                    checked={tripType === 'day-trip'}
+                    onChange={(e) => setTripType(e.target.value)}
+                  />
+                  <Sun size={18} className="option-icon" />
+                  <span className="trip-type-text">Day Trip</span>
+                </label>
+
+                <label className={`trip-type-option ${tripType === 'trip-planner' ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="tripType"
+                    value="trip-planner"
+                    checked={tripType === 'trip-planner'}
+                    onChange={(e) => setTripType(e.target.value)}
+                  />
+                  <CalendarRange size={18} className="option-icon" />
+                  <span className="trip-type-text">Trip Planner</span>
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+
+{/* Origin and Destination Row */}
         <div className="form-row">
           
           {/* --- ORIGIN COLUMN --- */}
