@@ -1049,15 +1049,18 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
     { id: 'chicago', city: 'Chicago', name: 'Chicago' },
   ];
 
+  // 1. Initialize selection to today's date
+  const [homeSelectedDate, setHomeSelectedDate] = useState(new Date());
+  const [homeItinerary, setHomeItinerary] = useState({ events: [], flights: [] });
+  const [homeDatesLoading, setHomeDatesLoading] = useState(false);
+  
+  // 2. Ref to track the "today" element for centering
+  const todayRef = useRef(null);
+
   const destinations =
     Array.isArray(favoriteDestinations) && favoriteDestinations.length > 0
       ? favoriteDestinations
       : demoDestinations;
-
-  // --- Home date scroller (mirrors Itinerary timeline dots: blackout + flights + events) ---
-  const [homeItinerary, setHomeItinerary] = useState({ events: [], flights: [] });
-  const [homeDatesLoading, setHomeDatesLoading] = useState(false);
-  const [homeSelectedDate, setHomeSelectedDate] = useState(new Date());
 
   useEffect(() => {
     const fetchItinerary = async () => {
@@ -1089,19 +1092,30 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
     fetchItinerary();
   }, []);
 
+  // 3. Effect to center the "today" element once rendered
+  useEffect(() => {
+    if (todayRef.current) {
+      todayRef.current.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center', // This puts the element in the middle of the scroll area
+        block: 'nearest'
+      });
+    }
+  }, [homeDatesLoading]); // Runs after data is loaded and DOM is updated
+
   const getHomeDataForDate = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayEvents = (homeItinerary?.events || []).filter(e => e?.date === dateStr);
     const dayFlights = (homeItinerary?.flights || []).filter(f => f?.date === dateStr);
-    const isBlackout = isBlackoutDate(date);
+    const isBlackout = typeof isBlackoutDate === 'function' ? isBlackoutDate(date) : false;
     return { dayEvents, dayFlights, isBlackout };
   };
 
   const renderHomeTimelineDays = () => {
-    // Keep it similar to Itinerary timeline: a centered window around selected date
     const days = [];
+    // Generating a window of days around today
     for (let i = -14; i <= 14; i++) {
-      const d = new Date(homeSelectedDate);
+      const d = new Date();
       d.setDate(d.getDate() + i);
       days.push(d);
     }
@@ -1117,6 +1131,8 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
           return (
             <button
               key={i}
+              // 4. Attach the ref only to the "today" button
+              ref={isToday ? todayRef : null}
               className={`timeline-day-item ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
               onClick={() => setHomeSelectedDate(d)}
               type="button"
@@ -1137,73 +1153,118 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
     );
   };
 
+  // NEW: Render the daily agenda list within the shell
+  const renderDailyAgenda = () => {
+    const { dayEvents, dayFlights } = getHomeDataForDate(homeSelectedDate);
+    const setsCount = dayEvents.length;
+    const flightsCount = dayFlights.length;
+
+    // Merge and sort for chronological order
+    const agendaItems = [
+      ...dayFlights.map(f => ({ ...f, type: 'flight' })),
+      ...dayEvents.map(e => ({ ...e, type: 'event' }))
+    ].sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+
+    return (
+      <div className="daily-agenda-container fade-in">
+        <div className="agenda-summary-header">
+          <h2 className="agenda-date-title">{format(homeSelectedDate, 'EEEE, MMM do')}</h2>
+          <div className="agenda-counts-row">
+            <span>Sets: {setsCount}</span>
+            <span className="count-divider">•</span>
+            <span>Flights: {flightsCount}</span>
+          </div>
+        </div>
+
+        <div className="timeline-details-list">
+          {agendaItems.length > 0 ? (
+            agendaItems.map((item, idx) => (
+              <div key={idx} className={`timeline-card ${item.type}`}>
+                <div className="timeline-time">{item.time || "TBA"}</div>
+                <div className="timeline-line"></div>
+                <div className="timeline-card-content">
+                  <div className="timeline-card-tag">
+                    {item.type === 'flight' ? <Plane size={12} style={{marginRight: 4}}/> : <Ticket size={12} style={{marginRight: 4}}/>}
+                    {item.type.toUpperCase()}
+                  </div>
+                  <div className="timeline-card-title">{item.title || (item.name ? `${item.name}` : "Scheduled Item")}</div>
+                  <div className="timeline-card-sub">{item.subtitle || item.venue?.location || item.venue?.name || ""}</div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">
+              <p>Nothing scheduled for this day.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="dashboard-panel fade-in">
-      <div className="headliners-section">
+      {/* SECTION: HEADLINERS */}
+      <div className="headliners-section" style={{ marginBottom: '2.5rem' }}>
         <h3 className="section-title">
           <span>YOUR </span>
           <span className="accent">HEADLINERS</span>
         </h3>
 
-        {/* Headliners + Home Timeline Row (same height containers) */}
-        <div className="home-headliners-row">
-          <div className="home-headliners-card">
-            <div className="headliners-card-shell">
-              <div className="headliners-scroll">
-                {favoriteArtists && favoriteArtists.length > 0 ? (
-                  favoriteArtists.map((artist, index) => {
-                    const count =
-                      artist?.edmtrain_id && tourCounts
-                        ? (tourCounts[artist.edmtrain_id] || 0)
-                        : 0;
-
-                    return (
+        <div className="home-headliners-card">
+          <div className="headliners-card-shell">
+            <div className="headliners-scroll">
+              {favoriteArtists && favoriteArtists.length > 0 ? (
+                favoriteArtists.map((artist, index) => {
+                  const count = artist?.edmtrain_id && tourCounts ? (tourCounts[artist.edmtrain_id] || 0) : 0;
+                  return (
+                    <div
+                      key={index}
+                      className="headliner-card"
+                      onClick={() => onArtistClick(artist)}
+                      role="button"
+                      tabIndex={0}
+                    >
                       <div
-                        key={index}
-                        className="headliner-card"
-                        onClick={() => onArtistClick(artist)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') onArtistClick(artist);
+                        className="headliner-image-wrapper"
+                        style={{
+                          backgroundImage: `url(${artist.image || "/artifacts/defaultprofileillenium.png"})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center'
                         }}
                       >
-                        <div
-                          className="headliner-image-wrapper"
-                          style={{
-                            backgroundImage: `url(${artist.image || "/artifacts/defaultprofileillenium.png"})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                            backgroundRepeat: 'no-repeat'
-                          }}
-                          aria-label={artist?.name || "Artist"}
-                        >
-                          {count > 0 && (
-                            <div className="headliner-event-count">
-                              {count}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="headliner-label">{artist.name}</div>
+                        {count > 0 && <div className="headliner-event-count">{count}</div>}
                       </div>
-                    );
-                  })
-                ) : (
-                  <p className="no-data-msg">No favorite artists added yet.</p>
-                )}
-              </div>
+                      <div className="headliner-label">{artist.name}</div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="no-data-msg">No favorite artists added yet.</p>
+              )}
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="home-dates-card">
-            <div className="home-dates-shell">
-              <div className="home-dates-title-row">
-                <div className="home-dates-title">YOUR DATES</div>
-                {homeDatesLoading && <div className="home-dates-sub">Loading…</div>}
-              </div>
-              {renderHomeTimelineDays()}
-            </div>
+      {/* SECTION: DATES & AGENDA (Nested) */}
+      <div className="home-dates-section">
+        <div className="home-dates-title-outside">
+          <h3 className="section-title">
+            <span>UP </span>
+            <span className="accent">NEXT</span>
+          </h3>
+          {homeDatesLoading && <div className="home-dates-sub">Loading…</div>}
+        </div>
+        
+        <div className="home-dates-card">
+          <div className="home-dates-shell">
+            {renderHomeTimelineDays()}
+            <div className="home-agenda-divider" style={{ 
+              margin: '20px 0', 
+              borderTop: '1px solid #f1f5f9' 
+            }} />
+            {renderDailyAgenda()}
           </div>
         </div>
       </div>
@@ -1275,7 +1336,6 @@ const FlightsView = ({ onBack, onSearchFlights, flightState, isSearchCollapsed, 
         <SearchForm onSearch={onSearchFlights} loading={!!loading} />
       </div>
 
-      {/* Wrapper to tightly control spacing when search is collapsed */}
       <div className="flights-results-shell">
         {error && (
           <div className="error-message"><p>⚠️ {error}</p></div>
@@ -1311,7 +1371,6 @@ const FlightsView = ({ onBack, onSearchFlights, flightState, isSearchCollapsed, 
   );
 };
 
-// --- RESTORED: PlacesView (Necessary for sub-components to not crash) ---
 const PlacesView = () => {
   return (
     <div className="dashboard-panel fade-in">
@@ -1321,7 +1380,6 @@ const PlacesView = () => {
   );
 };
 
-// --- Plan View ---
 const PlanView = () => {
   const [startDate, setStartDate] = useState(null);
 
@@ -2190,7 +2248,7 @@ const [userInfo, setUserInfo] = useState({
 
           <div className="header-right">
             <img
-              src={`${API_BASE_URL}/static/profile_pics/${userProfilePic || 'default.jpg'}`}
+              src={`${API_BASE_URL}/static/profile_pics/${userInfo.image_file || 'default.jpg'}`}
               alt="Profile"
               className={`header-profile-pic ${activeView === 'profile' || activeView === 'edit-profile' ? 'active' : ''}`}
               onClick={() => setActiveView('profile')}

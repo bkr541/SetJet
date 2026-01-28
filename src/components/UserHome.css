@@ -451,7 +451,7 @@
   border-radius: 999px;
   overflow: visible;
 
-  border: 3px solid #0096a6;
+  border: 3px solid #0f172a;
   background: #0f172a;
   box-shadow: 0 10px 22px rgba(2, 6, 23, 0.14);
 }
@@ -473,15 +473,15 @@
   align-items: center;
   justify-content: center;
 
-  background: #0096a6;
+  background: #0f172a;
   color: #ffffff;
 
   font-size: 0.9rem;
   font-weight: 700;
   line-height: 1;
 
-  border: none;
-  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.22);
+  border: 1px solid #ffffff;
+  box-shadow: 0 10px 22px rgba(10, 6, 23, 0.22);
 }
 
 
@@ -507,7 +507,7 @@
 /* --- HOME: Headliners + Dates row --- */
 .home-headliners-row{
   display: flex;
-  gap: 18px;
+
   align-items: stretch;
   margin-top: 10px;
 }
@@ -521,8 +521,8 @@
 /* Make both containers feel like paired cards, same height */
 .home-headliners-card .headliners-card-shell,
 .home-dates-shell{
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: transparent;
+  border: none;
   border-radius: 18px;
   padding: 14px 14px 12px 14px;
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
@@ -534,25 +534,22 @@
   padding: 8px 10px 10px 10px;
 }
 
-/* Home dates header */
-.home-dates-title-row{
+/* Home dates title (outside the card shell, matches Headliners title) */
+.home-dates-title-outside{
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  padding: 0 4px 8px 4px;
+  padding: 0 2px;
+  margin: 0 0 10px 0;
 }
 
-.home-dates-title{
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 900;
-  color: #64748b;
+.home-dates-title-outside .section-title{
+  margin: 0;
 }
 
 .home-dates-sub{
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #94a3b8;
 }
@@ -1516,19 +1513,41 @@ input[type="date"] {
   }
   .section-title {
   letter-spacing: 0em;
-}
+  padding-left: 12px;
+  }
+  .headliners-scroll {
+    gap: 12px !important;
+    padding-bottom: 12px; /* Space for the floating badges */
+    padding-top: 12px;
+    padding-left: 12px;
+  }
+
+  /* Reset the wrapper to match desktop behavior */
   .headliner-image-wrapper {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 2px solid #235a76;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    width: 84px !important;   /* Standard desktop size */
+    height: 84px !important;
+    border-radius: 999px !important;
+    border: 3px solid #0096a6 !important;
+    position: relative !important; /* Required for the badge to anchor */
+    overflow: visible !important; /* Allows badge to float outside bottom */
+    box-shadow: 0 10px 22px rgba(2, 6, 23, 0.14) !important;
+  }
+
+  /* Ensure the name text doesn't hide behind the badge */
+  .headliner-label {
+    margin-top: 12px !important;
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 700;
+  }
+
+  /* Hide the old 'headliner-name' override that was centering text over the image */
+  .headliner-name {
+    display: none !important;
   }
   .headliner-name {
   position: absolute;
-  top: 42%; /* Changed from 50% to make room below */
+  top: 40%; /* Changed from 50% to make room below */
   left: 50%;
   transform: translate(-50%, -50%);
   color: white;
@@ -1547,8 +1566,8 @@ input[type="date"] {
   }
   .headliners-scroll {
   gap: 1rem;
-  padding-bottom: 1rem;
-  padding-top: 1rem;
+  padding-bottom: 6px;
+  padding-top: 6px;
   }
   .destination-card.destination-poster {
     width: 160px;
@@ -2359,7 +2378,7 @@ input[type="date"] {
 }
 
 
-/* Artist event date badge (top-right, calendar style) */
+/* Artist event card: date badge (top-right, calendar style) */
 .artist-event-card{
   position: relative;
 }
@@ -2788,15 +2807,15 @@ input[type="date"] {
 
 /* Timeline Cards */
 .timeline-details-list {
-  margin-top: 16px;
+  margin-top: 0px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 .timeline-date-header {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.7rem;
+  font-weight: 700;
   color: #334155;
   margin: 0;
 }
@@ -2827,7 +2846,7 @@ input[type="date"] {
   content: '';
   position: absolute;
   top: 18px;
-  left: -4px;
+  left: -8px !important;
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -2835,8 +2854,14 @@ input[type="date"] {
   border: 2px solid white;
 }
 
-.timeline-card.flight .timeline-line::before { background: #06b6d4; }
-.timeline-card.event .timeline-line::before { background: #8b5cf6; }
+.timeline-card.flight .timeline-line::before {
+  background: #06b6d4; 
+  margin-top: 1.2rem;
+}
+.timeline-card.event .timeline-line::before {
+  background: #8b5cf6; 
+  margin-top: 1.2rem;
+}
 
 .timeline-card-content {
   flex: 1;
@@ -3011,4 +3036,101 @@ input[type="date"] {
   align-items: center;
   gap: 10px;
   pointer-events: auto;
+}
+
+/* --- HOME DATES TITLE MATCH HEADLINERS --- */
+.home-dates-section .section-title {
+  margin: 16px 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* --- MOBILE HEADLINERS MATCH DESKTOP, SMALLER TEXT --- */
+@media (max-width: 768px) {
+  .headliner-label {
+    font-size: 0.85rem;
+  }
+
+  .headliners-scroll {
+    gap: 12px; /* exact 12px gap between artists */
+  }
+}
+
+/* =========================================
+   DAILY AGENDA & VERTICAL TIMELINE
+   ========================================= */
+
+.daily-agenda-container {
+  margin-top: 32px;
+  padding: 0 4px;
+}
+
+.agenda-summary-header {
+  padding-left: 4px;
+  margin-bottom: 12px;
+}
+
+.agenda-date-title {
+  font-size: 1.8rem !important;
+  font-weight: 800 !important;
+  color: #1e293b;
+  margin-bottom: 4px !important;
+}
+
+.agenda-counts-row {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #64748b;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.count-divider {
+  color: #cbd5e1;
+}
+
+/* Timeline Cards Overrides for Daily View */
+.daily-agenda-container .timeline-card {
+  margin-bottom: 12px;
+  align-items: stretch;
+}
+
+.daily-agenda-container .timeline-time {
+  width: 65px;
+  padding-top: 14px;
+}
+
+.daily-agenda-container .timeline-line {
+  width: 2px;
+  background: #e2e8f0;
+  position: relative;
+}
+
+/* The vertical progress line circle */
+.daily-agenda-container .timeline-line::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: -5px; /* Centers 12px circle on 2px line */
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: 3px solid white;
+  z-index: 2;
+}
+
+.daily-agenda-container .timeline-card.flight .timeline-line::before { background: #0096a6; }
+.daily-agenda-container .timeline-card.event .timeline-line::before { background: #8b5cf6; }
+
+.daily-agenda-container .timeline-card-content {
+  flex: 1;
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  margin-left: 8px;
+  border-left: none; /* remove legacy itinerary border */
 }
