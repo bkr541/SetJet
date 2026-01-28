@@ -2095,31 +2095,74 @@ input[type="date"] {
   pointer-events: none;
 }
 
+/* ... existing styles ... */
+
+/* UPDATED: Removed inline styles and moved here */
 .modify-search-btn {
   margin-top: 12px;
+  margin-bottom: 0 !important; /* Force remove gap below button */
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #0f172a;
-  font-weight: 800;
+  justify-content: flex-start;
+  gap: 8px;
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  color: #64748b;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: transform 0.15s ease;
 }
 
 .modify-search-btn:hover {
-  border-color: #0096a6;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
-  transform: translateY(-1px);
+  color: #0096a6;
 }
 
-.modify-search-btn:active {
-  transform: translateY(0);
+/* === SEARCH FORM COLLAPSE === */
+.search-form-shell {
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+  max-height: 1200px;
+  opacity: 1;
+  margin-top: 0 !important;
 }
+
+.search-form-shell.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* NEW: Remove gap between button and results when search is hidden */
+.search-form-shell.collapsed + .flights-results-shell {
+  margin-top: 0 !important;
+}
+
+.flights-results-shell h2 {
+  margin-top: 0 !important;
+}
+
+/* FIXED: Cleaned up duplicate media query at end */
+@media (max-width: 768px) {
+  .details-view-mode .main-header {
+    display: none !important;
+  }
+  
+  .user-home-content,
+  .user-home-content.artist-view-active {
+     padding-left: 0 !important;
+     padding-right: 0 !important;
+  }
+
+  .artist-events-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 
 /* === MOVED FROM INLINE STYLES (UserHome.js) === */
 

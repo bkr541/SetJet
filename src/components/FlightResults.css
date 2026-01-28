@@ -64,18 +64,18 @@
 
 .results-header h2 {
   font-size: 2.4rem;
-  font-weight: 800;
+  font-weight: 600;
   margin: 0;
   color: #111827;
 }
 
 .search-summary {
-  margin-top: 0.75rem;
+  margin-top: 0px !important;
 }
 
 .results-info {
   font-size: 1.25rem;
-  margin: 0.2rem 0;
+  margin: 0 !important;
   color: #111827;
 }
 
@@ -261,18 +261,18 @@
 
   /* âœ… UPDATED: Smaller Header Info Text */
   .results-info {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
   }
   
   .days-away {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 
   /* âœ… UPDATED: Smaller Badges/Pills */
   .trip-type-pill,
   .cache-badge {
     padding: 0.25rem 0.6rem;
-    font-size: 0.75rem;
+    font-size: 0.5rem;
   }
 
   .trip-type-pill svg,

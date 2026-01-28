@@ -585,7 +585,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
   }, [artist?.edmtrain_id, activeTab]);
 
   const tabs = [
-    { name: 'Upcoming Sets', icon: Calendar },
+    { name: 'Upcoming Sets', icon: CalendarIcon },
     { name: 'Set Map', icon: Map },
     { name: 'Discover', icon: Sparkles },
     { name: 'Bio', icon: User },
@@ -746,7 +746,7 @@ const DestinationDetailsView = ({ destination, onBack }) => {
   const bgImage = `/artifacts/cities/${safeName}.png`;
 
   const tabs = [
-    { name: 'Upcoming Sets', icon: Calendar },
+    { name: 'Upcoming Sets', icon: CalendarIcon },
     { name: 'Calendar', icon: CalendarDays },
     { name: 'Flights', icon: Plane }
   ];
@@ -1193,7 +1193,7 @@ const ArtistsView = ({ favoriteArtists }) => (
   </div>
 );
 
-const FlightsView = ({ onBack, onSearchFlights, flightState }) => {
+const FlightsView = ({ onBack, onSearchFlights, flightState, isSearchCollapsed, setIsSearchCollapsed }) => {
   const {
     searchParams,
     flights,
@@ -1213,54 +1213,54 @@ const FlightsView = ({ onBack, onSearchFlights, flightState }) => {
   return (
     <div className="dashboard-panel fade-in">
       <button
-        onClick={onBack}
-        style={{
-          marginBottom: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: '#64748b',
-          fontSize: '1rem',
-          fontWeight: 600
+        onClick={() => {
+          if (isSearchCollapsed) {
+            setIsSearchCollapsed(false);
+          } else {
+            onBack();
+          }
         }}
+        className="modify-search-btn"
       >
-        <ArrowLeft size={20} /> Back
+        <ArrowLeft size={20} /> {isSearchCollapsed ? "Modify Search" : "Back"}
       </button>
 
-      <SearchForm onSearch={onSearchFlights} loading={!!loading} />
+      <div className={`search-form-shell ${isSearchCollapsed ? 'collapsed' : ''}`}>
+        <SearchForm onSearch={onSearchFlights} loading={!!loading} />
+      </div>
 
-      {error && (
-        <div className="error-message"><p>⚠️ {error}</p></div>
-      )}
+      {/* Wrapper to tightly control spacing when search is collapsed */}
+      <div className="flights-results-shell">
+        {error && (
+          <div className="error-message"><p>⚠️ {error}</p></div>
+        )}
 
-      {loading && (
-        <div className="loading-message">
-          <div className="spinner"></div>
-          <p>Searching for flights... {routesSearched || 0}/{totalRoutes || 0} routes searched</p>
-          {Array.isArray(flights) && flights.length > 0 && (
-            <p className="flights-found">{flights.length} flights found so far</p>
-          )}
-        </div>
-      )}
+        {loading && (
+          <div className="loading-message">
+            <div className="spinner"></div>
+            <p>Searching for flights... {routesSearched || 0}/{totalRoutes || 0} routes searched</p>
+            {Array.isArray(flights) && flights.length > 0 && (
+              <p className="flights-found">{flights.length} flights found so far</p>
+            )}
+          </div>
+        )}
 
-      {searchParams && Array.isArray(flights) && flights.length > 0 && (
-        <FlightResults
-          flights={flights}
-          searchParams={searchParams}
-          fromCache={!!fromCache}
-          isLoading={!!loading}
-          tripPlannerInfo={tripPlannerInfo}
-          buildYourOwnMode={searchParams.searchMode === 'build-your-own' || searchParams.searchMode === 'build-your-own-return'}
-          buildYourOwnStep={buildYourOwnStep}
-          selectedOutboundFlight={selectedOutboundFlight}
-          onSelectOutbound={onSelectOutbound}
-          onSelectReturn={onSelectReturn}
-          onResetBuildYourOwn={onResetBuildYourOwn}
-        />
-      )}
+        {searchParams && Array.isArray(flights) && flights.length > 0 && (
+          <FlightResults
+            flights={flights}
+            searchParams={searchParams}
+            fromCache={!!fromCache}
+            isLoading={!!loading}
+            tripPlannerInfo={tripPlannerInfo}
+            buildYourOwnMode={searchParams.searchMode === 'build-your-own' || searchParams.searchMode === 'build-your-own-return'}
+            buildYourOwnStep={buildYourOwnStep}
+            selectedOutboundFlight={selectedOutboundFlight}
+            onSelectOutbound={onSelectOutbound}
+            onSelectReturn={onSelectReturn}
+            onResetBuildYourOwn={onResetBuildYourOwn}
+          />
+        )}
+      </div>
     </div>
   );
 };
@@ -1594,6 +1594,9 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
   const [activeView, setActiveView] = useState('home');
   const [userDestinations, setUserDestinations] = useState(favoriteDestinations || []);
   const [userFavoriteArtists, setUserFavoriteArtists] = useState(favoriteArtists || []);
+  
+  // NEW: State for search form collapse
+  const [isSearchCollapsed, setIsSearchCollapsed] = useState(false);
 
   useEffect(() => {
     setUserDestinations(Array.isArray(favoriteDestinations) ? favoriteDestinations : []);
@@ -1761,11 +1764,22 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
         return;
       }
 
-      const rows = destinations.map((d, idx) => {
+      const favIds = new Set(
+        (Array.isArray(userFavoriteArtists) ? userFavoriteArtists : [])
+          .map((a) => a?.edmtrain_id)
+          .filter(Boolean)
+          .map((v) => String(v))
+      );
+
+      const buildDestinationKey = (d, idx) => {
         const raw =
           d?.city || d?.location || d?.name || d?.title || d?.location_label || d?.label || '';
         const cityName = (raw || 'Unknown').split(',')[0].trim() || 'Unknown';
-        const key = d?.id || d?.location_id || d?.iata_code || `${cityName}-${idx}`;
+        return d?.id || d?.location_id || d?.iata_code || `${cityName}-${idx}`;
+      };
+
+      const rows = destinations.map((d, idx) => {
+        const key = buildDestinationKey(d, idx);
         const locId =
           d?.edmtrain_locationid ??
           d?.edmtrain_location_id ??
@@ -1964,15 +1978,30 @@ const [userInfo, setUserInfo] = useState({
     }
   };
 
+  // Wrapper for flight search to handle state
+  const handleFlightSearch = (params) => {
+    setIsSearchCollapsed(true);
+    onSearchFlights(params);
+  };
+
   const renderContent = () => {
     switch (activeView) {
       case 'events': return <EventsView />;
       case 'flights':
         return (
           <FlightsView
-            onBack={() => { onClearFlightSearch && onClearFlightSearch(); setActiveView('home'); }}
-            onSearchFlights={onSearchFlights}
+            onBack={() => { 
+                if (isSearchCollapsed) {
+                    setIsSearchCollapsed(false);
+                } else {
+                    onClearFlightSearch && onClearFlightSearch(); 
+                    setActiveView('home'); 
+                }
+            }}
+            onSearchFlights={handleFlightSearch}
             flightState={flightState}
+            isSearchCollapsed={isSearchCollapsed}
+            setIsSearchCollapsed={setIsSearchCollapsed}
           />
         );
       case 'artists': return <ArtistsView favoriteArtists={userFavoriteArtists} />;
