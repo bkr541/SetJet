@@ -318,7 +318,7 @@
 }
 
 .header-search-input::placeholder {
-  color: #cbd5e1;
+  color: #94a3b8; /* Darker for better readability */
   font-weight: 500;
 }
 
@@ -382,49 +382,46 @@
   margin-bottom: 1.5rem !important; /* Reduced from 2.5rem to close the gap */
 }
 
-/* --- HEADLINERS SECTION --- */
-.headliners-section{
+/* --- DASHBOARD SECTIONS & SPACING --- */
+.dashboard-section {
   margin-top: 12px;
+
 }
 
-/* Keep a global baseline for section titles (used across views) */
-.section-title{
+.section-title {
   font-size: 1.5rem;
   font-weight: 200;
   text-transform: uppercase;
-  color: #2c4f63;
+  color: #64748b; /* Unified color */
   letter-spacing: 0.05em;
+  margin: 0px; /* Consistent bottom margin for titles */
 }
 
-/* Headliners title with accent word (matches reference) */
-.headliners-section .section-title{
-  color: #64748b;
-  margin: 0;
-}
-
-.headliners-section .section-title .accent{
+.section-title .accent {
   color: #0096a6;
   font-weight: 700;
 }
 
-.home-dates-section .section-title .accent{
-  color: #0096a6;
-  font-weight: 700;
-}
-
-/* White rounded container card */
-.headliners-card-shell{
-  margin-top: 0px;
-  background: none;
+/* --- WHITE BACKGROUND GROUPS --- */
+/* Unified card styles for Headliners and Dates */
+.headliners-card-shell,
+.home-dates-shell {
+  background: none; /* Solid White */
   border: none;
-  padding: 0px;
   box-shadow: none;
+  min-height: 150px;
 }
 
+/* Headliners container specific padding logic */
+.headliners-card-shell {
+  padding: 0px;
+}
+
+/* --- HOME: Headliners + Dates row --- */
 /* Horizontal scroller */
 .headliners-scroll{
   display: flex;
-  gap: 18px;
+  gap: 6px;
   overflow-x: auto;
   padding: 12px 2px 6px 2px;
   scrollbar-width: none;
@@ -473,14 +470,15 @@
   transform: translateX(-50%);
   z-index: 3;                  /* ensure it sits above the image */
 
-  min-width: 32px;
+  min-width: 42px; /* ensure width for icon */
   height: 32px;
-  padding: 10px 4px;
+  padding: 6px 10px; /* Update padding */
   border-radius: 999px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px; /* Space between icon and number */
 
   background: #0f172a;
   color: #ffffff;
@@ -513,48 +511,14 @@
   font-style: italic;
 }
 
-/* --- HOME: Headliners + Dates row --- */
-.home-headliners-row{
-  display: flex;
-
-  align-items: stretch;
-  margin-top: 10px;
-}
-
-.home-headliners-card,
-.home-dates-card{
-  flex: 1;
-  min-width: 0;
-}
-
-/* Make both containers feel like paired cards, same height */
-.home-headliners-card .headliners-card-shell,
-.home-dates-shell{
-  background: transparent;
-  border: none;
-  border-radius: 18px;
-  padding: 14px 14px 12px 14px;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
-  min-height: 150px; /* match Headliners container height */
-}
-
-/* Headliners container already has its own padding rules; keep scroll spacing nice */
-.home-headliners-card .headliners-card-shell{
-  padding: 8px 10px 10px 10px;
-}
-
-/* Home dates title (outside the card shell, matches Headliners title) */
+/* Home dates title (outside the card shell) */
 .home-dates-title-outside{
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
   padding: 0 2px;
-  margin: 0 0 10px 0;
-}
-
-.home-dates-title-outside .section-title{
-  margin: 0;
+  margin: 0 0 6px 0;
 }
 
 .home-dates-sub{
@@ -902,7 +866,7 @@
 }
 
 .places-airport-input::placeholder {
-  color: #cbd5e1;
+  color: #94a3b8; /* Darker for better readability */
   font-weight: 500;
 }
 
@@ -1777,16 +1741,16 @@ input[type="date"] {
   pointer-events: none;
 }
 
-/* Gradient Overlay */
+/* Gradient Overlay - STRONGER SCRIM FOR READABILITY */
 .artist-event-overlay {
   position: absolute;
   inset: 0;
+  /* Make the bottom darker to ensure text pops */
   background: linear-gradient(
     to top,
-    rgba(2, 6, 23, 0.98) 0%,
-    rgba(2, 6, 23, 0.85) 35%,
-    rgba(2, 6, 23, 0.55) 65%,
-    rgba(2, 6, 23, 0.25) 85%,
+    rgba(2, 6, 23, 0.95) 0%,   /* Start almost black at bottom */
+    rgba(2, 6, 23, 0.8) 25%,
+    rgba(2, 6, 23, 0.4) 50%,
     transparent 100%
   );
   z-index: 1;
@@ -2757,23 +2721,33 @@ input[type="date"] {
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  margin-bottom: -1.5rem;
   scrollbar-width: none;
 }
 
+/* --- 2. IMPROVED CALENDAR TOUCH TARGETS --- */
 .timeline-day-item {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 80px;
+  width: 68px; /* Slightly wider */
+  height: 80px; /* Taller */
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s;
+  touch-action: manipulation; /* Improve touch responsiveness */
+}
+
+/* On mobile, ensure they are easy to tap */
+@media (max-width: 600px) {
+  .timeline-day-item {
+    width: 60px; /* Keep somewhat compact on very small screens */
+    min-width: 60px; /* Force minimum width */
+  }
 }
 
 .timeline-day-item:hover {
@@ -2789,7 +2763,7 @@ input[type="date"] {
 }
 
 .timeline-day-item.today {
-  border-color: #06b6d4;
+  border-color: #0f172a;
   color: #06b6d4;
 }
 
@@ -2928,6 +2902,60 @@ input[type="date"] {
   border: 1px dashed #e2e8f0;
 }
 
+/* --- ACTIONABLE EMPTY STATE STYLES --- */
+.empty-state.actionable {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px; /* Reduced padding for compact height */
+  min-height: 60px; /* Reduced height */
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  transition: all 0.2s ease;
+  text-align: left; /* Reset center alignment */
+}
+
+.empty-state.actionable:hover {
+  background: #f8fafc;
+  border-color: #0096a6;
+  transform: translateY(-2px);
+}
+
+.empty-state-icon {
+  width: 32px; /* Smaller icon wrapper */
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.empty-state-text p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.empty-state-link {
+  font-size: 0.85rem;
+  color: #0096a6;
+  font-weight: 600;
+  margin-top: -22px;
+}
+
+.empty-state-arrow {
+  color: #cbd5e1;
+}
 
 /* =========================================
    MOBILE FIXES FOR CALENDAR (v3 - Full Width)
@@ -3046,14 +3074,6 @@ input[type="date"] {
   align-items: center;
   gap: 10px;
   pointer-events: auto;
-}
-
-/* --- HOME DATES TITLE MATCH HEADLINERS --- */
-.home-dates-section .section-title {
-  margin: 0px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: -16px; /* Pulls the section up slightly */
 }
 
 /* --- MOBILE HEADLINERS MATCH DESKTOP, SMALLER TEXT --- */

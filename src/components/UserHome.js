@@ -1044,7 +1044,7 @@ const handleToggleAttendance = async () => {
 
 
 // --- Dashboard Sub-Views ---
-const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDestinationClick, tourCounts, toursLoading }) => {
+const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDestinationClick, tourCounts, toursLoading, onNavigate }) => {
   const demoDestinations = [
     { id: 'chicago', city: 'Chicago', name: 'Chicago' },
   ];
@@ -1158,6 +1158,7 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
     const { dayEvents, dayFlights } = getHomeDataForDate(homeSelectedDate);
     const setsCount = dayEvents.length;
     const flightsCount = dayFlights.length;
+    const hasItems = setsCount > 0 || flightsCount > 0;
 
     // Merge and sort for chronological order
     const agendaItems = [
@@ -1167,14 +1168,16 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
 
     return (
       <div className="daily-agenda-container fade-in">
-        <div className="agenda-summary-header">
-          <h2 className="agenda-date-title">{format(homeSelectedDate, 'EEEE, MMM do')}</h2>
-          <div className="agenda-counts-row">
-            <span>Sets: {setsCount}</span>
-            <span className="count-divider">•</span>
-            <span>Flights: {flightsCount}</span>
+        {hasItems && (
+          <div className="agenda-summary-header">
+            <h2 className="agenda-date-title">{format(homeSelectedDate, 'EEEE, MMM do')}</h2>
+            <div className="agenda-counts-row">
+              <span>Sets: {setsCount}</span>
+              <span className="count-divider">•</span>
+              <span>Flights: {flightsCount}</span>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="timeline-details-list">
           {agendaItems.length > 0 ? (
@@ -1193,8 +1196,16 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
               </div>
             ))
           ) : (
-            <div className="empty-state">
-              <p>Nothing scheduled for this day.</p>
+            // Updated Actionable Empty State
+            <div className="empty-state actionable" onClick={() => onNavigate && onNavigate('events')}>
+              <div className="empty-state-icon">
+                <Search size={18} />
+              </div>
+              <div className="empty-state-text">
+                <p>Nothing scheduled.</p>
+                <span className="empty-state-link">Find events for this date</span>
+              </div>
+              <ChevronRight size={16} className="empty-state-arrow" />
             </div>
           )}
         </div>
@@ -1205,7 +1216,7 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
   return (
     <div className="dashboard-panel fade-in">
       {/* SECTION: HEADLINERS */}
-      <div className="headliners-section" style={{ marginBottom: '2.5rem' }}>
+      <div className="dashboard-section">
         <h3 className="section-title">
           <span>YOUR </span>
           <span className="accent">HEADLINERS</span>
@@ -1233,7 +1244,12 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
                           backgroundPosition: 'center'
                         }}
                       >
-                        {count > 0 && <div className="headliner-event-count">{count}</div>}
+                        {count > 0 && (
+                          <div className="headliner-event-count">
+                            <Ticket size={10} strokeWidth={3} style={{ marginRight: '3px' }} />
+                            {count}
+                          </div>
+                        )}
                       </div>
                       <div className="headliner-label">{artist.name}</div>
                     </div>
@@ -1248,7 +1264,7 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
       </div>
 
       {/* SECTION: DATES & AGENDA (Nested) */}
-      <div className="home-dates-section">
+      <div className="dashboard-section">
         <div className="home-dates-title-outside">
           <h3 className="section-title">
             <span>UP </span>
@@ -2067,6 +2083,7 @@ const [userInfo, setUserInfo] = useState({
             onDestinationClick={handleDestinationClick} 
             tourCounts={tourCounts || {}}
             toursLoading={toursLoading}
+            onNavigate={(view) => setActiveView(view)} // Pass navigation handler
           />
         );
     }
