@@ -50,6 +50,7 @@ import { format, parseISO, isWithinInterval, startOfDay } from 'date-fns';
 import './UserHome.css';
 import SearchForm from './SearchForm';
 import FlightResults from './FlightResults';
+import ExploreEvents from './ExploreEvents'; // ✅ NEW IMPORT
 
 // --- CONFIGURATION ---
 const API_BASE_URL = ""; 
@@ -1355,13 +1356,6 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
   );
 };
 
-const EventsView = () => (
-  <div className="dashboard-panel fade-in">
-    <h2>Events</h2>
-    <p>Discover upcoming events and festivals.</p>
-  </div>
-);
-
 const ArtistsView = ({ favoriteArtists }) => (
   <div className="dashboard-panel fade-in">
     <h2>Artists</h2>
@@ -2074,7 +2068,9 @@ const [userInfo, setUserInfo] = useState({
 
   const renderContent = () => {
     switch (activeView) {
-      case 'events': return <EventsView />;
+      case 'events': 
+        // ✅ CHANGED: Now using ExploreEvents instead of placeholder
+        return <ExploreEvents onBack={() => setActiveView('home')} />;
       case 'flights':
         return (
           <FlightsView
