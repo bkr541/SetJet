@@ -337,8 +337,18 @@ const ItineraryView = () => {
               className={`timeline-day-item ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
               onClick={() => setSelectedDate(d)}
             >
-              <span className="timeline-day-name" style={isWeekend ? { color: "#ef4444" } : undefined}>{format(d, 'EEE')}</span>
-              <span className="timeline-day-num">{format(d, 'd')}</span>
+              <span 
+                className="timeline-day-name" 
+                style={{ color: isSelected ? "white" : (isWeekend ? "#ef4444" : "#1e293b") }}
+              >
+                {format(d, 'EEE')}
+              </span>
+              <span 
+                className="timeline-day-num" 
+                style={{ color: isSelected ? "white" : "#1e293b" }}
+              >
+                {format(d, 'd')}
+              </span>
               <div className="timeline-dots">
                  {isBlackout && <span className="dot blackout" title="Blackout Date" />}
                  {dayFlights.length > 0 && <span className="dot flight" title="Flight" />}
@@ -496,6 +506,13 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
   const [eventsLoading, setEventsLoading] = useState(false);
   const [eventsError, setEventsError] = useState(null);
 
+  // --- LOGGING ---
+  useEffect(() => {
+    console.log("DEBUG: ArtistDetailsView mounted. Artist prop:", artist);
+    console.log("DEBUG: artist.genres raw:", artist?.genres);
+    console.log("DEBUG: artist.genres type:", typeof artist?.genres);
+  }, [artist]);
+
   const formatEventDate = (dateStr) => {
     if (!dateStr) return "TBA";
     const d = new Date(String(dateStr) + "T00:00:00");
@@ -595,6 +612,36 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
 
   const bgImage = artist.image || "/artifacts/defaultprofileillenium.png";
 
+  // ✅ UPDATED: Robust Parsing Logic for genres
+  // Handles:
+  // 1. Array of strings (e.g. ["Dubstep", "Bass"])
+  // 2. Pipe-delimited string (e.g. "|Dubstep|Bass|") 
+  // 3. Simple comma-separated string (e.g. "Dubstep, Bass")
+  const artistGenres = React.useMemo(() => {
+    const raw = artist?.genres;
+    console.log("DEBUG: Calculating artistGenres from raw:", raw);
+    
+    if (Array.isArray(raw)) return raw;
+    
+    if (typeof raw === 'string') {
+      // Handle "|Genre|Genre|" format from DB
+      if (raw.includes('|')) {
+        const parts = raw
+          .split('|')
+          .map(g => g.trim())
+          .filter(g => g.length > 0); // Removes empty strings from start/end
+        console.log("DEBUG: Parsed pipe-delimited genres:", parts);
+        return parts;
+      }
+      // Handle standard "Genre, Genre" format (just in case)
+      const parts = raw.split(',').map(g => g.trim()).filter(Boolean);
+      console.log("DEBUG: Parsed comma-delimited genres:", parts);
+      return parts;
+    }
+    
+    return [];
+  }, [artist]);
+
   return (
     <div className="dashboard-panel fade-in full">
       <div className="hero" style={{
@@ -626,8 +673,8 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
         <div className="hero-bottom">
           <h1 className="hero-title">{artist.name}</h1>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {artist.genres && Array.isArray(artist.genres) ? (
-               artist.genres.slice(0, 3).map((g, i) => (
+            {artistGenres.length > 0 ? (
+               artistGenres.slice(0, 3).map((g, i) => (
                  <span key={i} style={{
                    background: 'rgba(255,255,255,0.15)',
                    color: '#e2e8f0',
@@ -886,7 +933,17 @@ const handleToggleAttendance = async () => {
     });
   };
 
-  const eventName = event?.name || "Event";
+  // ✅ UPDATED: Event Name Logic
+  // Tries to use event.name first. 
+  // If null, it checks for primary artist and venue to construct "Artist @ Venue".
+  // Fallback to "Event".
+  const primaryArtistName = Array.isArray(event?.artistList) && event.artistList[0] 
+    ? event.artistList[0].name 
+    : null;
+  const venueName = event?.venue?.name;
+
+  const eventName = event?.name || (primaryArtistName && venueName ? `${primaryArtistName} @ ${venueName}` : "Event");
+
   const isFestival = !!event?.festivalInd;
   const tagLabel = isFestival ? "Festival" : "Set";
 
@@ -930,10 +987,7 @@ const handleToggleAttendance = async () => {
 
         <div className="event-hero-bottom">
           <h1 className="event-hero-title">{eventName}</h1>
-
-          <div className="event-hero-tags">
-            <span className="event-hero-tag">{tagLabel}</span>
-          </div>
+          {/* ✅ REMOVED: The 'event-hero-tags' chip was deleted from here as requested. */}
         </div>
       </div>
 
@@ -1063,6 +1117,9 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
       : demoDestinations;
 
   useEffect(() => {
+    // --- LOGGING ---
+    console.log("DEBUG: HomeView favoriteArtists prop:", favoriteArtists);
+
     const fetchItinerary = async () => {
       const email = localStorage.getItem('current_email');
       if (!email) return;
@@ -1090,7 +1147,7 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
     };
 
     fetchItinerary();
-  }, []);
+  }, [favoriteArtists]);
 
   // 3. Effect to center the "today" element once rendered
   useEffect(() => {
@@ -1137,10 +1194,20 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
               onClick={() => setHomeSelectedDate(d)}
               type="button"
             >
-              <span className="timeline-day-name" style={isWeekend ? { color: "#ef4444" } : undefined}>
+              {/* ✅ UPDATED: Added inline style for color to force fix on mobile */}
+              <span 
+                className="timeline-day-name" 
+                style={{ color: isSelected ? "white" : (isWeekend ? "#ef4444" : "#1e293b") }}
+              >
                 {format(d, 'EEE')}
               </span>
-              <span className="timeline-day-num">{format(d, 'd')}</span>
+              {/* ✅ UPDATED: Added logic to make text white if selected */}
+              <span 
+                className="timeline-day-num" 
+                style={{ color: isSelected ? "white" : "#1e293b" }}
+              >
+                {format(d, 'd')}
+              </span>
               <div className="timeline-dots">
                 {isBlackout && <span className="dot blackout" title="Blackout Date" />}
                 {dayFlights.length > 0 && <span className="dot flight" title="Flight" />}

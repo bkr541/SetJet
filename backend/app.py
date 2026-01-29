@@ -801,7 +801,8 @@ def get_user_info():
             "id": a.id,
             "name": a.display_name,
             "image": a.image_url,
-            "edmtrain_id": a.edmtrain_id
+            "edmtrain_id": a.edmtrain_id,
+            "genres": a.genres  # ✅ FIXED: Now including genres!
         }
         for a in (user.fav_artists or [])
     ]

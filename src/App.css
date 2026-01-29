@@ -109,8 +109,8 @@
 /* âœ… NEW: Full width styles for UserHome Dashboard */
 .main-dashboard {
   padding: 0 !important; /* Removes the 2rem top/bottom padding */
-  padding-left: 6px !important; /* Removes the 2rem top/bottom padding */
-  padding-right: 6px !important; /* Removes the 2rem top/bottom padding */
+  padding-left: 0px !important; /* Removes the 2rem top/bottom padding */
+  padding-right: 0px !important; /* Removes the 2rem top/bottom padding */
 }
 
 .container-fluid {
