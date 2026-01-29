@@ -3,6 +3,7 @@
   display: flex;
   width: 100%;
   min-height: 100vh;
+  background: #f8fafc;  
   border-radius: 24px;
   overflow-x: hidden;
   font-family: 'Nunito', sans-serif;
@@ -356,7 +357,7 @@
   padding-top: 0px;
   padding-bottom: 16px;
   flex: 1;
-  background-color: #ffffff;
+  background-color: transparent;
   border-bottom-left-radius: 24px;
 
   min-height: 0;
@@ -378,6 +379,7 @@
 .user-home-content p {
   color: #64748b;
   margin-bottom: 2rem;
+  margin-bottom: 1.5rem !important; /* Reduced from 2.5rem to close the gap */
 }
 
 /* --- HEADLINERS SECTION --- */
@@ -405,10 +407,15 @@
   font-weight: 700;
 }
 
+.home-dates-section .section-title .accent{
+  color: #0096a6;
+  font-weight: 700;
+}
+
 /* White rounded container card */
 .headliners-card-shell{
   margin-top: 0px;
-  background: transparent;;
+  background: none;
   border: none;
   padding: 0px;
   box-shadow: none;
@@ -429,7 +436,7 @@
 /* Individual profile item */
 .headliner-card{
   flex-shrink: 0;
-  width: 84px;
+  width: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -446,14 +453,16 @@
 /* Avatar */
 .headliner-image-wrapper{
   position: relative;
-  width: 84px;
-  height: 84px;
+  width: 100px;
+  height: 100px;
   border-radius: 999px;
   overflow: visible;
 
   border: 3px solid #0f172a;
   background: #0f172a;
-  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.14);
+  box-shadow:
+    0 14px 34px rgba(2, 6, 23, 0.22),
+    0 6px 14px rgba(2, 6, 23, 0.12);
 }
 
 /* Count badge floats at the bottom of the avatar (as requested) */
@@ -1527,10 +1536,11 @@ input[type="date"] {
     width: 84px !important;   /* Standard desktop size */
     height: 84px !important;
     border-radius: 999px !important;
-    border: 3px solid #0096a6 !important;
     position: relative !important; /* Required for the badge to anchor */
     overflow: visible !important; /* Allows badge to float outside bottom */
-    box-shadow: 0 10px 22px rgba(2, 6, 23, 0.14) !important;
+    box-shadow: 
+      0 14px 34px rgba(2, 6, 23, 0.22),
+      0 6px 14px rgba(2, 6, 23, 0.12);
   }
 
   /* Ensure the name text doesn't hide behind the badge */
@@ -3040,9 +3050,10 @@ input[type="date"] {
 
 /* --- HOME DATES TITLE MATCH HEADLINERS --- */
 .home-dates-section .section-title {
-  margin: 16px 0 10px 0;
+  margin: 0px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  margin-top: -16px; /* Pulls the section up slightly */
 }
 
 /* --- MOBILE HEADLINERS MATCH DESKTOP, SMALLER TEXT --- */
@@ -3061,7 +3072,7 @@ input[type="date"] {
    ========================================= */
 
 .daily-agenda-container {
-  margin-top: 32px;
+  margin-top: 12px;
   padding: 0 4px;
 }
 
@@ -3071,7 +3082,7 @@ input[type="date"] {
 }
 
 .agenda-date-title {
-  font-size: 1.8rem !important;
+  font-size: 1.4rem !important;
   font-weight: 800 !important;
   color: #1e293b;
   margin-bottom: 4px !important;
