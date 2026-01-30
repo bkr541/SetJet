@@ -2005,6 +2005,13 @@ const [userInfo, setUserInfo] = useState({
     setActiveView('artist-details');
   };
 
+  // From ExploreEvents we want back to return to the Events view, so use the view stack.
+  const handleExploreArtistClick = (artist) => {
+    setSelectedArtist(artist);
+    pushView('artist-details');
+  };
+
+
   const handleDestinationClick = (destination) => {
     setSelectedDestination(destination);
     setActiveView('destination-details');
@@ -2070,7 +2077,7 @@ const [userInfo, setUserInfo] = useState({
     switch (activeView) {
       case 'events': 
         // ✅ CHANGED: Now using ExploreEvents instead of placeholder
-        return <ExploreEvents onBack={() => setActiveView('home')} />;
+        return <ExploreEvents onBack={() => setActiveView('home')} onArtistClick={handleExploreArtistClick} />;
       case 'flights':
         return (
           <FlightsView

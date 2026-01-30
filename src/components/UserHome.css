@@ -1707,11 +1707,23 @@ input[type="date"] {
    ========================================= */
 
 /* The Grid Container */
-.artist-events-grid {
+.artist-events-grid{
+  --gap: 16px;
+  --minCard: 320px;
+
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: var(--gap);
   padding-bottom: 24px;
+  width: 100%;
+
+  /* Max 3 columns. 1â€“2 cards still stretch to fill 100% width. */
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(
+      max(var(--minCard), calc((100% - (2 * var(--gap))) / 3)),
+      1fr
+    )
+  );
 }
 
 /* The Individual Card */
@@ -2147,9 +2159,6 @@ input[type="date"] {
   }
 
   /* 2. Single column for artist event cards */
-  .artist-events-grid {
-    grid-template-columns: 1fr;
-  }
   .details-view-mode .main-header {
     display: none !important;
   }
@@ -2167,11 +2176,7 @@ input[type="date"] {
   }
 
   /* 4. Single column for artist event cards */
-  .artist-events-grid {
-    grid-template-columns: 1fr;
   }
-
-}
 
 /* === SEARCH FORM COLLAPSE (Flights View) === */
 .search-form-shell {
@@ -2249,10 +2254,7 @@ input[type="date"] {
      padding-right: 0 !important;
   }
 
-  .artist-events-grid {
-    grid-template-columns: 1fr;
   }
-}
 
 
 

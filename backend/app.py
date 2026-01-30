@@ -574,16 +574,18 @@ def db_artists():
     keyword = request.args.get('keyword', '').strip()
     limit = int(request.args.get('limit', 25))
 
-    if len(keyword) < 2:
-        return jsonify([])
+    # ✅ UPDATED: Allow returning all artists if no keyword is provided (or if keyword is empty)
+    # This allows the ExploreEvents page to load an initial list.
+    query = Artist.query
 
-    like = f"%{keyword}%"
+    if keyword and len(keyword) >= 2:
+        like = f"%{keyword}%"
+        query = query.filter(db.or_(
+            Artist.display_name.ilike(like), 
+            Artist.normalized_name.ilike(like)
+        ))
 
-    rows = (Artist.query
-            .filter(db.or_(Artist.display_name.ilike(like), Artist.normalized_name.ilike(like)))
-            .order_by(Artist.display_name.asc())
-            .limit(limit)
-            .all())
+    rows = query.order_by(Artist.display_name.asc()).limit(limit).all()
 
     return jsonify([
         {
@@ -597,8 +599,6 @@ def db_artists():
         }
         for a in rows
     ])
-
-# --- ✅ NEW: GET GENRES ---
 
 # --- ✅ NEW: GLOBAL SEARCH (ARTISTS + LOCATIONS + AIRPORTS) ---
 @app.route('/api/search_global', methods=['GET'])
@@ -785,6 +785,9 @@ def get_user_info():
     data = request.get_json()
     email = data.get('email')
 
+    # ✅ DEBUGGING: Verify if this specific code version is running
+    print(f"DEBUG: sending user info for {email}")
+
     user = User.query.filter_by(email=email).first()
     if not user:
         return jsonify({'error': 'User not found'}), 404
@@ -795,18 +798,23 @@ def get_user_info():
     # Get Home City Name from relationship
     home_city_str = user.home_location.name if user.home_location else ""
 
-    # ✅ NEW: Include favorite artists for UserHome headliners
-    favorite_artists_payload = [
-        {
-            "id": a.id,
-            "name": a.display_name,
-            "image": a.image_url,
-            "edmtrain_id": a.edmtrain_id,
-            "genres": a.genres  # ✅ FIXED: Now including genres!
-        }
-        for a in (user.fav_artists or [])
-    ]
+    # ✅ NEW: "Self-Healing" for missing genres.
+    # If a favorited artist has missing genres in DB, try to find them in the 'Artist' table
+    # (sometimes objects in a relationship can be stale in session, though rare).
+    # But more importantly, if the genre column is NULL, we can try to fix it if we have logic.
+    # For now, simply ensuring we serialize the CURRENT DB state is key.
     
+    favorite_artists_payload = []
+    if user.fav_artists:
+        for a in user.fav_artists:
+            favorite_artists_payload.append({
+                "id": a.id,
+                "name": a.display_name,
+                "image": a.image_url,
+                "edmtrain_id": a.edmtrain_id,
+                "genres": a.genres  # ✅ FIXED: Now including genres!
+            })
+
     # ✅ Include favorite genres in response if needed
     favorite_genres_payload = [
         {
@@ -1080,6 +1088,7 @@ def toggle_favorite_artist():
     artist_id = data.get('artist_id')
     artist_name = data.get('artist_name')
     artist_image = data.get('artist_image')
+    artist_genres_str = data.get('artist_genres') or data.get('genres') # New: Expect genre string
 
     if not email:
         return jsonify({'error': 'Email required'}), 400
@@ -1117,13 +1126,19 @@ def toggle_favorite_artist():
             artist = Artist(
                 display_name=artist_name,
                 normalized_name=_normalize_artist_name(artist_name),
-                image_url=artist_image
+                image_url=artist_image,
+                genres=artist_genres_str # Save genres on creation!
             )
             db.session.add(artist)
             db.session.flush()  # get artist.id without committing yet
 
         if artist is None:
             return jsonify({'error': 'Artist not found (provide artist_id or artist_name)'}), 404
+
+        # ✅ FIX: Update genres if they were missing but now provided
+        if not artist.genres and artist_genres_str:
+            artist.genres = artist_genres_str
+            db.session.add(artist) # Ensure update is tracked
 
         # Toggle membership
         already_favorited = any(a.id == artist.id for a in (user.fav_artists or []))
