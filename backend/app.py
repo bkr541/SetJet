@@ -1865,28 +1865,118 @@ def is_user_flight_selected():
 # --- GET USER ITINERARY (Events + Flights) ---
 @app.route('/api/user_itinerary', methods=['POST'])
 def get_user_itinerary():
-    data = request.get_json()
+    data = request.get_json() or {}
     email = data.get('email')
-    
+
     if not email:
         return jsonify({'error': 'Email required'}), 400
-        
+
     user = User.query.filter_by(email=email).first()
     if not user:
         return jsonify({'error': 'User not found'}), 404
-        
+
+    def _safe_parse_snapshot(value):
+        """Return snapshot as dict/list (or None). Accepts dict/list or JSON string."""
+        if value is None:
+            return None
+        if isinstance(value, (dict, list)):
+            return value
+        if isinstance(value, str) and value.strip():
+            try:
+                return json.loads(value)
+            except Exception:
+                return None
+        return None
+
+    def _pick_first_str(*vals):
+        for v in vals:
+            if isinstance(v, str) and v.strip():
+                return v.strip()
+        return ""
+
+    def _get_nested(obj, path):
+        cur = obj
+        for key in path:
+            if not isinstance(cur, dict):
+                return None
+            cur = cur.get(key)
+        return cur
+
+    def _extract_event_title(snapshot, fallback_event_id=None):
+        """Try to extract a human-friendly event title from an EDMTrain-ish snapshot."""
+        snap = snapshot if isinstance(snapshot, dict) else {}
+
+        # Common event name locations
+        event_name = _pick_first_str(
+            snap.get('eventName'),
+            snap.get('event_name'),
+            snap.get('name'),
+            snap.get('title'),
+            _get_nested(snap, ['event', 'name']),
+            _get_nested(snap, ['event', 'title']),
+            _get_nested(snap, ['data', 'name']),
+            _get_nested(snap, ['data', 'eventName']),
+        )
+        if event_name:
+            return event_name
+
+        # Fallback: "<artist name> @ <venue name>"
+        artist_name = ""
+        artist_list = snap.get('artistList')
+        if isinstance(artist_list, list) and artist_list:
+            first = artist_list[0]
+            if isinstance(first, dict):
+                artist_name = _pick_first_str(first.get('name'), first.get('artistName'), first.get('artist_name'))
+            elif isinstance(first, str):
+                artist_name = first.strip()
+
+        # Sometimes artists are in "artists"
+        if not artist_name:
+            artists = snap.get('artists')
+            if isinstance(artists, list) and artists:
+                first = artists[0]
+                if isinstance(first, dict):
+                    artist_name = _pick_first_str(first.get('name'), first.get('artistName'), first.get('artist_name'))
+                elif isinstance(first, str):
+                    artist_name = first.strip()
+
+        venue = snap.get('venue') if isinstance(snap.get('venue'), dict) else {}
+        venue_name = _pick_first_str(
+            venue.get('name') if isinstance(venue, dict) else None,
+            snap.get('venueName'),
+            snap.get('venue_name'),
+            _get_nested(snap, ['venue', 'venueName']),
+            _get_nested(snap, ['data', 'venue', 'name']),
+        )
+
+        if artist_name and venue_name:
+            return f"{artist_name} @ {venue_name}"
+        if artist_name:
+            return artist_name
+        if venue_name:
+            return venue_name
+
+        # Final fallback
+        if fallback_event_id is not None:
+            return f"Event #{fallback_event_id}"
+        return "Event"
+
     try:
         # 1. Fetch User Events
         events = UserEvents.query.filter_by(user_id=user.id).all()
         events_data = []
         for e in events:
-            # Format date as YYYY-MM-DD for matching
+            snap = _safe_parse_snapshot(e.snapshot_json)
+            title = _extract_event_title(snap, fallback_event_id=e.edmtrain_event_id)
+
             events_data.append({
                 'type': 'event',
                 'id': e.edmtrain_event_id,
-                'date': e.start_time.strftime('%Y-%m-%d'),
-                'title': f"Event #{e.edmtrain_event_id}", # You can enhance this if you store event names
-                'time': e.start_time.strftime('%I:%M %p')
+                'date': e.start_time.strftime('%Y-%m-%d') if e.start_time else None,
+                'title': title,
+                'time': e.start_time.strftime('%I:%M %p') if e.start_time else None,
+                # Include snapshot so frontend can use it for richer UI without extra fetches
+                'snapshot_json': snap
             })
 
         # 2. Fetch User Flights
@@ -1896,17 +1986,17 @@ def get_user_itinerary():
             flights_data.append({
                 'type': 'flight',
                 'id': f.id,
-                'date': f.start_time.strftime('%Y-%m-%d'),
+                'date': f.start_time.strftime('%Y-%m-%d') if f.start_time else None,
                 'title': f"Flight to {f.destination_iata}",
                 'subtitle': f"{f.airline} • {f.origin_iata} -> {f.destination_iata}",
-                'time': f.start_time.strftime('%I:%M %p')
+                'time': f.start_time.strftime('%I:%M %p') if f.start_time else None
             })
-            
+
         return jsonify({
             'events': events_data,
             'flights': flights_data
         }), 200
-        
+
     except Exception as e:
         app.logger.error(f"Itinerary fetch error: {e}")
         return jsonify({'error': str(e)}), 500

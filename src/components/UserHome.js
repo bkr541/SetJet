@@ -48,6 +48,7 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isWithinInterval, startOfDay } from 'date-fns';
 import './UserHome.css';
+import EditUser from './EditUser';
 import SearchForm from './SearchForm';
 import FlightResults from './FlightResults';
 import ExploreEvents from './ExploreEvents'; // ✅ NEW IMPORT
@@ -128,6 +129,16 @@ const isBlackoutDate = (date) => {
       end: parseISO(end)
     })
   );
+};
+
+const readStoredBool = (key, fallback = false) => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null || raw === undefined) return fallback;
+    return raw === "true" || raw === "1";
+  } catch {
+    return fallback;
+  }
 };
 
 // --- Custom Calendar Input for Plan View ---
@@ -279,24 +290,64 @@ const ItineraryView = () => {
   };
 
   const getEventDisplayTitle = (evt) => {
-    const snap = normalizeSnapshot(evt?.snapshot_json ?? evt?.snapshotJson ?? evt?.snapshot ?? null);
+    // Try multiple shapes: itinerary event object may carry snapshot_json directly
+    // or nested under user_event / user_events depending on API response.
+    const snap = normalizeSnapshot(
+      evt?.snapshot_json ??
+      evt?.snapshotJson ??
+      evt?.snapshot ??
+      evt?.user_event?.snapshot_json ??
+      evt?.user_event?.snapshotJson ??
+      evt?.user_events?.snapshot_json ??
+      evt?.user_events?.snapshotJson ??
+      null
+    );
 
-    const artistName =
-      snap?.artist?.name ||
-      snap?.artistName ||
-      (Array.isArray(snap?.artistList) ? snap.artistList?.[0]?.name : null) ||
-      (Array.isArray(snap?.artists) ? snap.artists?.[0]?.name : null) ||
-      null;
+    const pick = (...vals) => {
+      for (const v of vals) {
+        if (typeof v === 'string' && v.trim()) return v.trim();
+      }
+      return null;
+    };
 
-    const eventName =
-      snap?.name ||
-      snap?.event?.name ||
-      snap?.eventName ||
-      evt?.title ||
-      null;
+    const artistName = pick(
+      snap?.artist?.name,
+      snap?.artistName,
+      snap?.artist_name,
+      Array.isArray(snap?.artistList) ? snap.artistList?.[0]?.name : null,
+      Array.isArray(snap?.artists) ? snap.artists?.[0]?.name : null
+    );
 
-    if (artistName && eventName) return `${artistName} • ${eventName}`;
-    return artistName || eventName || evt?.title || 'Event';
+    const venueName = pick(
+      snap?.venue?.name,
+      snap?.venueName,
+      snap?.venue_name,
+      snap?.location?.name,
+      snap?.locationName,
+      snap?.place?.name
+    );
+
+    // Event name priority: prefer explicit event fields over generic "name"
+    // to avoid accidentally grabbing an artist name.
+    const eventName = pick(
+      snap?.event?.name,
+      snap?.eventName,
+      snap?.event_name,
+      snap?.event?.eventName,
+      snap?.name
+    );
+
+    // Primary requirement: show snapshot event name only.
+    if (eventName) return eventName;
+
+    // Fallback requirement: "<artist name> @ <Venue Name>" if event name is blank
+    if (artistName || venueName) {
+      if (artistName && venueName) return `${artistName} @ ${venueName}`;
+      return artistName || venueName;
+    }
+
+    // Last resorts (avoid showing Event #<id> unless we truly have nothing else)
+    return evt?.title || evt?.name || 'Event';
   };
 
   const renderDayContents = (day, date) => {
@@ -1099,7 +1150,7 @@ const handleToggleAttendance = async () => {
 
 
 // --- Dashboard Sub-Views ---
-const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDestinationClick, tourCounts, toursLoading, onNavigate }) => {
+const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDestinationClick, tourCounts, toursLoading, onNavigate, showHeadlinerEventCount }) => {
   const demoDestinations = [
     { id: 'chicago', city: 'Chicago', name: 'Chicago' },
   ];
@@ -1312,7 +1363,7 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
                           backgroundPosition: 'center'
                         }}
                       >
-                        {count > 0 && (
+                        {showHeadlinerEventCount && count > 0 && (
                           <div className="headliner-event-count">
                             <Ticket size={10} strokeWidth={3} style={{ marginRight: '3px' }} />
                             {count}
@@ -1491,7 +1542,7 @@ const FriendsView = () => (
   </div>
 );
 
-const ProfileView = ({ userFirstName, userProfilePic, onEditProfile }) => (
+const ProfileView = ({ userFirstName, userProfilePic, onEditProfile, onOpenSettings }) => (
   <div className="dashboard-panel fade-in profile-container">
     <div className="profile-header-card">
       <div className="profile-avatar-large">
@@ -1533,7 +1584,7 @@ const ProfileView = ({ userFirstName, userProfilePic, onEditProfile }) => (
     <hr className="profile-divider" />
 
     <div className="profile-menu-group">
-      <button className="profile-menu-item">
+      <button className="profile-menu-item" onClick={onOpenSettings}>
         <div className="profile-menu-icon-wrap"><Settings size={20} /></div>
         <span className="profile-menu-text">Settings</span>
         <ChevronRight size={18} className="profile-menu-arrow" />
@@ -1543,6 +1594,63 @@ const ProfileView = ({ userFirstName, userProfilePic, onEditProfile }) => (
         <div className="profile-menu-icon-wrap"><LogOut size={20} /></div>
         <span className="profile-menu-text">Logout</span>
       </button>
+    </div>
+  </div>
+);
+
+const ToggleSwitch = ({ checked, onChange, ariaLabel }) => (
+  <label className="toggle-switch">
+    <input
+      type="checkbox"
+      checked={!!checked}
+      onChange={(e) => onChange && onChange(e.target.checked)}
+      aria-label={ariaLabel}
+    />
+    <span className="toggle-slider" />
+  </label>
+);
+
+const SettingsView = ({
+  darkModeEnabled,
+  onToggleDarkMode,
+  showHeadlinerEventCount,
+  onToggleShowHeadlinerEventCount,
+  onBack
+}) => (
+  <div className="dashboard-panel fade-in settings-container">
+    <div className="settings-topbar">
+      <button className="settings-back-btn" onClick={onBack} aria-label="Back">
+        <ArrowLeft size={22} />
+      </button>
+      <h2 className="settings-title">SETTINGS</h2>
+    </div>
+
+    <div className="settings-card">
+      <div className="settings-item">
+        <div className="settings-item-left">
+          <div className="settings-item-label">Dark Mode</div>
+          <div className="settings-item-sub">Dim the UI for late-night scrolling.</div>
+        </div>
+        <ToggleSwitch
+          checked={darkModeEnabled}
+          onChange={onToggleDarkMode}
+          ariaLabel="Toggle dark mode"
+        />
+      </div>
+
+      <div className="settings-divider" />
+
+      <div className="settings-item">
+        <div className="settings-item-left">
+          <div className="settings-item-label">Show Event Count on Headliners</div>
+          <div className="settings-item-sub">Show the ticket badge count on headliner cards.</div>
+        </div>
+        <ToggleSwitch
+          checked={showHeadlinerEventCount}
+          onChange={onToggleShowHeadlinerEventCount}
+          ariaLabel="Toggle headliner event counts"
+        />
+      </div>
     </div>
   </div>
 );
@@ -1773,6 +1881,23 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
 function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDestinations, onSearchFlights, flightState, onClearFlightSearch, onClearCache }) {
   const [collapsed, setCollapsed] = useState(false);
   const [activeView, setActiveView] = useState('home');
+
+  const [darkModeEnabled, setDarkModeEnabled] = useState(() =>
+    readStoredBool("setjet_dark_mode", false)
+  );
+  const [showHeadlinerEventCount, setShowHeadlinerEventCount] = useState(() =>
+    readStoredBool("setjet_show_headliner_event_count", true)
+  );
+
+  useEffect(() => {
+    try { localStorage.setItem("setjet_dark_mode", String(darkModeEnabled)); } catch {}
+    try { document.body.classList.toggle("setjet-dark", !!darkModeEnabled); } catch {}
+  }, [darkModeEnabled]);
+
+  useEffect(() => {
+    try { localStorage.setItem("setjet_show_headliner_event_count", String(showHeadlinerEventCount)); } catch {}
+  }, [showHeadlinerEventCount]);
+
   const [userDestinations, setUserDestinations] = useState(favoriteDestinations || []);
   const [userFavoriteArtists, setUserFavoriteArtists] = useState(favoriteArtists || []);
   
@@ -2005,13 +2130,6 @@ const [userInfo, setUserInfo] = useState({
     setActiveView('artist-details');
   };
 
-  // From ExploreEvents we want back to return to the Events view, so use the view stack.
-  const handleExploreArtistClick = (artist) => {
-    setSelectedArtist(artist);
-    pushView('artist-details');
-  };
-
-
   const handleDestinationClick = (destination) => {
     setSelectedDestination(destination);
     setActiveView('destination-details');
@@ -2077,7 +2195,7 @@ const [userInfo, setUserInfo] = useState({
     switch (activeView) {
       case 'events': 
         // ✅ CHANGED: Now using ExploreEvents instead of placeholder
-        return <ExploreEvents onBack={() => setActiveView('home')} onArtistClick={handleExploreArtistClick} />;
+        return <ExploreEvents onBack={() => setActiveView('home')} />;
       case 'flights':
         return (
           <FlightsView
@@ -2130,21 +2248,39 @@ const [userInfo, setUserInfo] = useState({
         );
 
       case 'profile':
-        return <ProfileView
-          userFirstName={userInfo.first_name}
-          userProfilePic={userInfo.image_file}
-          onEditProfile={() => {
-            refreshUserInfo();
-            setActiveView('edit-profile');
-          }}
-        />;
+        return (
+          <ProfileView
+            userFirstName={userInfo?.first_name}
+            userProfilePic={userInfo?.image_file}
+            onEditProfile={() => {
+              refreshUserInfo();
+              setActiveView('edit-profile');
+            }}
+            onOpenSettings={() => setActiveView('profile-settings')}
+          />
+        );
+
       case 'edit-profile':
-        return <EditProfileView
-          userInfo={userInfo}
-          onBack={() => setActiveView('profile')}
-          onSaved={refreshUserInfo}
-        />;
-      default:
+        return (
+          <EditUser
+            userInfo={userInfo}
+            apiBaseUrl={API_BASE_URL}
+            onBack={() => setActiveView('profile')}
+            onSaved={refreshUserInfo}
+          />
+        );
+
+      case 'profile-settings':
+        return (
+          <SettingsView
+            darkModeEnabled={darkModeEnabled}
+            onToggleDarkMode={(v) => setDarkModeEnabled(!!v)}
+            showHeadlinerEventCount={showHeadlinerEventCount}
+            onToggleShowHeadlinerEventCount={(v) => setShowHeadlinerEventCount(!!v)}
+            onBack={() => setActiveView('profile')}
+          />
+        );
+default:
         return (
           <HomeView 
             favoriteArtists={userFavoriteArtists} 
@@ -2162,7 +2298,7 @@ const [userInfo, setUserInfo] = useState({
   const isDetailsView = ['artist-details', 'event-details', 'destination-details'].includes(activeView);
 
   return (
-    <div className="user-home-root">
+    <div className={`user-home-root ${darkModeEnabled ? "dark-mode" : ""}`}>
       <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-top">
           <img

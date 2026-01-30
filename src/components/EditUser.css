@@ -1,0 +1,100 @@
+/* EditUser.css
+   Edit Profile is styled to match the Settings screen.
+   Core Settings styles live in UserHome.css (settings-screen, settings-row, settings-switch, etc.).
+   This file contains only EditUser-specific layout tweaks.
+*/
+
+.edituser-screen {
+  width: 100%;
+}
+
+.edituser-photo-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+}
+
+.edituser-photo-wrapper {
+  width: 76px;
+  height: 76px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 3px solid #f1f5f9;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.10);
+  flex: 0 0 auto;
+}
+
+.edituser-photo-wrapper.clickable {
+  cursor: pointer;
+}
+
+.edituser-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.edituser-file-input {
+  display: none;
+}
+
+.edituser-photo-hint {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.edituser-error {
+  margin: 10px 0 6px 0;
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #9f1239;
+  padding: 10px 12px;
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.edituser-field-row {
+  gap: 14px;
+}
+
+.edituser-input-wrap {
+  width: 320px;
+  max-width: 100%;
+}
+
+.edituser-footnote {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Dark mode compatibility */
+.setjet-dark .edituser-photo-wrapper {
+  border-color: rgba(226, 232, 240, 0.12);
+  background: rgba(148, 163, 184, 0.06);
+}
+
+.setjet-dark .edituser-photo-hint {
+  color: #cbd5e1;
+}
+
+@media (max-width: 640px) {
+  .edituser-photo-row {
+    gap: 12px;
+  }
+
+  .edituser-input-wrap {
+    width: 100%;
+  }
+
+  .edituser-field-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
