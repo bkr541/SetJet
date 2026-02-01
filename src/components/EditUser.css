@@ -1,26 +1,173 @@
 /* EditUser.css
-   Edit Profile is styled to match the Settings screen.
-   Core Settings styles live in UserHome.css (settings-screen, settings-row, settings-switch, etc.).
-   This file contains only EditUser-specific layout tweaks.
+   This intentionally reuses your existing "places-*" input styles from UserHome.css.
+   We only style the edit-user-specific layout + header here.
 */
 
-.edituser-screen {
+.edit-user-container {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 12px 16px 24px 16px;
+}
+
+.edit-user-header {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 6px;
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  z-index: 5;
+}
+
+.edit-user-title {
+  margin: 0;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.edit-user-nav-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.edit-user-nav-btn:hover {
+  transform: translateY(-1px);
+  border-color: #cbd5e1;
+}
+
+.edit-user-nav-btn.save {
+  border-color: #0096a6;
+  color: #0096a6;
+}
+
+.edit-user-nav-btn.save.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+}
+
+.edit-user-content {
+  padding-top: 10px;
+}
+
+.edit-user-pic-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0 8px 0;
+}
+
+.edit-user-pic-wrapper {
+  width: 110px;
+  height: 110px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 3px solid #f1f5f9;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.10);
+}
+
+.edit-user-pic-wrapper.clickable {
+  cursor: pointer;
+}
+
+.edit-user-pic-img {
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.edit-user-file-input {
+  display: none;
+}
+
+.edit-user-pic-hint {
+  margin: 10px 0 0 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.edit-user-error {
+  margin: 12px auto 6px auto;
+  max-width: 520px;
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #9f1239;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.edit-user-fields {
+  margin-top: 8px;
+}
+
+.form-row {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.form-row.single {
+  flex-direction: column;
+  gap: 0;
+}
+
+.edit-user-footnote {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .edit-user-container {
+    padding: 10px 12px 20px 12px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 14px;
+  }
+}
+
+
+/* =========================
+   EditUser styling (uses Settings styles from UserHome.css)
+   ========================= */
+.edituser-screen {
+  padding-top: 10px;
 }
 
 .edituser-photo-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
   gap: 14px;
 }
 
 .edituser-photo-wrapper {
-  width: 76px;
-  height: 76px;
+  width: 72px;
+  height: 72px;
   border-radius: 999px;
   overflow: hidden;
-  border: 3px solid #f1f5f9;
+  border: 2px solid #f1f5f9;
   background: #ffffff;
   box-shadow: 0 10px 26px rgba(2, 6, 23, 0.10);
   flex: 0 0 auto;
@@ -41,19 +188,8 @@
 }
 
 .edituser-photo-hint {
-  font-size: 0.95rem;
   font-weight: 800;
   color: #64748b;
-}
-
-.edituser-error {
-  margin: 10px 0 6px 0;
-  border: 1px solid #fecaca;
-  background: #fff1f2;
-  color: #9f1239;
-  padding: 10px 12px;
-  border-radius: 16px;
-  font-weight: 800;
   font-size: 0.95rem;
 }
 
@@ -62,8 +198,19 @@
 }
 
 .edituser-input-wrap {
-  width: 320px;
-  max-width: 100%;
+  min-width: 240px;
+  width: 55%;
+}
+
+.edituser-error {
+  margin: 12px 20px 6px 20px;
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #9f1239;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 0.95rem;
 }
 
 .edituser-footnote {
@@ -74,27 +221,9 @@
   text-align: center;
 }
 
-/* Dark mode compatibility */
-.setjet-dark .edituser-photo-wrapper {
-  border-color: rgba(226, 232, 240, 0.12);
-  background: rgba(148, 163, 184, 0.06);
-}
-
-.setjet-dark .edituser-photo-hint {
-  color: #cbd5e1;
-}
-
 @media (max-width: 640px) {
-  .edituser-photo-row {
-    gap: 12px;
-  }
-
   .edituser-input-wrap {
-    width: 100%;
-  }
-
-  .edituser-field-row {
-    flex-direction: column;
-    align-items: stretch;
+    min-width: 0;
+    width: 58%;
   }
 }

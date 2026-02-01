@@ -48,10 +48,11 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isWithinInterval, startOfDay } from 'date-fns';
 import './UserHome.css';
-import EditUser from './EditUser';
 import SearchForm from './SearchForm';
 import FlightResults from './FlightResults';
 import ExploreEvents from './ExploreEvents'; // ✅ NEW IMPORT
+import EditUser from './EditUser';
+import UserTimeline from './UserTimeline';
 
 // --- CONFIGURATION ---
 const API_BASE_URL = ""; 
@@ -129,16 +130,6 @@ const isBlackoutDate = (date) => {
       end: parseISO(end)
     })
   );
-};
-
-const readStoredBool = (key, fallback = false) => {
-  try {
-    const raw = localStorage.getItem(key);
-    if (raw === null || raw === undefined) return fallback;
-    return raw === "true" || raw === "1";
-  } catch {
-    return fallback;
-  }
 };
 
 // --- Custom Calendar Input for Plan View ---
@@ -238,317 +229,7 @@ const EventImage = ({ link, alt, className, style, mode = "background" }) => {
 };
 
 // --- Itinerary View ---
-const ItineraryView = () => {
-  const [viewMode, setViewMode] = useState('calendar'); 
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [itineraryData, setItineraryData] = useState({ events: [], flights: [] });
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchItinerary = async () => {
-      const email = localStorage.getItem('current_email');
-      if (!email) return;
-      
-      setLoading(true);
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/user_itinerary`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
-        });
-        
-        if (res.ok) {
-           const data = await res.json();
-           setItineraryData({
-            events: data.events || [],
-            flights: data.flights || []
-          });
-        }
-      } catch (err) {
-        console.error("Failed to load itinerary", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchItinerary();
-  }, []);
-
-  const getDataForDate = (date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    const dayEvents = itineraryData.events.filter(e => e.date === dateStr);
-    const dayFlights = itineraryData.flights.filter(f => f.date === dateStr);
-    const isBlackout = isBlackoutDate(date);
-    return { dayEvents, dayFlights, isBlackout };
-  };
-
-  const normalizeSnapshot = (snap) => {
-    if (!snap) return null;
-    if (typeof snap === 'string') {
-      try { return JSON.parse(snap); } catch { return null; }
-    }
-    return snap;
-  };
-
-  const getEventDisplayTitle = (evt) => {
-    // Try multiple shapes: itinerary event object may carry snapshot_json directly
-    // or nested under user_event / user_events depending on API response.
-    const snap = normalizeSnapshot(
-      evt?.snapshot_json ??
-      evt?.snapshotJson ??
-      evt?.snapshot ??
-      evt?.user_event?.snapshot_json ??
-      evt?.user_event?.snapshotJson ??
-      evt?.user_events?.snapshot_json ??
-      evt?.user_events?.snapshotJson ??
-      null
-    );
-
-    const pick = (...vals) => {
-      for (const v of vals) {
-        if (typeof v === 'string' && v.trim()) return v.trim();
-      }
-      return null;
-    };
-
-    const artistName = pick(
-      snap?.artist?.name,
-      snap?.artistName,
-      snap?.artist_name,
-      Array.isArray(snap?.artistList) ? snap.artistList?.[0]?.name : null,
-      Array.isArray(snap?.artists) ? snap.artists?.[0]?.name : null
-    );
-
-    const venueName = pick(
-      snap?.venue?.name,
-      snap?.venueName,
-      snap?.venue_name,
-      snap?.location?.name,
-      snap?.locationName,
-      snap?.place?.name
-    );
-
-    // Event name priority: prefer explicit event fields over generic "name"
-    // to avoid accidentally grabbing an artist name.
-    const eventName = pick(
-      snap?.event?.name,
-      snap?.eventName,
-      snap?.event_name,
-      snap?.event?.eventName,
-      snap?.name
-    );
-
-    // Primary requirement: show snapshot event name only.
-    if (eventName) return eventName;
-
-    // Fallback requirement: "<artist name> @ <Venue Name>" if event name is blank
-    if (artistName || venueName) {
-      if (artistName && venueName) return `${artistName} @ ${venueName}`;
-      return artistName || venueName;
-    }
-
-    // Last resorts (avoid showing Event #<id> unless we truly have nothing else)
-    return evt?.title || evt?.name || 'Event';
-  };
-
-  const renderDayContents = (day, date) => {
-    const { dayEvents, dayFlights, isBlackout } = getDataForDate(date);
-    const hasEvent = dayEvents.length > 0;
-    const hasFlight = dayFlights.length > 0;
-
-    return (
-      <div className="custom-calendar-day">
-        <span>{day}</span>
-        <div className="day-dots">
-          {isBlackout && <span className="dot blackout" title="Blackout Date" />}
-          {hasFlight && <span className="dot flight" title="Flight" />}
-          {hasEvent && <span className="dot event" title="Event" />}
-        </div>
-      </div>
-    );
-  };
-
-  const renderTimelineDays = () => {
-    const days = [];
-    for (let i = -14; i <= 14; i++) {
-      const d = new Date(selectedDate);
-      d.setDate(d.getDate() + i);
-      days.push(d);
-    }
-
-    return (
-      <div className="timeline-days-scroll">
-        {days.map((d, i) => {
-          const isSelected = format(d, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
-          const isToday = format(d, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-          const { dayEvents, dayFlights, isBlackout } = getDataForDate(d);
-          const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-          
-          return (
-            <button 
-              key={i} 
-              className={`timeline-day-item ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
-              onClick={() => setSelectedDate(d)}
-            >
-              <span 
-                className="timeline-day-name" 
-                style={{ color: isSelected ? "white" : (isWeekend ? "#ef4444" : "#1e293b") }}
-              >
-                {format(d, 'EEE')}
-              </span>
-              <span 
-                className="timeline-day-num" 
-                style={{ color: isSelected ? "white" : "#1e293b" }}
-              >
-                {format(d, 'd')}
-              </span>
-              <div className="timeline-dots">
-                 {isBlackout && <span className="dot blackout" title="Blackout Date" />}
-                 {dayFlights.length > 0 && <span className="dot flight" title="Flight" />}
-                 {dayEvents.length > 0 && <span className="dot event" title="Event" />}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const renderTimelineDetails = () => {
-    const { dayEvents, dayFlights, isBlackout } = getDataForDate(selectedDate);
-    const nothingScheduled = dayEvents.length === 0 && dayFlights.length === 0 && !isBlackout;
-
-    return (
-      <div className="timeline-details-list fade-in">
-        <h3 className="timeline-date-header">
-          {format(selectedDate, 'EEEE, MMMM do')}
-        </h3>
-
-        {isBlackout && (
-           <div className="timeline-card blackout">
-             <div className="timeline-time">ALL DAY</div>
-             <div className="timeline-line"></div>
-             <div className="timeline-card-content">
-               <div className="timeline-card-title">Blackout Date</div>
-               <div className="timeline-card-sub">GoWild Pass not eligible today</div>
-             </div>
-           </div>
-        )}
-
-        {dayFlights.map((flight, i) => (
-          <div key={`f-${i}`} className="timeline-card flight">
-            <div className="timeline-time">{flight.time}</div>
-            <div className="timeline-line"></div>
-            <div className="timeline-card-content">
-              <div className="timeline-card-tag">Flight</div>
-              <div className="timeline-card-title">{flight.title}</div>
-              <div className="timeline-card-sub">{flight.subtitle}</div>
-            </div>
-          </div>
-        ))}
-
-        {dayEvents.map((evt, i) => (
-          <div key={`e-${i}`} className="timeline-card event">
-            <div className="timeline-time">{evt.time}</div>
-            <div className="timeline-line"></div>
-            <div className="timeline-card-content">
-              <div className="timeline-card-tag">Event</div>
-              <div className="timeline-card-title">{getEventDisplayTitle(evt)}</div>
-              <div className="timeline-card-sub">Artist Event</div>
-            </div>
-          </div>
-        ))}
-
-        {nothingScheduled && (
-          <div className="empty-state">
-            <p>No plans for this day.</p>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <div className="dashboard-panel fade-in">
-      <div className="itinerary-header">
-        <h2 className="section-title" style={{ margin: 0 }}>ITINERARY</h2>
-        
-        <div className="view-toggle">
-          <button 
-            className={`view-toggle-btn ${viewMode === 'calendar' ? 'active' : ''}`}
-            onClick={() => setViewMode('calendar')}
-          >
-            <CalendarIcon size={16} /> Calendar
-          </button>
-          <button 
-            className={`view-toggle-btn ${viewMode === 'timeline' ? 'active' : ''}`}
-            onClick={() => setViewMode('timeline')}
-          >
-            <LayoutList size={16} /> Timeline
-          </button>
-        </div>
-      </div>
-
-      {loading && <div className="loading-message">Loading itinerary...</div>}
-
-      {!loading && viewMode === 'calendar' && (
-        <div className="itinerary-calendar-wrapper fade-in">
-          <DatePicker
-            selected={selectedDate}
-            onChange={(date) => setSelectedDate(date)}
-            inline
-            calendarClassName="large-itinerary-calendar"
-            renderCustomHeader={({
-              date,
-              decreaseMonth,
-              increaseMonth
-            }) => (
-              <div className="itinerary-calendar-header">
-                <div 
-                  className="itinerary-calendar-header-top" 
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  <button className="calendar-nav-btn" onClick={decreaseMonth} aria-label="Previous Month">
-                    <ChevronLeft size={18} />
-                  </button>
-
-                  <div className="itinerary-month-text">
-                    {format(date, 'MMMM yyyy')}
-                  </div>
-
-                  <button className="calendar-nav-btn" onClick={increaseMonth} aria-label="Next Month">
-                    <ChevronRight size={18} />
-                  </button>
-                </div>
-
-                <div className="calendar-legend-row" style={{ display: 'flex', justifyContent: 'center', marginTop: '12px', gap: '16px' }}>
-                  <div className="legend-item"><span className="dot blackout"/> Blackout</div>
-                  <div className="legend-item"><span className="dot flight"/> Flight</div>
-                  <div className="legend-item"><span className="dot event"/> Event</div>
-                </div>
-              </div>
-            )}
-            renderDayContents={renderDayContents}
-          />
-
-          <div style={{ marginTop: '24px' }}>
-            {renderTimelineDetails()}
-          </div>
-        </div>
-      )}
-
-      {!loading && viewMode === 'timeline' && (
-        <div className="itinerary-timeline-wrapper fade-in">
-          <div className="timeline-month-label">
-             {format(selectedDate, 'MMMM yyyy')}
-          </div>
-          
-          {renderTimelineDays()}
-          {renderTimelineDetails()}
-        </div>
-      )}
-    </div>
-  );
-};
+// (extracted into UserTimeline.js as <UserTimeline />)
 
 // --- Artist Details View ---
 const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, eventsCacheByArtistId, setEventsCacheByArtistId, onEventClick }) => {
@@ -1542,7 +1223,7 @@ const FriendsView = () => (
   </div>
 );
 
-const ProfileView = ({ userFirstName, userProfilePic, onEditProfile, onOpenSettings }) => (
+const ProfileView = ({ userFirstName, userProfilePic, onEditProfile, onOpenSettings, onOpenNotifications }) => (
   <div className="dashboard-panel fade-in profile-container">
     <div className="profile-header-card">
       <div className="profile-avatar-large">
@@ -1568,7 +1249,7 @@ const ProfileView = ({ userFirstName, userProfilePic, onEditProfile, onOpenSetti
         <ChevronRight size={18} className="profile-menu-arrow" />
       </button>
 
-      <button className="profile-menu-item">
+      <button className="profile-menu-item" onClick={onOpenNotifications}>
         <div className="profile-menu-icon-wrap"><Bell size={20} /></div>
         <span className="profile-menu-text">Notifications</span>
         <ChevronRight size={18} className="profile-menu-arrow" />
@@ -1598,62 +1279,197 @@ const ProfileView = ({ userFirstName, userProfilePic, onEditProfile, onOpenSetti
   </div>
 );
 
-const ToggleSwitch = ({ checked, onChange, ariaLabel }) => (
-  <label className="toggle-switch">
-    <input
-      type="checkbox"
-      checked={!!checked}
-      onChange={(e) => onChange && onChange(e.target.checked)}
-      aria-label={ariaLabel}
-    />
-    <span className="toggle-slider" />
-  </label>
-);
 
 const SettingsView = ({
+  onBack,
   darkModeEnabled,
-  onToggleDarkMode,
+  setDarkModeEnabled,
   showHeadlinerEventCount,
-  onToggleShowHeadlinerEventCount,
-  onBack
-}) => (
-  <div className="dashboard-panel fade-in settings-container">
-    <div className="settings-topbar">
-      <button className="settings-back-btn" onClick={onBack} aria-label="Back">
-        <ArrowLeft size={22} />
-      </button>
-      <h2 className="settings-title">SETTINGS</h2>
-    </div>
+  setShowHeadlinerEventCount
+}) => {
+  return (
+    <div className="dashboard-panel fade-in">
+      <div className="settings-screen">
+        <div className="settings-header">
+          <button className="settings-nav-btn" onClick={onBack} aria-label="Back">
+            <ArrowLeft size={22} />
+          </button>
 
-    <div className="settings-card">
-      <div className="settings-item">
-        <div className="settings-item-left">
-          <div className="settings-item-label">Dark Mode</div>
-          <div className="settings-item-sub">Dim the UI for late-night scrolling.</div>
+          <h2 className="settings-title">Settings</h2>
+
+          <div className="settings-header-spacer" />
         </div>
-        <ToggleSwitch
-          checked={darkModeEnabled}
-          onChange={onToggleDarkMode}
-          ariaLabel="Toggle dark mode"
-        />
-      </div>
 
-      <div className="settings-divider" />
+        <div className="settings-list">
+          <div className="settings-row">
+            <div className="settings-row-text">
+              <div className="settings-row-title">Dark Mode</div>
+            </div>
 
-      <div className="settings-item">
-        <div className="settings-item-left">
-          <div className="settings-item-label">Show Event Count on Headliners</div>
-          <div className="settings-item-sub">Show the ticket badge count on headliner cards.</div>
+            <label className="settings-switch" aria-label="Toggle dark mode">
+              <input
+                type="checkbox"
+                checked={!!darkModeEnabled}
+                onChange={(e) => setDarkModeEnabled(e.target.checked)}
+              />
+              <span className="settings-slider" />
+            </label>
+          </div>
+
+          <div className="settings-row">
+            <div className="settings-row-text">
+              <div className="settings-row-title">Show Event Count on Headliners</div>
+            </div>
+
+            <label className="settings-switch" aria-label="Toggle headliner event counts">
+              <input
+                type="checkbox"
+                checked={!!showHeadlinerEventCount}
+                onChange={(e) => setShowHeadlinerEventCount(e.target.checked)}
+              />
+              <span className="settings-slider" />
+            </label>
+          </div>
         </div>
-        <ToggleSwitch
-          checked={showHeadlinerEventCount}
-          onChange={onToggleShowHeadlinerEventCount}
-          ariaLabel="Toggle headliner event counts"
-        />
       </div>
     </div>
-  </div>
-);
+  );
+};
+
+const NotificationsView = ({
+  onBack,
+  travelTripReminders,
+  setTravelTripReminders,
+  travelNewGoWildFares,
+  setTravelNewGoWildFares,
+  eventsLineupAnnouncement,
+  setEventsLineupAnnouncement,
+  eventsShowUpdates,
+  setEventsShowUpdates,
+  eventsNewHeadlinerSet,
+  setEventsNewHeadlinerSet,
+  eventsFriendsAttending,
+  setEventsFriendsAttending,
+}) => {
+  return (
+    <div className="dashboard-panel fade-in">
+      <div className="settings-screen notifications-screen">
+        <div className="settings-header">
+          <button className="settings-nav-btn" onClick={onBack} aria-label="Back">
+            <ArrowLeft size={22} />
+          </button>
+
+          <h2 className="settings-title">Notifications</h2>
+
+          <div className="settings-header-spacer" />
+        </div>
+
+        <div className="notifications-section-label">Explore</div>
+        <div className="settings-list">
+          <div className="settings-row">
+            <div className="settings-row-icon-wrap"><Bell size={18} /></div>
+            <div className="settings-row-text">
+              <div className="settings-row-title">Trip Reminders</div>
+            </div>
+
+            <label className="settings-switch" aria-label="Toggle trip reminders">
+              <input
+                type="checkbox"
+                checked={!!travelTripReminders}
+                onChange={(e) => setTravelTripReminders(e.target.checked)}
+              />
+              <span className="settings-slider" />
+            </label>
+          </div>
+
+          <div className="settings-row">
+            <div className="settings-row-icon-wrap"><PlaneTakeoff size={18} /></div>
+            <div className="settings-row-text">
+              <div className="settings-row-title">New GoWild Fares</div>
+            </div>
+
+            <label className="settings-switch" aria-label="Toggle new GoWild fares">
+              <input
+                type="checkbox"
+                checked={!!travelNewGoWildFares}
+                onChange={(e) => setTravelNewGoWildFares(e.target.checked)}
+              />
+              <span className="settings-slider" />
+            </label>
+          </div>
+        </div>
+
+        <div className="notifications-section-label">Tools</div>
+        <div className="settings-list">
+          <div className="settings-row">
+            <div className="settings-row-icon-wrap"><MicVocal size={18} /></div>
+            <div className="settings-row-text">
+              <div className="settings-row-title">Lineup Announcement</div>
+            </div>
+
+            <label className="settings-switch" aria-label="Toggle lineup announcement">
+              <input
+                type="checkbox"
+                checked={!!eventsLineupAnnouncement}
+                onChange={(e) => setEventsLineupAnnouncement(e.target.checked)}
+              />
+              <span className="settings-slider" />
+            </label>
+          </div>
+
+          <div className="settings-row">
+            <div className="settings-row-icon-wrap"><CalendarDays size={18} /></div>
+            <div className="settings-row-text">
+              <div className="settings-row-title">Show Updates</div>
+            </div>
+
+            <label className="settings-switch" aria-label="Toggle show updates">
+              <input
+                type="checkbox"
+                checked={!!eventsShowUpdates}
+                onChange={(e) => setEventsShowUpdates(e.target.checked)}
+              />
+              <span className="settings-slider" />
+            </label>
+          </div>
+
+          <div className="settings-row">
+            <div className="settings-row-icon-wrap"><Ticket size={18} /></div>
+            <div className="settings-row-text">
+              <div className="settings-row-title">New Headliner Set</div>
+            </div>
+
+            <label className="settings-switch" aria-label="Toggle new headliner set">
+              <input
+                type="checkbox"
+                checked={!!eventsNewHeadlinerSet}
+                onChange={(e) => setEventsNewHeadlinerSet(e.target.checked)}
+              />
+              <span className="settings-slider" />
+            </label>
+          </div>
+
+          <div className="settings-row">
+            <div className="settings-row-icon-wrap"><Users size={18} /></div>
+            <div className="settings-row-text">
+              <div className="settings-row-title">Friends Attending</div>
+            </div>
+
+            <label className="settings-switch" aria-label="Toggle friends attending">
+              <input
+                type="checkbox"
+                checked={!!eventsFriendsAttending}
+                onChange={(e) => setEventsFriendsAttending(e.target.checked)}
+              />
+              <span className="settings-slider" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 const EditProfileView = ({ userInfo, onBack, onSaved }) => {
   const fileInputRef = useRef(null);
@@ -1881,22 +1697,71 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
 function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDestinations, onSearchFlights, flightState, onClearFlightSearch, onClearCache }) {
   const [collapsed, setCollapsed] = useState(false);
   const [activeView, setActiveView] = useState('home');
+  // =========================
+  // Settings (localStorage)
+  // =========================
+  const [darkModeEnabled, setDarkModeEnabled] = useState(() => {
+    return localStorage.getItem('setjet_dark_mode') === 'true';
+  });
 
-  const [darkModeEnabled, setDarkModeEnabled] = useState(() =>
-    readStoredBool("setjet_dark_mode", false)
-  );
-  const [showHeadlinerEventCount, setShowHeadlinerEventCount] = useState(() =>
-    readStoredBool("setjet_show_headliner_event_count", true)
-  );
+  const [showHeadlinerEventCount, setShowHeadlinerEventCount] = useState(() => {
+    const v = localStorage.getItem('setjet_show_headliner_event_count');
+    return v === null ? true : v === 'true';
+  });
+
+  // Notifications toggles (localStorage)
+  const [travelTripReminders, setTravelTripReminders] = useState(() => {
+    const v = localStorage.getItem('setjet_notify_travel_trip_reminders');
+    return v === null ? true : v === 'true';
+  });
+  const [travelNewGoWildFares, setTravelNewGoWildFares] = useState(() => {
+    const v = localStorage.getItem('setjet_notify_travel_new_gowild_fares');
+    return v === null ? true : v === 'true';
+  });
+  const [eventsLineupAnnouncement, setEventsLineupAnnouncement] = useState(() => {
+    const v = localStorage.getItem('setjet_notify_events_lineup_announcement');
+    return v === null ? true : v === 'true';
+  });
+  const [eventsShowUpdates, setEventsShowUpdates] = useState(() => {
+    const v = localStorage.getItem('setjet_notify_events_show_updates');
+    return v === null ? true : v === 'true';
+  });
+  const [eventsNewHeadlinerSet, setEventsNewHeadlinerSet] = useState(() => {
+    const v = localStorage.getItem('setjet_notify_events_new_headliner_set');
+    return v === null ? true : v === 'true';
+  });
+  const [eventsFriendsAttending, setEventsFriendsAttending] = useState(() => {
+    const v = localStorage.getItem('setjet_notify_events_friends_attending');
+    return v === null ? true : v === 'true';
+  });
 
   useEffect(() => {
-    try { localStorage.setItem("setjet_dark_mode", String(darkModeEnabled)); } catch {}
-    try { document.body.classList.toggle("setjet-dark", !!darkModeEnabled); } catch {}
+    localStorage.setItem('setjet_dark_mode', String(darkModeEnabled));
+    document.body.classList.toggle('setjet-dark', !!darkModeEnabled);
   }, [darkModeEnabled]);
 
   useEffect(() => {
-    try { localStorage.setItem("setjet_show_headliner_event_count", String(showHeadlinerEventCount)); } catch {}
+    localStorage.setItem('setjet_show_headliner_event_count', String(showHeadlinerEventCount));
   }, [showHeadlinerEventCount]);
+
+  useEffect(() => {
+    localStorage.setItem('setjet_notify_travel_trip_reminders', String(travelTripReminders));
+  }, [travelTripReminders]);
+  useEffect(() => {
+    localStorage.setItem('setjet_notify_travel_new_gowild_fares', String(travelNewGoWildFares));
+  }, [travelNewGoWildFares]);
+  useEffect(() => {
+    localStorage.setItem('setjet_notify_events_lineup_announcement', String(eventsLineupAnnouncement));
+  }, [eventsLineupAnnouncement]);
+  useEffect(() => {
+    localStorage.setItem('setjet_notify_events_show_updates', String(eventsShowUpdates));
+  }, [eventsShowUpdates]);
+  useEffect(() => {
+    localStorage.setItem('setjet_notify_events_new_headliner_set', String(eventsNewHeadlinerSet));
+  }, [eventsNewHeadlinerSet]);
+  useEffect(() => {
+    localStorage.setItem('setjet_notify_events_friends_attending', String(eventsFriendsAttending));
+  }, [eventsFriendsAttending]);
 
   const [userDestinations, setUserDestinations] = useState(favoriteDestinations || []);
   const [userFavoriteArtists, setUserFavoriteArtists] = useState(favoriteArtists || []);
@@ -2215,7 +2080,7 @@ const [userInfo, setUserInfo] = useState({
         );
       case 'artists': return <ArtistsView favoriteArtists={userFavoriteArtists} />;
       case 'plan': return <PlanView />;
-      case 'itinerary': return <ItineraryView />;
+      case 'itinerary': return <UserTimeline apiBaseUrl={API_BASE_URL} isBlackoutDate={isBlackoutDate} />;
       case 'friends': return <FriendsView />;
       
       case 'artist-details': 
@@ -2248,39 +2113,50 @@ const [userInfo, setUserInfo] = useState({
         );
 
       case 'profile':
-        return (
-          <ProfileView
-            userFirstName={userInfo?.first_name}
-            userProfilePic={userInfo?.image_file}
-            onEditProfile={() => {
-              refreshUserInfo();
-              setActiveView('edit-profile');
-            }}
-            onOpenSettings={() => setActiveView('profile-settings')}
-          />
-        );
+        return <ProfileView
+          userFirstName={userInfo.first_name}
+          userProfilePic={userInfo.image_file}
+          onEditProfile={() => {
+            refreshUserInfo();
+            setActiveView('edit-profile');
+          }}
+          onOpenSettings={() => setActiveView('profile-settings')}
+          onOpenNotifications={() => setActiveView('profile-notifications')}
+        />;
+      case 'profile-settings':
+        return <SettingsView
+          onBack={() => setActiveView('profile')}
+          darkModeEnabled={darkModeEnabled}
+          setDarkModeEnabled={setDarkModeEnabled}
+          showHeadlinerEventCount={showHeadlinerEventCount}
+          setShowHeadlinerEventCount={setShowHeadlinerEventCount}
+        />;
+
+      case 'profile-notifications':
+        return <NotificationsView
+          onBack={() => setActiveView('profile')}
+          travelTripReminders={travelTripReminders}
+          setTravelTripReminders={setTravelTripReminders}
+          travelNewGoWildFares={travelNewGoWildFares}
+          setTravelNewGoWildFares={setTravelNewGoWildFares}
+          eventsLineupAnnouncement={eventsLineupAnnouncement}
+          setEventsLineupAnnouncement={setEventsLineupAnnouncement}
+          eventsShowUpdates={eventsShowUpdates}
+          setEventsShowUpdates={setEventsShowUpdates}
+          eventsNewHeadlinerSet={eventsNewHeadlinerSet}
+          setEventsNewHeadlinerSet={setEventsNewHeadlinerSet}
+          eventsFriendsAttending={eventsFriendsAttending}
+          setEventsFriendsAttending={setEventsFriendsAttending}
+        />;
 
       case 'edit-profile':
-        return (
-          <EditUser
-            userInfo={userInfo}
-            apiBaseUrl={API_BASE_URL}
-            onBack={() => setActiveView('profile')}
-            onSaved={refreshUserInfo}
-          />
-        );
-
-      case 'profile-settings':
-        return (
-          <SettingsView
-            darkModeEnabled={darkModeEnabled}
-            onToggleDarkMode={(v) => setDarkModeEnabled(!!v)}
-            showHeadlinerEventCount={showHeadlinerEventCount}
-            onToggleShowHeadlinerEventCount={(v) => setShowHeadlinerEventCount(!!v)}
-            onBack={() => setActiveView('profile')}
-          />
-        );
-default:
+        return <EditUser
+          userInfo={userInfo}
+          apiBaseUrl={API_BASE_URL}
+          onBack={() => setActiveView('profile')}
+          onSaved={refreshUserInfo}
+        />;
+      default:
         return (
           <HomeView 
             favoriteArtists={userFavoriteArtists} 
@@ -2298,7 +2174,7 @@ default:
   const isDetailsView = ['artist-details', 'event-details', 'destination-details'].includes(activeView);
 
   return (
-    <div className={`user-home-root ${darkModeEnabled ? "dark-mode" : ""}`}>
+    <div className="user-home-root">
       <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-top">
           <img
@@ -2383,7 +2259,7 @@ default:
               <Search size={18} className="places-input-icon" />
               <input
                 type="text"
-                placeholder="Artists, venues..."
+                placeholder="Search"
                 className="places-airport-input"
                 autoComplete="off"
                 value={globalQuery}

@@ -4,53 +4,47 @@
 
 .results-container {
   width: 100%;
-  max-width: none;            /* âœ… FULL WIDTH */
-  margin: 0;                  /* âœ… no centering gap */
-  padding: 1.25rem;           /* keep comfortable gutter */
+  max-width: none;
+  margin: 0;
+  padding: 0rem;
   box-sizing: border-box;
 }
 
 .results-header {
-  margin-bottom: 1rem;
+  margin-bottom: 0rem !important;
 }
 
 .results-title-row {
   display: flex;
-  align-items: center; /* Ensures text and pills float middle */
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
 
 /* ===========================
-   BADGES (TRIP TYPE + CACHE)
+   BADGES (CACHE)
    =========================== */
 
-/* Match the typography of Sort/Filter options */
-.trip-type-pill,
 .cache-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px; /* tighter icon/text spacing */
+  gap: 6px;
 
   padding: 0.32rem 0.75rem;
   border-radius: 999px;
 
-  /* âœ… UPDATED: White background + Grey border like previous chips */
   background: #ffffff;
-  border: 1px solid #d1d5db; 
-  color: #374151; /* Darker grey text */
+  border: 1px solid #d1d5db;
+  color: #374151;
 
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
 
   white-space: nowrap;
-  
-  /* Optical alignment */
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-.trip-type-pill svg,
 .cache-badge svg {
   width: 14px;
   height: 14px;
@@ -65,16 +59,16 @@
 .results-header h2 {
   font-size: 2.4rem;
   font-weight: 600;
-  margin: 0;
+  margin: 0 !important;
   color: #111827;
 }
 
 .search-summary {
-  margin-top: 0px !important;
+  margin-top: 0px;
 }
 
 .results-info {
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   margin: 0 !important;
   color: #111827;
 }
@@ -83,138 +77,206 @@
 .days-away {
   margin-left: 6px;
   color: #16a34a;
-  
-  /* âœ… UPDATED: Decreased font weight & Floating middle */
-  font-size: 0.85rem;
-  font-weight: 500; /* Decreased from 600 */
+  font-size: 1rem;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   vertical-align: middle;
-  transform: translateY(-2px); /* Slight optical lift to center with text */
+  transform: translateY(-2px);
+}
+
+/* Compact summary: keep From/To + Dates together */
+.search-fields-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0px 16px;
+  align-items: center;
+}
+
+.search-field {
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+.route-arrow {
+  color: #0096a6;
+  font-weight: 900;
+  margin: 0 6px;
+}
+
+.route-sep {
+  color: #94a3b8;
+  margin: 0px !important;
+  font-weight: 700;
+}
+
+.subtle-line {
+  margin-top: 6px !important;
+  font-size: 0.95rem;
+  color: #334155;
 }
 
 /* ===========================
-   MAP TOGGLE (NEW STYLES)
+   DESTINATIONS MAP TOGGLE (MATCHES DESTINATIONCARD "ROUTE MAP")
    =========================== */
-.map-toggle-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Center horizontally */
-  justify-content: center;
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-  width: 100%;
+
+.flightresults-map-section.map-section-container {
+  margin-top: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.map-toggle-button {
+.flightresults-map-section .map-toggle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #f8fafc;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.flightresults-map-section .map-toggle-header:hover {
+  background-color: #f1f5f9;
+}
+
+.flightresults-map-section .dest-stat-icon-box.map-icon-box {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0.5rem 1.25rem;
-  border-radius: 999px;
-  
-  /* Chip Styling */
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  color: #004e5a;
-  
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  user-select: none;
-}
-
-.map-toggle-button:hover {
+  justify-content: center;
   background-color: #f2f9fa;
-  border-color: #004e5a;
+  border-radius: 6px;
+  padding: 0.5rem;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
 }
 
+.flightresults-map-section .dest-stat-icon {
+  color: #0096a6;
+}
+
+.flightresults-map-section .map-label-text {
+  font-size: 0.7rem;
+  margin-bottom: 0;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.flightresults-map-section .map-content-wrapper {
+  padding: 0;
+  height: 250px;
+  width: 100%;
+  border-top: 1px solid #e2e8f0;
+}
 
 /* ===========================
-   SORT + FILTER CONTROLS
+   SORT + FILTER CONTROLS (PILL DROPDOWNS)
    =========================== */
 
 .sort-controls {
   margin: 1rem 0 0.75rem;
 }
 
-.controls-row {
+/* Row holding the two pill controls */
+.pill-controls-row {
   display: flex;
-  flex-direction: column; /* âœ… UPDATED: stack Sort By and Filter By */
-  align-items: stretch;
+  align-items: center;
   gap: 12px;
-  width: 100%;
+  flex-wrap: wrap;
 }
 
-.controls-row .control-group {
-  flex: 1;
-  min-width: 0;
+/* Each control: label + pill button + dropdown */
+.pill-control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.control-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.control-label {
+.pill-control-label {
   font-weight: 700;
   color: #111827;
   font-size: 1rem;
 }
 
-.control-track {
-  display: flex;
-  align-items: stretch;
-  background-color: #f1f5f9;
-  padding: 4px;
-  border-radius: 999px;
-  border: 1px solid #e2e8f0;
-  gap: 2px;
-}
-
-.control-option {
-  flex: 1 1 0;
-  min-width: 0;
-
-  display: flex;
+/* Pill button style like reference image */
+.pill-control-button {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px; /* âœ… tighter icon/text spacing */
-
-  padding: 0.5rem 0.4rem;
-  border: none;
+  gap: 10px;
+  padding: 0.55rem 1.1rem;
   border-radius: 999px;
+
+  background: #004e5a;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
 
-  background: transparent;
-  color: #64748b;
-  font-size: 0.85rem;
-  font-weight: 500;
-
-  white-space: nowrap;
-  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 78, 90, 0.18);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-.control-option:hover:not(.active) {
-  color: #334155;
-  background-color: rgba(0, 0, 0, 0.03);
+.pill-control-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 78, 90, 0.22);
 }
 
-.control-option.active {
-  background: #004e5a;
-  color: #ffffff;
-  font-weight: 700;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 78, 90, 0.3),
-    0 2px 4px -1px rgba(0, 78, 90, 0.15);
-}
-
-.option-icon {
-  stroke-width: 2px;
+.pill-control-button svg {
   flex-shrink: 0;
+  opacity: 0.9;
+}
+
+/* Dropdown menu */
+.pill-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 50;
+
+  min-width: 220px;
+  padding: 6px;
+
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.12);
+}
+
+.pill-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+
+  color: #0f172a;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.pill-menu-item:hover {
+  background: #f8fafc;
+}
+
+.pill-menu-item.active {
+  background: #f2f9fa;
+  color: #004e5a;
+}
+
+.pill-menu-item svg {
+  color: #0096a6;
 }
 
 /* ===========================
@@ -254,85 +316,50 @@
     padding: 1rem;
   }
 
-  /* âœ… UPDATED: Smaller Header Title */
   .results-header h2 {
-    font-size: 1.75rem; 
+    font-size: 1.75rem;
   }
 
-  /* âœ… UPDATED: Smaller Header Info Text */
-  .results-info {
-    font-size: 0.85rem;
+  .results-info,
+  .search-field {
+    font-size: 0.9rem;
   }
-  
+
   .days-away {
     font-size: 0.75rem;
   }
 
-  /* âœ… UPDATED: Smaller Badges/Pills */
-  .trip-type-pill,
   .cache-badge {
     padding: 0.25rem 0.6rem;
-    font-size: 0.5rem;
+    font-size: 0.75rem;
   }
 
-  .trip-type-pill svg,
   .cache-badge svg {
     width: 12px;
     height: 12px;
   }
 
-  /* âœ… UPDATED: Smaller Map Toggle Button */
-  .map-toggle-button {
-    font-size: 0.85rem;
-    padding: 0.4rem 1rem;
-  }
-  
-  .map-toggle-container {
-    margin-top: 1rem;
-  }
-
-
-  /* --- CONTROLS --- */
-  .controls-row {
-    flex-direction: column;
-    /* âœ… UPDATED: Exact match (4px) to the text margins above */
-    gap: 4px; 
+  .pill-controls-row {
     width: 100%;
+    justify-content: flex-start;
+    gap: 10px;
   }
 
-  /* âœ… STRETCH CONTAINERS */
-  .control-group {
+  .pill-control {
     width: 100%;
+    justify-content: space-between;
   }
 
-  .control-track {
+  .pill-control-button {
     width: 100%;
-    box-sizing: border-box; /* Ensures padding doesn't cause overflow */
-    padding: 3px; /* Slightly tighter track padding */
-    overflow: hidden; /* Prevent spillover */
-  }
-
-  /* âœ… DECREASE ELEMENT SIZES & PREVENT OVERFLOW */
-  .control-option {
-    font-size: 0.75rem !important; /* Smaller text */
-    padding: 0.45rem 0.2rem !important; /* Tighter padding */
-    gap: 3px; /* Tighter gap between icon and text */
-    
-    flex: 1 1 auto; /* Allow items to share space evenly */
-    min-width: 0; /* Critical: allows text to shrink/truncate if needed */
-  }
-
-  /* Force Icon Size Down via CSS */
-  .control-option svg.option-icon {
-    width: 13px !important;
-    height: 13px !important;
-    stroke-width: 2px;
-  }
-
-  /* Smaller Labels */
-  .control-label {
+    justify-content: space-between;
     font-size: 0.9rem;
-    margin-bottom: 0.25rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .pill-menu {
+    width: 100%;
+    min-width: 0;
   }
 }
 
@@ -348,4 +375,10 @@
 .dashboard-panel .flight-results-container {
   margin-left: 0;
   margin-right: 0;
+}
+
+
+.fr-map-loading {
+  padding: 12px;
+  font-size: 14px;
 }

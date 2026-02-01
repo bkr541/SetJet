@@ -105,7 +105,6 @@ const CustomDateInput = forwardRef(({ value, onClick, placeholder, disabled }, r
     ref={ref}
   >
     <CalendarIcon className="search-icon" size={20} />
-    {/* CHANGED: wrap text in inner shell */}
     <div className="search-input-inner">
       <span className={`date-display-text ${!value ? 'placeholder' : ''}`}>
         {value || placeholder}
@@ -156,7 +155,6 @@ function SearchForm({ onSearch, loading }) {
   const [nonstopPreferred, setNonstopPreferred] = useState(false);
 
   // Generate today's date string for placeholders
-  // ✅ UPDATED: Placeholder format
   const todayPlaceholder = format(new Date(), DATE_FORMAT);
 
   // If someone switches to Build Your Own, tripType should effectively behave like one-way
@@ -309,13 +307,10 @@ function SearchForm({ onSearch, loading }) {
 
   return (
     <div className="search-form-container">
-      {/* Reduced whitespace around logo */}
-
       <h2>Explore Flights</h2>
       
       <form onSubmit={handleSubmit} className="search-form">
         
-        {/* Search Mode + Trip Type (single row on desktop, stacked on mobile) */}
         <div className="toggles-row">
           <div className="form-group toggle-group">
             <label>Search Mode</label>
@@ -402,18 +397,14 @@ function SearchForm({ onSearch, loading }) {
           )}
         </div>
 
-{/* Origin and Destination Row */}
         <div className="form-row">
           
-          {/* --- ORIGIN COLUMN --- */}
           <div className="form-group">
             <label htmlFor="origins">Origin Airports</label>
             
             <div className="relative-input-container">
               <div className={`search-input-wrapper ${originPills.length > 0 || originSearchText ? 'has-value' : ''}`}>
                 <PlaneTakeoff className="search-icon" size={24} />
-                
-                {/* CHANGED: wrap pills-container in inner shell */}
                 <div className="search-input-inner">
                   <div className="pills-container">
                     {originPills.map((code) => (
@@ -442,7 +433,6 @@ function SearchForm({ onSearch, loading }) {
                         if (originSearchText.length >= 2) setShowOriginDropdown(true);
                       }}
                       onBlur={() => setTimeout(() => setShowOriginDropdown(false), 200)}
-                      /* ✅ UPDATED: Placeholder */
                       placeholder={originPills.length === 0 ? "Search any City or Airport" : ""}
                       className="search-box-input"
                       autoComplete="off"
@@ -463,7 +453,6 @@ function SearchForm({ onSearch, loading }) {
                 )}
               </div>
 
-              {/* ORIGIN DROPDOWN */}
               {showOriginDropdown && originResults.length > 0 && (
                 <div className="autocomplete-dropdown">
                   {originResults.map((result, index) => (
@@ -493,15 +482,12 @@ function SearchForm({ onSearch, loading }) {
             </div>
           </div>
 
-          {/* --- DESTINATION COLUMN --- */}
           <div className="form-group">
             <label htmlFor="destinations">Destination Airports</label>
             
             <div className="relative-input-container">
               <div className={`search-input-wrapper ${anyDestination ? 'disabled' : ''} ${(destinationPills.length > 0 || destinationSearchText) && !anyDestination ? 'has-value' : ''}`}>
                 <PlaneLanding className="search-icon" size={24} />
-                
-                {/* CHANGED: wrap pills-container in inner shell */}
                 <div className="search-input-inner">
                   <div className="pills-container">
                     {destinationPills.map((code) => (
@@ -530,7 +516,6 @@ function SearchForm({ onSearch, loading }) {
                         if (destinationSearchText.length >= 2 && !anyDestination) setShowDestinationDropdown(true);
                       }}
                       onBlur={() => setTimeout(() => setShowDestinationDropdown(false), 200)}
-                      /* ✅ UPDATED: Placeholder */
                       placeholder={anyDestination ? "Searching All Airports..." : (destinationPills.length === 0 ? "Search any City or Airport" : "")}
                       disabled={anyDestination}
                       className={`search-box-input ${anyDestination ? 'input-disabled-placeholder' : ''}`}
@@ -539,7 +524,6 @@ function SearchForm({ onSearch, loading }) {
                   </div>
                 </div>
 
-                {/* Clear Destination Button */}
                 {!anyDestination && (destinationPills.length > 0 || destinationSearchText) && (
                   <X 
                     className="clear-icon" 
@@ -553,7 +537,6 @@ function SearchForm({ onSearch, loading }) {
                 )}
               </div>
 
-              {/* DESTINATION DROPDOWN */}
               {showDestinationDropdown && destinationResults.length > 0 && !anyDestination && (
                 <div className="autocomplete-dropdown">
                   {destinationResults.map((result, index) => (
@@ -582,7 +565,6 @@ function SearchForm({ onSearch, loading }) {
               )}
             </div>
 
-            {/* Only render helper text when actually needed (removes extra whitespace) */}
             {anyDestination && (
               <small>We'll search every available route from your origin.</small>
             )}
@@ -607,7 +589,6 @@ function SearchForm({ onSearch, loading }) {
           </div>
         </div>
 
-        {/* --- DATE INPUTS REPLACED WITH REACT-DATEPICKER --- */}
         {searchMode === 'build-your-own' && (
           <div className="date-section">
             <div className="form-row">
@@ -618,7 +599,6 @@ function SearchForm({ onSearch, loading }) {
                   onChange={(date) => setDepartureDate(date)}
                   customInput={<CustomDateInput />}
                   placeholderText={todayPlaceholder}
-                  /* ✅ UPDATED: Date Format */
                   dateFormat={DATE_FORMAT}
                   minDate={new Date()}
                   fixedHeight
@@ -635,7 +615,6 @@ function SearchForm({ onSearch, loading }) {
                   onChange={(date) => setReturnDate(date)}
                   customInput={<CustomDateInput />}
                   placeholderText={todayPlaceholder}
-                  /* ✅ UPDATED: Date Format */
                   dateFormat={DATE_FORMAT}
                   minDate={departureDate || new Date()}
                   fixedHeight
@@ -663,7 +642,6 @@ function SearchForm({ onSearch, loading }) {
                   }}
                   customInput={<CustomDateInput />}
                   placeholderText={todayPlaceholder}
-                  /* ✅ UPDATED: Date Format */
                   dateFormat={DATE_FORMAT}
                   minDate={new Date()}
                   fixedHeight
@@ -679,7 +657,6 @@ function SearchForm({ onSearch, loading }) {
                   {tripType === 'day-trip' ? (
                     <div className="search-input-wrapper disabled has-value">
                       <CalendarIcon className="search-icon" size={20} />
-                      {/* CHANGED: wrap text in inner shell */}
                       <div className="search-input-inner">
                         <span className="date-display-text">
                           {departureDate ? format(departureDate, DATE_FORMAT) : 'Same as departure'}
@@ -692,7 +669,6 @@ function SearchForm({ onSearch, loading }) {
                       onChange={(date) => setReturnDate(date)}
                       customInput={<CustomDateInput />}
                       placeholderText={todayPlaceholder}
-                      /* ✅ UPDATED: Date Format */
                       dateFormat={DATE_FORMAT}
                       minDate={departureDate || new Date()}
                       fixedHeight
@@ -716,7 +692,6 @@ function SearchForm({ onSearch, loading }) {
                 onChange={(date) => setDepartureDate(date)}
                 customInput={<CustomDateInput />}
                 placeholderText={todayPlaceholder}
-                /* ✅ UPDATED: Date Format */
                 dateFormat={DATE_FORMAT}
                 minDate={new Date()}
                 fixedHeight

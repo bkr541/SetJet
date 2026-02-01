@@ -26,7 +26,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
+  width: 100%;
 }
 
 .destination-route {
@@ -74,7 +75,7 @@
   align-items: flex-end;
   /* ✅ UPDATED: Ensure price doesn't crush route on small screens */
   flex-shrink: 0;
-  margin-left: 10px;
+  /* margin-left: 10px; */
 }
 
 .price-from {
@@ -102,10 +103,10 @@
 /* --- STATS CARD STYLING --- */
 .destination-stats-container {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* Default 4 cols */
+  grid-template-columns: 1fr 1fr; /* Default 4 cols */
   gap: 10px;
-  margin-top: 0.5rem;
-  margin-bottom: 0.75rem; 
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem; 
   cursor: pointer; 
 }
 
@@ -115,7 +116,7 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.5rem;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
@@ -266,12 +267,12 @@
 @media (max-width: 768px) {
   /* ✅ UPDATED: Main group stretches across screen with minimal padding */
   .destination-card {
-    border-radius: 0; /* Optional: squared edges on full mobile width */
-    border-left: none;
-    border-right: none;
-    margin-left: -1rem; /* Negative margin to pull to edges if parent has padding */
-    margin-right: -1rem;
-    width: calc(100% + 2rem);
+    /* border-radius: 0; /* Optional: squared edges on full mobile width */
+    /* border-left: none; */
+    /* border-right: none; */
+    /* margin-left: -1rem; /* Negative margin to pull to edges if parent has padding */
+    /* margin-right: -1rem; */
+    width: 100%;
   }
 
   .destination-summary {
@@ -307,6 +308,6 @@
   }
 
   .flights-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;;
   }
 }

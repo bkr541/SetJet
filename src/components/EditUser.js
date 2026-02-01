@@ -8,11 +8,7 @@ export default function EditUser({ userInfo, onBack, onSaved, apiBaseUrl }) {
   const fileInputRef = useRef(null);
 
   const API_BASE_URL = useMemo(() => {
-    return (
-      apiBaseUrl ||
-      process.env.REACT_APP_API_BASE_URL ||
-      DEFAULT_API_BASE
-    );
+    return apiBaseUrl || process.env.REACT_APP_API_BASE_URL || DEFAULT_API_BASE;
   }, [apiBaseUrl]);
 
   const [formData, setFormData] = useState({
@@ -79,7 +75,6 @@ export default function EditUser({ userInfo, onBack, onSaved, apiBaseUrl }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Optional sanity check: only allow images
     if (!file.type?.startsWith("image/")) {
       setErrorMsg("Please select an image file.");
       return;
@@ -106,12 +101,10 @@ export default function EditUser({ userInfo, onBack, onSaved, apiBaseUrl }) {
     try {
       const payload = new FormData();
       payload.append("email", email);
-
       payload.append("username", formData.username || "");
       payload.append("dob", formData.dob || "");
       payload.append("first_name", formData.firstName || "");
       payload.append("last_name", formData.lastName || "");
-
       if (selectedFile) payload.append("profile_photo", selectedFile);
 
       const res = await fetch(`${API_BASE_URL}/api/update_profile`, {
@@ -122,10 +115,7 @@ export default function EditUser({ userInfo, onBack, onSaved, apiBaseUrl }) {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const msg =
-          data?.error ||
-          data?.message ||
-          "Profile update failed. Check console for details.";
+        const msg = data?.error || data?.message || "Profile update failed.";
         console.error("Profile update failed:", data);
         setErrorMsg(msg);
         return;
@@ -148,30 +138,30 @@ export default function EditUser({ userInfo, onBack, onSaved, apiBaseUrl }) {
 
   return (
     <div className="dashboard-panel fade-in">
-      <div className="edit-user-container">
-        <div className="edit-user-header">
-          <button className="edit-user-nav-btn" onClick={onBack} aria-label="Back">
-            <ArrowLeft size={24} />
+      <div className="settings-screen edituser-screen">
+        <div className="settings-header">
+          <button className="settings-nav-btn" onClick={onBack} aria-label="Back">
+            <ArrowLeft size={22} />
           </button>
 
-          <h2 className="edit-user-title">Edit Profile</h2>
+          <h2 className="settings-title">Edit Profile</h2>
 
           <button
-            className={`edit-user-nav-btn save ${(!isDirty() || isSaving) ? "disabled" : ""}`}
+            className={`settings-nav-btn save ${(!isDirty() || isSaving) ? "disabled" : ""}`}
             onClick={handleSave}
             disabled={!isDirty() || isSaving}
             aria-disabled={!isDirty() || isSaving}
             title={!isDirty() ? "No changes to save" : "Save changes"}
             aria-label="Save"
           >
-            <Check size={24} />
+            <Check size={22} />
           </button>
         </div>
 
-        <div className="edit-user-content">
-          <div className="edit-user-pic-section">
+        <div className="settings-list">
+          <div className="settings-row edituser-photo-row">
             <div
-              className="edit-user-pic-wrapper clickable"
+              className="edituser-photo-wrapper clickable"
               onClick={handleProfilePicClick}
               role="button"
               tabIndex={0}
@@ -182,7 +172,7 @@ export default function EditUser({ userInfo, onBack, onSaved, apiBaseUrl }) {
               <img
                 src={profileSrc}
                 alt="Profile"
-                className="edit-user-pic-img"
+                className="edituser-photo-img"
                 onError={(e) => { e.currentTarget.src = "https://via.placeholder.com/150"; }}
               />
 
@@ -190,91 +180,97 @@ export default function EditUser({ userInfo, onBack, onSaved, apiBaseUrl }) {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                className="edit-user-file-input"
+                className="edituser-file-input"
                 onChange={handleFileChange}
               />
             </div>
 
-            <p className="edit-user-pic-hint">Tap to change photo</p>
+            <div className="edituser-photo-hint">Tap to change photo</div>
+          </div>
+        </div>
+
+        {errorMsg ? (
+          <div className="edituser-error" role="alert">
+            {errorMsg}
+          </div>
+        ) : null}
+
+        <div className="settings-list">
+          <div className="settings-row edituser-field-row">
+            <div className="settings-row-text">
+              <div className="settings-row-title">First Name</div>
+            </div>
+
+            <div className={`places-input-wrap edituser-input-wrap ${focusedField === "firstName" ? "focused" : ""}`}>
+              <input
+                className="places-airport-input"
+                value={formData.firstName}
+                onChange={onChange("firstName")}
+                onFocus={() => setFocusedField("firstName")}
+                onBlur={() => setFocusedField(null)}
+                placeholder="First name"
+                autoComplete="given-name"
+              />
+            </div>
           </div>
 
-          {errorMsg ? (
-            <div className="edit-user-error" role="alert">
-              {errorMsg}
-            </div>
-          ) : null}
-
-          <div className="edit-user-fields">
-            <div className="form-row">
-              <div className="places-airport-field">
-                <div className="places-field-label">First Name</div>
-                <div className={`places-input-wrap ${focusedField === "firstName" ? "focused" : ""}`}>
-                  <input
-                    className="places-airport-input"
-                    value={formData.firstName}
-                    onChange={onChange("firstName")}
-                    onFocus={() => setFocusedField("firstName")}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="First name"
-                    autoComplete="given-name"
-                  />
-                </div>
-              </div>
-
-              <div className="places-airport-field">
-                <div className="places-field-label">Last Name</div>
-                <div className={`places-input-wrap ${focusedField === "lastName" ? "focused" : ""}`}>
-                  <input
-                    className="places-airport-input"
-                    value={formData.lastName}
-                    onChange={onChange("lastName")}
-                    onFocus={() => setFocusedField("lastName")}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="Last name"
-                    autoComplete="family-name"
-                  />
-                </div>
-              </div>
+          <div className="settings-row edituser-field-row">
+            <div className="settings-row-text">
+              <div className="settings-row-title">Last Name</div>
             </div>
 
-            <div className="form-row single">
-              <div className="places-airport-field">
-                <div className="places-field-label">Username</div>
-                <div className={`places-input-wrap ${focusedField === "username" ? "focused" : ""}`}>
-                  <input
-                    className="places-airport-input"
-                    value={formData.username}
-                    onChange={onChange("username")}
-                    onFocus={() => setFocusedField("username")}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="Username"
-                    autoComplete="username"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="form-row single">
-              <div className="places-airport-field">
-                <div className="places-field-label">Date of Birth</div>
-                <div className={`places-input-wrap ${focusedField === "dob" ? "focused" : ""}`}>
-                  <input
-                    className="places-airport-input"
-                    value={formData.dob}
-                    onChange={onChange("dob")}
-                    onFocus={() => setFocusedField("dob")}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="MM/DD/YYYY"
-                    inputMode="numeric"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="edit-user-footnote">
-              <span>Save is enabled only when something changes.</span>
+            <div className={`places-input-wrap edituser-input-wrap ${focusedField === "lastName" ? "focused" : ""}`}>
+              <input
+                className="places-airport-input"
+                value={formData.lastName}
+                onChange={onChange("lastName")}
+                onFocus={() => setFocusedField("lastName")}
+                onBlur={() => setFocusedField(null)}
+                placeholder="Last name"
+                autoComplete="family-name"
+              />
             </div>
           </div>
+
+          <div className="settings-row edituser-field-row">
+            <div className="settings-row-text">
+              <div className="settings-row-title">Username</div>
+            </div>
+
+            <div className={`places-input-wrap edituser-input-wrap ${focusedField === "username" ? "focused" : ""}`}>
+              <input
+                className="places-airport-input"
+                value={formData.username}
+                onChange={onChange("username")}
+                onFocus={() => setFocusedField("username")}
+                onBlur={() => setFocusedField(null)}
+                placeholder="Username"
+                autoComplete="username"
+              />
+            </div>
+          </div>
+
+          <div className="settings-row edituser-field-row">
+            <div className="settings-row-text">
+              <div className="settings-row-title">Date of Birth</div>
+            </div>
+
+            <div className={`places-input-wrap edituser-input-wrap ${focusedField === "dob" ? "focused" : ""}`}>
+              <input
+                className="places-airport-input"
+                value={formData.dob}
+                onChange={onChange("dob")}
+                onFocus={() => setFocusedField("dob")}
+                onBlur={() => setFocusedField(null)}
+                placeholder="MM/DD/YYYY"
+                inputMode="numeric"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="edituser-footnote">
+          Save is enabled only when something changes.
         </div>
       </div>
     </div>

@@ -6,49 +6,278 @@
      ========================= */
   --font-family: 'Nunito', sans-serif;
 
+  /* Type scale (optional helpers) */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 28px;
+
   /* =========================
-     NEUTRALS (Carbon-style)
+     NEUTRALS (SetJet UI)
      ========================= */
-  --bg-app: #f4f4f4;
-  --bg-surface: #ffffff;
+  --bg-app: #f5f5f5;          /* app background (light gray like reference) */
+  --bg-surface: #ffffff;      /* cards / sheets */
+  --bg-surface-soft: #eef3f7; /* segmented controls / subtle fills */
 
-  --border-default: #e0e0e0;
-  --border-muted: #c6c6c6;
+  --border-default: #e3e8ef;  /* soft blue-gray border like reference inputs */
+  --border-muted: #d4dee9;
 
-  --text-primary: #161616;
-  --text-secondary: #525252;
-  --text-muted: #6f6f6f;
-  --text-disabled: #8d8d8d;
+  --text-primary: #0f172a;    /* deep navy */
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-disabled: #94a3b8;
   --text-inverse: #ffffff;
 
   /* =========================
      SETJET BRAND (LOCKED)
      ========================= */
-  --sj-primary: #004e5a;   /* main blue-green */
-  --sj-hover: #006b78;     /* hover */
+  --sj-primary: #1f4d59;   /* deep teal from reference */
+  --sj-hover: #275e6c;     /* slightly lighter for hover */
   --sj-active: #0096a6;    /* active / focus */
-  --sj-accent: #0096a6;    /* accents (same family) */
+  --sj-accent: #0096a6;    /* links / accents */
 
   /* =========================
      SEMANTIC COLORS
      ========================= */
-  --focus-ring: #0096a6;
-  --error-red: #FF2C2C;
+  --focus-ring: rgba(0, 150, 166, 0.30);
+  --error-red: #ff2c2c;
 
-  --info-bg: rgba(0, 150, 166, 0.12);
+  --info-bg: rgba(0, 150, 166, 0.10);
   --info-border: #0096a6;
 
   --success: #0096a6;
   --warning: #d93025;
 
   /* =========================
+     RADII
+     ========================= */
+  --radius-card: 34px;    /* big soft corners */
+  --radius-input: 22px;   /* pill-ish inputs */
+  --radius-pill: 999px;   /* buttons / segmented pills */
+
+  /* =========================
      SHADOWS
      ========================= */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.08);
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-sm: 0 6px 16px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 10px 26px rgba(15, 23, 42, 0.10);
+  --shadow-lg: 0 18px 48px rgba(15, 23, 42, 0.12);
+
+  /* =========================
+     LAYOUT HELPERS
+     ========================= */
+  --container-max: 440px;   /* auth card width-ish */
+  --gutter: 20px;
+}
+
+/* =========================
+   GLOBAL BASE
+   ========================= */
+html, body {
+  height: 100%;
 }
 
 body {
+  margin: 0;
   font-family: var(--font-family);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--sj-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   SURFACES / CARDS
+   ========================= */
+.sj-surface {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+}
+
+.sj-surface--soft {
+  background: var(--bg-surface-soft);
+  border-radius: var(--radius-pill);
+}
+
+.sj-divider {
+  height: 1px;
+  background: var(--border-default);
+}
+
+/* =========================
+   FORMS
+   ========================= */
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}
+
+.sj-field {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-input);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xs);
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.sj-field input,
+.sj-field select,
+.sj-field textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-size: var(--text-md);
+}
+
+.sj-field ::placeholder {
+  color: var(--text-disabled);
+}
+
+.sj-field:focus-within {
+  border-color: var(--sj-active);
+  box-shadow: 0 0 0 4px var(--focus-ring);
+}
+
+.sj-label {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* =========================
+   BUTTONS
+   ========================= */
+.sj-btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  user-select: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  padding: 14px 22px;
+  border-radius: var(--radius-pill);
+
+  font-weight: 800;
+  font-size: var(--text-md);
+  line-height: 1;
+
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, color 120ms ease, opacity 120ms ease;
+}
+
+.sj-btn:active {
+  transform: translateY(1px);
+}
+
+.sj-btn--primary {
+  background: var(--sj-primary);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+
+.sj-btn--primary:hover {
+  background: var(--sj-hover);
+}
+
+.sj-btn--primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--focus-ring), var(--shadow-sm);
+}
+
+.sj-btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.sj-btn--soft {
+  background: var(--bg-surface-soft);
+  color: var(--text-secondary);
+  box-shadow: none;
+}
+
+.sj-btn[disabled],
+.sj-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* =========================
+   SEGMENTED CONTROL (Login / Sign Up)
+   ========================= */
+.sj-segmented {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 8px;
+  background: var(--bg-surface-soft);
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(227, 232, 239, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.sj-segmented__item {
+  height: 52px;
+  border-radius: var(--radius-pill);
+}
+
+.sj-segmented__item.is-active {
+  background: var(--sj-primary);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+
+/* =========================
+   AUTH LAYOUT HELPERS
+   ========================= */
+.sj-auth-shell {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 28px 18px;
+}
+
+.sj-auth-card {
+  width: min(var(--container-max), 100%);
+  padding: 34px 26px 28px;
+}
+
+.sj-title {
+  font-size: var(--text-xl);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin: 18px 0 22px;
+  text-align: center;
+}
+
+.sj-subtle {
+  color: var(--text-muted);
 }

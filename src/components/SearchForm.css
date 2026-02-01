@@ -4,7 +4,6 @@
 }
 
 .search-form-container {
-  /* Match UserHome "flat panel" views */
   background: transparent;
   border-radius: 0;
   padding: 0;
@@ -43,14 +42,11 @@
   min-height: 56px;
   box-sizing: border-box;
   max-width: 100%;
-
-  /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ lock height so it NEVER changes based on pills */
   height: 56px;
   max-height: 56px;
   overflow: hidden;
 }
 
-/* Inner inset shell */
 .search-input-inner {
   flex: 1;
   display: flex;
@@ -62,7 +58,7 @@
   min-height: 40px;
   box-sizing: border-box;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  min-width: 0; /* prevent overflow */
+  min-width: 0; 
 }
 
 .search-input-wrapper:focus-within {
@@ -74,7 +70,6 @@
   border-color: #0096a6;
 }
 
-/* Keep has-value behavior, donÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢t tint outer pill */
 .search-input-wrapper.has-value {
   border-color: #0096a6;
 }
@@ -104,25 +99,17 @@
 /* --- PILLS CONTAINER & STYLES --- */
 .pills-container {
   display: flex;
-
-  /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ prevent wrapping so height never grows */
   flex-wrap: nowrap;
-
-  /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ horizontal scroll when too many selections */
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-
-  /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ requested spacing between values */
   gap: 6px;
-
   flex: 1 1 auto;
   align-items: center;
   min-width: 0;
   white-space: nowrap;
 }
 
-/* Hide scrollbar (still scrollable) */
 .pills-container::-webkit-scrollbar {
   display: none;
 }
@@ -130,39 +117,36 @@
   scrollbar-width: none;
 }
 
-/* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATED: CHIP STYLING (Like uploaded image) */
+/* ✅ UPDATED CHIP STYLING: Light teal theme from image */
 .airport-pill {
   display: inline-flex;
   align-items: center;
-
-  /* Chip styling */
-  background: #ffffff !important;
-  border: 1px solid #d1d5db !important; /* Grey border */
+  background: #f0f7f8 !important; /* Light teal background */
+  border: 1px solid #d8ecef !important; 
   box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
   padding: 4px 10px !important;
   border-radius: 999px !important;
-
-  /* Text styling */
-  color: #374151 !important;
+  color: #214e56 !important; /* Dark teal text */
   font-size: 0.95rem !important;
   font-weight: 500 !important;
   line-height: 1 !important;
-
   white-space: nowrap;
 }
 
-/* Remove icon styling within chip */
 .pill-remove-icon {
   margin-left: 6px;
   cursor: pointer;
-  color: #9ca3af !important;
+  color: #214e56 !important;
   transition: color 0.2s;
   width: 16px;
   height: 16px;
+  border-radius: 50%;
+  background: white;
+  padding: 2px;
 }
 
 .pill-remove-icon:hover {
-  color: #ef4444 !important; /* Red on hover */
+  color: #ef4444 !important; 
 }
 
 .clear-icon {
@@ -199,11 +183,10 @@
   cursor: pointer;
 }
 
-/* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATED: Date display text matches input font */
 .date-display-text {
   font-size: 1rem;
   color: #111827;
-  font-weight: 400; /* Standard font weight */
+  font-weight: 400; 
   user-select: none;
 }
 
@@ -211,7 +194,6 @@
   color: #9ca3af;
 }
 
-/* Main container */
 .react-datepicker {
   font-family: inherit !important;
   font-size: 1.1rem !important;
@@ -509,6 +491,7 @@
   margin-left: 0.25rem;
 }
 
+/* Base form-row */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -556,7 +539,6 @@
   display: flex;
   align-items: stretch;
   background-color: #f1f5f9;
-  /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATED: Removed left/right padding as requested */
   padding: 4px 0; 
   border-radius: 50px;
   border: 1px solid #e2e8f0;
@@ -631,7 +613,7 @@
   justify-content: flex-end;
 }
 
-/* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATED: Smaller Toggle Switch */
+/* Smaller Toggle Switch */
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -678,7 +660,7 @@ input:checked + .toggle-slider:before {
   transform: translateX(16px);
 }
 
-/* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATED: Smaller font size and weight */
+/* Smaller font size and weight */
 .toggle-label {
   font-weight: 400; 
   font-size: 0.85rem;
@@ -724,7 +706,7 @@ input:checked + .toggle-slider:before {
   cursor: not-allowed;
 }
 
-/* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATED: "Searching All Airports..." style matches Origin Input style */
+/* "Searching All Airports..." style matches Origin Input style */
 .input-disabled-placeholder::placeholder {
   color: #111827; /* Dark text like Origin Input */
   font-weight: 400;
@@ -767,15 +749,16 @@ input:checked + .toggle-slider:before {
     padding: 0 1rem 1.25rem;
   }
 
-  .form-row {
-    grid-template-columns: 1fr;
+  /* ✅ Corrected: Stacks the inputs vertically */
+  .search-form .form-row {
+    grid-template-columns: 1fr !important;
   }
 
   .trip-type-selector {
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 2px;
-    padding: 4px 0; /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Updated mobile padding too */
+    padding: 4px 0;
     border-radius: 18px;
   }
 
@@ -831,15 +814,15 @@ input:checked + .toggle-slider:before {
   }
 
   .airport-pill {
-    /* Keep chips visible on mobile too since we updated styling */
-    background: #ffffff !important;
-    border: 1px solid #d1d5db !important;
+    /* chip theme from image */
+    background: #f0f7f8 !important;
+    border: 1px solid #d8ecef !important;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
     padding: 4px 10px !important;
     border-radius: 999px !important;
     font-size: 0.9rem !important;
     font-weight: 500 !important;
-    color: #374151 !important;
+    color: #214e56 !important;
   }
 
   .search-box-input {
@@ -889,7 +872,7 @@ input:checked + .toggle-slider:before {
   width: 100%;
 }
 
-/* CRITICAL: allow grid/flex children to shrink instead of overflowing */
+/* allow grid children to shrink */
 .search-form .form-row > .form-group,
 .search-form .relative-input-container{
   min-width: 0;
@@ -904,7 +887,7 @@ input:checked + .toggle-slider:before {
 .search-form .search-input-inner{
   width: 100%;
   min-width: 0;
-  overflow: hidden; /* chips scroll inside instead of growing the parent */
+  overflow: hidden; 
 }
 
 .search-form .pills-container{
@@ -923,44 +906,27 @@ input:checked + .toggle-slider:before {
 
 
 /* === PLACES-VIEW STYLE OVERRIDES (Airport Inputs) === */
-/* Make airport inputs match Places View (UserHome) while keeping existing logic/markup */
-.search-form .form-row {
-  width: 100%;
-  gap: 16px;
-}
-
-/* CRITICAL: allow grid children to shrink so the input never grows with chips */
-.search-form .form-row > .form-group,
-.search-form .relative-input-container {
-  min-width: 0;
-}
-
 .search-form .search-input-wrapper {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-
-  /* Places-like container */
   padding: 0 16px;
   border-radius: 18px;
   border-color: #e2e8f0;
   box-shadow: none;
 }
 
-/* Remove the ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œinner pillÃƒÂ¢Ã¢â€šÂ¬Ã‚Â look (keep it structurally, but visually flat) */
 .search-form .search-input-inner {
   border: none;
   background: transparent;
   padding: 0;
   border-radius: 0;
   min-height: unset;
-
   flex: 1;
   min-width: 0;
-  overflow: hidden; /* chips scroll inside */
+  overflow: hidden; 
 }
 
-/* Icon + focus ring match Places View */
 .search-form .search-icon {
   color: #64748b;
   margin-right: 12px;
@@ -975,22 +941,6 @@ input:checked + .toggle-slider:before {
   border-color: #0096a6;
 }
 
-/* Pills scroll horizontally instead of expanding the input width */
-.search-form .pills-container {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  white-space: nowrap;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.search-form .airport-pill {
-  flex: 0 0 auto;
-}
-
-/* Optional: slightly softer placeholder like Places */
 .search-form .search-box-input::placeholder {
   color: #94a3b8;
 }
@@ -1029,7 +979,6 @@ input:checked + .toggle-slider:before {
   transform: translateX(0);
 }
 
-/* Mobile: slightly tighter label width */
 @media (max-width: 768px){
   .trip-type-selector--triptype .trip-type-option.active .trip-type-text{
     max-width: 120px;
@@ -1076,27 +1025,7 @@ input:checked + .toggle-slider:before {
   }
 }
 
-
-
-/* --- TOGGLE ROW (Trip Type + Search Mode) --- */
-.toggle-row {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-/* Mobile: stack toggles */
-@media (max-width: 768px) {
-  .toggle-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-}
-
-
-/* --- Toggles row (Search Mode + Trip Type) --- */
+/* --- Toggles row --- */
 .toggles-row {
   display: flex;
   gap: 16px;

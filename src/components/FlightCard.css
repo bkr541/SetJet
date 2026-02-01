@@ -407,6 +407,12 @@
     
   }
 
+.flights-list {
+    /* Forces exactly one column regardless of screen width */
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
   /* Reduce font sizes to fit 3 columns side-by-side */
   .airport-code {
     font-size: 1.75rem; /* Smaller from 2.5rem */
