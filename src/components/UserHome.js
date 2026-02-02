@@ -53,6 +53,7 @@ import FlightResults from './FlightResults';
 import ExploreEvents from './ExploreEvents'; // ✅ NEW IMPORT
 import EditUser from './EditUser';
 import UserTimeline from './UserTimeline';
+import ExploreArtist from './ExploreArtist';
 
 // --- CONFIGURATION ---
 const API_BASE_URL = ""; 
@@ -2078,7 +2079,13 @@ const [userInfo, setUserInfo] = useState({
             setIsSearchCollapsed={setIsSearchCollapsed}
           />
         );
-      case 'artists': return <ArtistsView favoriteArtists={userFavoriteArtists} />;
+      case 'artists':
+        return (
+          <ExploreArtist
+            onBack={() => setActiveView('home')}
+            onArtistClick={handleArtistClick}
+          />
+        );
       case 'plan': return <PlanView />;
       case 'itinerary': return <UserTimeline apiBaseUrl={API_BASE_URL} isBlackoutDate={isBlackoutDate} />;
       case 'friends': return <FriendsView />;
@@ -2238,7 +2245,7 @@ const [userInfo, setUserInfo] = useState({
         </div>
       </aside>
 
-{!collapsed && isMobile() && (
+{!collapsed && (
   <div className="sidebar-overlay" onClick={() => setCollapsed(true)} />
 )}
 
