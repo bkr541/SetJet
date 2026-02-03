@@ -1722,7 +1722,7 @@ input[type="date"] {
 .artist-event-card {
   position: relative;
   max-height: 220px;
-  aspect-ratio: 10 / 5;
+  aspect-ratio: 10 / 4;
   border-radius: 9px;
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(0,0,0,0.12);
@@ -1773,7 +1773,7 @@ input[type="date"] {
 /* Content Container */
 .artist-event-content {
   position: absolute;
-  bottom: 0;
+  bottom: 6px !important;
   left: 0;
   right: 0;
   padding: 16px;
@@ -1797,16 +1797,17 @@ input[type="date"] {
 
 .artist-event-name {
   color: white;
-  font-size: 2rem;
-  font-weight: 800;
-  line-height: 1.1;
-  margin-bottom: 6px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.0;
+  margin-bottom: 2px;
+  text-transform: uppercase;
   text-shadow: 0 4px 12px rgba(0,0,0,0.6);
 }
 
 .artist-event-venue {
   color: #e2e8f0;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
   margin-bottom: 2px;
   line-height: 1.2;
@@ -1814,8 +1815,8 @@ input[type="date"] {
 
 .artist-event-location {
   color: #94a3b8;
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   line-height: 1.2;
 }
 
@@ -2375,8 +2376,8 @@ input[type="date"] {
   position: absolute;
   top: 14px;
   right: 14px;
-  width: 56px;
-  height: 60px;
+  width: 48px;
+  height: 52px;
   background: rgba(255,255,255,0.96);
   border-radius: 12px;
   box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22);
@@ -2397,7 +2398,7 @@ input[type="date"] {
 }
 
 .artist-event-date-month{
-  margin-top: 4px;
+  margin-top: 2px;
   font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.12em;
@@ -2510,6 +2511,8 @@ input[type="date"] {
   color: rgba(255, 255, 255, 0.92) !important;
   text-shadow: 0 2px 12px rgba(2, 6, 23, 0.85) !important;
   position: relative;
+  margin-bottom: 4px;
+  margin-top: 4px;
   z-index: 6;
 }
 
@@ -3389,4 +3392,40 @@ input[type="date"] {
 .setjet-dark .settings-row-icon-wrap{
   background: rgba(148, 163, 184, 0.12);
   color: #e2e8f0;
+}
+
+
+/* ✅ NEW: Artist Tour Map Styles */
+.artist-map-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+
+.artist-map-container {
+  width: 100%;
+  height: 350px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.artist-map-hint {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-align: center;
+}
+
+.no-map-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #94a3b8;
+  gap: 8px;
 }

@@ -1,10 +1,8 @@
 import React, { useState, useEffect, forwardRef } from 'react';
-import { 
-  Package, 
-  Wrench, 
-  ArrowRight, 
-  Repeat, 
-  Sun, 
+import {
+  ArrowRight,
+  Repeat,
+  Sun,
   CalendarRange,
   PlaneTakeoff,
   PlaneLanding,
@@ -99,7 +97,7 @@ const isBlackoutDate = (date) => {
 
 // 1. Custom Date Input (Headless Trigger)
 const CustomDateInput = forwardRef(({ value, onClick, placeholder, disabled }, ref) => (
-  <div 
+  <div
     className={`search-input-wrapper ${value ? 'has-value' : ''} ${disabled ? 'disabled' : ''} date-picker-trigger`}
     onClick={onClick}
     ref={ref}
@@ -127,14 +125,15 @@ const CalendarLegend = () => (
 const DATE_FORMAT = 'EEE, MMM do, yyyy';
 
 function SearchForm({ onSearch, loading }) {
-  const [searchMode, setSearchMode] = useState('package');
-  
+  // ✅ Search mode is now locked to Package Trip
+  const searchMode = 'package';
+
   // --- ORIGIN SEARCH STATE ---
   const [originPills, setOriginPills] = useState([]);
   const [originSearchText, setOriginSearchText] = useState('');
   const [originResults, setOriginResults] = useState([]);
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
-  
+
   // --- DESTINATION SEARCH STATE ---
   const [destinationPills, setDestinationPills] = useState([]);
   const [destinationSearchText, setDestinationSearchText] = useState('');
@@ -143,11 +142,11 @@ function SearchForm({ onSearch, loading }) {
 
   const [anyDestination, setAnyDestination] = useState(false);
   const [tripType, setTripType] = useState('round-trip');
-  
+
   // Dates state
   const [departureDate, setDepartureDate] = useState(null);
   const [returnDate, setReturnDate] = useState(null);
-  
+
   const [tripLength, setTripLength] = useState('');
   const [tripLengthUnit, setTripLengthUnit] = useState('days');
   const [maxTripDuration, setMaxTripDuration] = useState('');
@@ -156,13 +155,6 @@ function SearchForm({ onSearch, loading }) {
 
   // Generate today's date string for placeholders
   const todayPlaceholder = format(new Date(), DATE_FORMAT);
-
-  // If someone switches to Build Your Own, tripType should effectively behave like one-way
-  useEffect(() => {
-    if (searchMode === 'build-your-own' && tripType !== 'one-way') {
-      setTripType('one-way');
-    }
-  }, [searchMode]); // eslint-disable-line
 
   // --- ORIGIN SEARCH LOGIC ---
   useEffect(() => {
@@ -280,17 +272,13 @@ function SearchForm({ onSearch, loading }) {
     }
 
     const searchParams = {
-      searchMode,
+      searchMode, // always "package"
       origins: originAirports,
       destinations: destinationAirports,
-      tripType: searchMode === 'build-your-own' ? 'one-way' : tripType,
+      tripType,
       departureDate: departureDate ? format(departureDate, 'yyyy-MM-dd') : '',
-      returnDate: (tripType === 'one-way' || searchMode === 'build-your-own') ? null : (returnDate ? format(returnDate, 'yyyy-MM-dd') : ''),
+      returnDate: (tripType === 'one-way') ? null : (returnDate ? format(returnDate, 'yyyy-MM-dd') : ''),
     };
-
-    if (searchMode === 'build-your-own' && returnDate) {
-      searchParams.desiredReturnDate = format(returnDate, 'yyyy-MM-dd');
-    }
 
     if (tripType === 'trip-planner') {
       searchParams.tripLength = tripLength;
@@ -308,100 +296,71 @@ function SearchForm({ onSearch, loading }) {
   return (
     <div className="search-form-container">
       <h2>Explore Flights</h2>
-      
+
       <form onSubmit={handleSubmit} className="search-form">
-        
+
         <div className="toggles-row">
+          {/* ✅ Search Mode toggle removed; always Package Trip */}
+
           <div className="form-group toggle-group">
-            <label>Search Mode</label>
-            <div className="trip-type-selector trip-type-selector--searchmode">
-              <label className={`trip-type-option ${searchMode === 'package' ? 'active' : ''}`}>
+            <label>Trip Type</label>
+            <div className="trip-type-selector trip-type-selector--triptype">
+              <label className={`trip-type-option ${tripType === 'one-way' ? 'active' : ''}`}>
                 <input
                   type="radio"
-                  name="searchMode"
-                  value="package"
-                  checked={searchMode === 'package'}
-                  onChange={(e) => setSearchMode(e.target.value)}
+                  name="tripType"
+                  value="one-way"
+                  checked={tripType === 'one-way'}
+                  onChange={(e) => setTripType(e.target.value)}
                 />
-                <Package size={18} className="option-icon" />
-                <span className="search-mode-text">Package Trip</span>
+                <ArrowRight size={18} className="option-icon" />
+                <span className="trip-type-text">One Way</span>
               </label>
 
-              <label className={`trip-type-option ${searchMode === 'build-your-own' ? 'active' : ''}`}>
+              <label className={`trip-type-option ${tripType === 'round-trip' ? 'active' : ''}`}>
                 <input
                   type="radio"
-                  name="searchMode"
-                  value="build-your-own"
-                  checked={searchMode === 'build-your-own'}
-                  onChange={(e) => setSearchMode(e.target.value)}
+                  name="tripType"
+                  value="round-trip"
+                  checked={tripType === 'round-trip'}
+                  onChange={(e) => setTripType(e.target.value)}
                 />
-                <Wrench size={18} className="option-icon" />
-                <span className="search-mode-text">Build Your Own</span>
+                <Repeat size={18} className="option-icon" />
+                <span className="trip-type-text">Round Trip</span>
+              </label>
+
+              <label className={`trip-type-option ${tripType === 'day-trip' ? 'active' : ''}`}>
+                <input
+                  type="radio"
+                  name="tripType"
+                  value="day-trip"
+                  checked={tripType === 'day-trip'}
+                  onChange={(e) => setTripType(e.target.value)}
+                />
+                <Sun size={18} className="option-icon" />
+                <span className="trip-type-text">Day Trip</span>
+              </label>
+
+              <label className={`trip-type-option ${tripType === 'trip-planner' ? 'active' : ''}`}>
+                <input
+                  type="radio"
+                  name="tripType"
+                  value="trip-planner"
+                  checked={tripType === 'trip-planner'}
+                  onChange={(e) => setTripType(e.target.value)}
+                />
+                <CalendarRange size={18} className="option-icon" />
+                <span className="trip-type-text">Trip Planner</span>
               </label>
             </div>
           </div>
-
-          {searchMode === 'package' && (
-            <div className="form-group toggle-group">
-              <label>Trip Type</label>
-              <div className="trip-type-selector trip-type-selector--triptype">
-                <label className={`trip-type-option ${tripType === 'one-way' ? 'active' : ''}`}>
-                  <input
-                    type="radio"
-                    name="tripType"
-                    value="one-way"
-                    checked={tripType === 'one-way'}
-                    onChange={(e) => setTripType(e.target.value)}
-                  />
-                  <ArrowRight size={18} className="option-icon" />
-                  <span className="trip-type-text">One Way</span>
-                </label>
-
-                <label className={`trip-type-option ${tripType === 'round-trip' ? 'active' : ''}`}>
-                  <input
-                    type="radio"
-                    name="tripType"
-                    value="round-trip"
-                    checked={tripType === 'round-trip'}
-                    onChange={(e) => setTripType(e.target.value)}
-                  />
-                  <Repeat size={18} className="option-icon" />
-                  <span className="trip-type-text">Round Trip</span>
-                </label>
-
-                <label className={`trip-type-option ${tripType === 'day-trip' ? 'active' : ''}`}>
-                  <input
-                    type="radio"
-                    name="tripType"
-                    value="day-trip"
-                    checked={tripType === 'day-trip'}
-                    onChange={(e) => setTripType(e.target.value)}
-                  />
-                  <Sun size={18} className="option-icon" />
-                  <span className="trip-type-text">Day Trip</span>
-                </label>
-
-                <label className={`trip-type-option ${tripType === 'trip-planner' ? 'active' : ''}`}>
-                  <input
-                    type="radio"
-                    name="tripType"
-                    value="trip-planner"
-                    checked={tripType === 'trip-planner'}
-                    onChange={(e) => setTripType(e.target.value)}
-                  />
-                  <CalendarRange size={18} className="option-icon" />
-                  <span className="trip-type-text">Trip Planner</span>
-                </label>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="form-row">
-          
+
           <div className="form-group">
             <label htmlFor="origins">Origin Airports</label>
-            
+
             <div className="relative-input-container">
               <div className={`search-input-wrapper ${originPills.length > 0 || originSearchText ? 'has-value' : ''}`}>
                 <PlaneTakeoff className="search-icon" size={24} />
@@ -410,16 +369,16 @@ function SearchForm({ onSearch, loading }) {
                     {originPills.map((code) => (
                       <div key={code} className="airport-pill">
                         <span>{code}</span>
-                        <X 
-                          className="pill-remove-icon" 
+                        <X
+                          className="pill-remove-icon"
                           onClick={(e) => {
-                            e.stopPropagation(); 
+                            e.stopPropagation();
                             handleRemoveOrigin(code);
                           }}
                         />
                       </div>
                     ))}
-                    
+
                     <input
                       type="text"
                       id="origins"
@@ -441,9 +400,9 @@ function SearchForm({ onSearch, loading }) {
                 </div>
 
                 {(originPills.length > 0 || originSearchText) && (
-                  <X 
-                    className="clear-icon" 
-                    size={24} 
+                  <X
+                    className="clear-icon"
+                    size={24}
                     onClick={(e) => {
                       e.stopPropagation();
                       setOriginPills([]);
@@ -456,7 +415,7 @@ function SearchForm({ onSearch, loading }) {
               {showOriginDropdown && originResults.length > 0 && (
                 <div className="autocomplete-dropdown">
                   {originResults.map((result, index) => (
-                    <div 
+                    <div
                       key={`${result.value}-${index}`}
                       className={`autocomplete-item ${result.indent ? 'indented' : ''} ${result.is_header ? 'is-header' : ''}`}
                       onClick={() => handleSelectOrigin(result.value)}
@@ -484,7 +443,7 @@ function SearchForm({ onSearch, loading }) {
 
           <div className="form-group">
             <label htmlFor="destinations">Destination Airports</label>
-            
+
             <div className="relative-input-container">
               <div className={`search-input-wrapper ${anyDestination ? 'disabled' : ''} ${(destinationPills.length > 0 || destinationSearchText) && !anyDestination ? 'has-value' : ''}`}>
                 <PlaneLanding className="search-icon" size={24} />
@@ -493,10 +452,10 @@ function SearchForm({ onSearch, loading }) {
                     {destinationPills.map((code) => (
                       <div key={code} className="airport-pill">
                         <span>{code}</span>
-                        <X 
-                          className="pill-remove-icon" 
+                        <X
+                          className="pill-remove-icon"
                           onClick={(e) => {
-                            e.stopPropagation(); 
+                            e.stopPropagation();
                             handleRemoveDestination(code);
                           }}
                         />
@@ -525,9 +484,9 @@ function SearchForm({ onSearch, loading }) {
                 </div>
 
                 {!anyDestination && (destinationPills.length > 0 || destinationSearchText) && (
-                  <X 
-                    className="clear-icon" 
-                    size={24} 
+                  <X
+                    className="clear-icon"
+                    size={24}
                     onClick={(e) => {
                       e.stopPropagation();
                       setDestinationPills([]);
@@ -540,7 +499,7 @@ function SearchForm({ onSearch, loading }) {
               {showDestinationDropdown && destinationResults.length > 0 && !anyDestination && (
                 <div className="autocomplete-dropdown">
                   {destinationResults.map((result, index) => (
-                    <div 
+                    <div
                       key={`${result.value}-${index}`}
                       className={`autocomplete-item ${result.indent ? 'indented' : ''} ${result.is_header ? 'is-header' : ''}`}
                       onClick={() => handleSelectDestination(result.value)}
@@ -589,45 +548,8 @@ function SearchForm({ onSearch, loading }) {
           </div>
         </div>
 
-        {searchMode === 'build-your-own' && (
-          <div className="date-section">
-            <div className="form-row">
-              <div className="form-group">
-                <label>Outbound Departure Date</label>
-                <DatePicker
-                  selected={departureDate}
-                  onChange={(date) => setDepartureDate(date)}
-                  customInput={<CustomDateInput />}
-                  placeholderText={todayPlaceholder}
-                  dateFormat={DATE_FORMAT}
-                  minDate={new Date()}
-                  fixedHeight
-                  dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
-                >
-                  <CalendarLegend />
-                </DatePicker>
-              </div>
-
-              <div className="form-group">
-                <label>Desired Return Date</label>
-                <DatePicker
-                  selected={returnDate}
-                  onChange={(date) => setReturnDate(date)}
-                  customInput={<CustomDateInput />}
-                  placeholderText={todayPlaceholder}
-                  dateFormat={DATE_FORMAT}
-                  minDate={departureDate || new Date()}
-                  fixedHeight
-                  dayClassName={(date) => isBlackoutDate(date) ? "blackout-date" : undefined}
-                >
-                  <CalendarLegend />
-                </DatePicker>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {searchMode === 'package' && tripType !== 'trip-planner' && (
+        {/* ✅ Package Trip date flow (now always active when not Trip Planner) */}
+        {tripType !== 'trip-planner' && (
           <div className="date-section">
             <div className="form-row">
               <div className="form-group">

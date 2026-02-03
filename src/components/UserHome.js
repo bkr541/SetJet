@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, forwardRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef, lazy, Suspense } from 'react';
 import {
   Search,
   Calendar,
@@ -50,10 +50,13 @@ import { format, parseISO, isWithinInterval, startOfDay } from 'date-fns';
 import './UserHome.css';
 import SearchForm from './SearchForm';
 import FlightResults from './FlightResults';
-import ExploreEvents from './ExploreEvents'; // ✅ NEW IMPORT
+import ExploreEvents from './ExploreEvents'; 
 import EditUser from './EditUser';
 import UserTimeline from './UserTimeline';
 import ExploreArtist from './ExploreArtist';
+
+// ✅ Lazy load HubMap to implement the map in ArtistDetails
+const TourMap = lazy(() => import('./TourMap'));
 
 // --- CONFIGURATION ---
 const API_BASE_URL = ""; 
@@ -229,9 +232,6 @@ const EventImage = ({ link, alt, className, style, mode = "background" }) => {
   );
 };
 
-// --- Itinerary View ---
-// (extracted into UserTimeline.js as <UserTimeline />)
-
 // --- Artist Details View ---
 const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, eventsCacheByArtistId, setEventsCacheByArtistId, onEventClick }) => {
   const [activeTab, setActiveTab] = useState('Upcoming Sets');
@@ -240,7 +240,25 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
   const [eventsLoading, setEventsLoading] = useState(false);
   const [eventsError, setEventsError] = useState(null);
 
-  // --- LOGGING ---
+  // ✅ TRANSFORMATION: Prepare coordinates for HubMap
+  const artistMapData = React.useMemo(() => {
+    if (!artistEvents || artistEvents.length === 0) return null;
+
+    const pins = artistEvents
+      .filter(evt => evt.venue?.latitude && evt.venue?.longitude)
+      .map(evt => ({
+        iata: evt.venue.name || 'Venue',
+        lat: evt.venue.latitude,
+        lng: evt.venue.longitude,
+        price: null 
+      }));
+
+    return {
+      origin: null, 
+      destinations: pins
+    };
+  }, [artistEvents]);
+
   useEffect(() => {
     console.log("DEBUG: ArtistDetailsView mounted. Artist prop:", artist);
     console.log("DEBUG: artist.genres raw:", artist?.genres);
@@ -283,7 +301,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
   })();
 
   useEffect(() => {
-    if (activeTab !== 'Upcoming Sets') return;
+    if (activeTab !== 'Upcoming Sets' && activeTab !== 'Set Map') return;
     const edmtrainId = artist?.edmtrain_id;
     if (!edmtrainId) {
       setArtistEvents([]);
@@ -346,11 +364,6 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
 
   const bgImage = artist.image || "/artifacts/defaultprofileillenium.png";
 
-  // ✅ UPDATED: Robust Parsing Logic for genres
-  // Handles:
-  // 1. Array of strings (e.g. ["Dubstep", "Bass"])
-  // 2. Pipe-delimited string (e.g. "|Dubstep|Bass|") 
-  // 3. Simple comma-separated string (e.g. "Dubstep, Bass")
   const artistGenres = React.useMemo(() => {
     const raw = artist?.genres;
     console.log("DEBUG: Calculating artistGenres from raw:", raw);
@@ -358,18 +371,14 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
     if (Array.isArray(raw)) return raw;
     
     if (typeof raw === 'string') {
-      // Handle "|Genre|Genre|" format from DB
       if (raw.includes('|')) {
         const parts = raw
           .split('|')
           .map(g => g.trim())
-          .filter(g => g.length > 0); // Removes empty strings from start/end
-        console.log("DEBUG: Parsed pipe-delimited genres:", parts);
+          .filter(g => g.length > 0);
         return parts;
       }
-      // Handle standard "Genre, Genre" format (just in case)
       const parts = raw.split(',').map(g => g.trim()).filter(Boolean);
-      console.log("DEBUG: Parsed comma-delimited genres:", parts);
       return parts;
     }
     
@@ -446,11 +455,25 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
       </div>
 
       <div className="artist-details-content">
-        {activeTab !== 'Upcoming Sets' && (
-          <h3 style={{ marginTop: 0, color: '#1e293b' }}>{activeTab}</h3>
-        )}
-
-        {activeTab === 'Upcoming Sets' ? (
+        {activeTab === 'Set Map' ? (
+          <div className="artist-map-wrapper fade-in">
+            <div className="artist-map-container" style={{ height: '400px', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+              <Suspense fallback={<div className="fr-map-loading">Loading tour map…</div>}>
+                {artistEvents && artistEvents.length > 0 ? (
+                  <TourMap events={artistEvents} />
+                ) : (
+                  <div className="no-map-data" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
+                    <MapPin size={24} />
+                    <p>No upcoming events found.</p>
+                  </div>
+                )}
+              </Suspense>
+            </div>
+            <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#64748b', marginTop: '12px' }}>
+              Showing location for {artistEvents.length} scheduled sets.
+            </p>
+          </div>
+        ) : activeTab === 'Upcoming Sets' ? (
           <div style={{ marginTop: 16 }}>
             {eventsLoading ? (
               <div style={{ color: '#64748b' }}>Loading events...</div>
@@ -506,6 +529,7 @@ const ArtistDetailsView = ({ artist, onBack, isFavorite, onToggleFavorite, event
           </div>
         ) : (
           <div className="artist-tab-scroll">
+            <h3 style={{ marginTop: 0, color: '#1e293b' }}>{activeTab}</h3>
             <p style={{ color: '#64748b', lineHeight: 1.6 }}>
               Content for {activeTab} will appear here. This section will connect to backend endpoints to show information for {artist.name}.
             </p>
@@ -667,10 +691,6 @@ const handleToggleAttendance = async () => {
     });
   };
 
-  // ✅ UPDATED: Event Name Logic
-  // Tries to use event.name first. 
-  // If null, it checks for primary artist and venue to construct "Artist @ Venue".
-  // Fallback to "Event".
   const primaryArtistName = Array.isArray(event?.artistList) && event.artistList[0] 
     ? event.artistList[0].name 
     : null;
@@ -721,7 +741,6 @@ const handleToggleAttendance = async () => {
 
         <div className="event-hero-bottom">
           <h1 className="event-hero-title">{eventName}</h1>
-          {/* ✅ REMOVED: The 'event-hero-tags' chip was deleted from here as requested. */}
         </div>
       </div>
 
@@ -837,12 +856,10 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
     { id: 'chicago', city: 'Chicago', name: 'Chicago' },
   ];
 
-  // 1. Initialize selection to today's date
   const [homeSelectedDate, setHomeSelectedDate] = useState(new Date());
   const [homeItinerary, setHomeItinerary] = useState({ events: [], flights: [] });
   const [homeDatesLoading, setHomeDatesLoading] = useState(false);
   
-  // 2. Ref to track the "today" element for centering
   const todayRef = useRef(null);
 
   const destinations =
@@ -851,9 +868,6 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
       : demoDestinations;
 
   useEffect(() => {
-    // --- LOGGING ---
-    console.log("DEBUG: HomeView favoriteArtists prop:", favoriteArtists);
-
     const fetchItinerary = async () => {
       const email = localStorage.getItem('current_email');
       if (!email) return;
@@ -883,16 +897,15 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
     fetchItinerary();
   }, [favoriteArtists]);
 
-  // 3. Effect to center the "today" element once rendered
   useEffect(() => {
     if (todayRef.current) {
       todayRef.current.scrollIntoView({
         behavior: 'smooth',
-        inline: 'center', // This puts the element in the middle of the scroll area
+        inline: 'center', 
         block: 'nearest'
       });
     }
-  }, [homeDatesLoading]); // Runs after data is loaded and DOM is updated
+  }, [homeDatesLoading]); 
 
   const getHomeDataForDate = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -904,7 +917,6 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
 
   const renderHomeTimelineDays = () => {
     const days = [];
-    // Generating a window of days around today
     for (let i = -14; i <= 14; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
@@ -922,20 +934,17 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
           return (
             <button
               key={i}
-              // 4. Attach the ref only to the "today" button
               ref={isToday ? todayRef : null}
               className={`timeline-day-item ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
               onClick={() => setHomeSelectedDate(d)}
               type="button"
             >
-              {/* ✅ UPDATED: Added inline style for color to force fix on mobile */}
               <span 
                 className="timeline-day-name" 
                 style={{ color: isSelected ? "white" : (isWeekend ? "#ef4444" : "#1e293b") }}
               >
                 {format(d, 'EEE')}
               </span>
-              {/* ✅ UPDATED: Added logic to make text white if selected */}
               <span 
                 className="timeline-day-num" 
                 style={{ color: isSelected ? "white" : "#1e293b" }}
@@ -954,14 +963,12 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
     );
   };
 
-  // NEW: Render the daily agenda list within the shell
   const renderDailyAgenda = () => {
     const { dayEvents, dayFlights } = getHomeDataForDate(homeSelectedDate);
     const setsCount = dayEvents.length;
     const flightsCount = dayFlights.length;
     const hasItems = setsCount > 0 || flightsCount > 0;
 
-    // Merge and sort for chronological order
     const agendaItems = [
       ...dayFlights.map(f => ({ ...f, type: 'flight' })),
       ...dayEvents.map(e => ({ ...e, type: 'event' }))
@@ -997,7 +1004,6 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
               </div>
             ))
           ) : (
-            // Updated Actionable Empty State
             <div className="empty-state actionable" onClick={() => onNavigate && onNavigate('events')}>
               <div className="empty-state-icon">
                 <Search size={18} />
@@ -1016,7 +1022,6 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
 
   return (
     <div className="dashboard-panel fade-in">
-      {/* SECTION: HEADLINERS */}
       <div className="dashboard-section">
         <h3 className="section-title">
           <span>YOUR </span>
@@ -1064,7 +1069,6 @@ const HomeView = ({ favoriteArtists, favoriteDestinations, onArtistClick, onDest
         </div>
       </div>
 
-      {/* SECTION: DATES & AGENDA (Nested) */}
       <div className="dashboard-section">
         <div className="home-dates-title-outside">
           <h3 className="section-title">
@@ -1923,452 +1927,446 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
     };
   }, [tourCounts]);
 
-  useEffect(() => {
-    let cancelled = false;
-  }, [userFavoriteArtists]);
-
-
-const handleNav = (action) => {
-  if (typeof action === 'function') action();
-  if (isMobile()) setCollapsed(true);
-};
-
-const [userInfo, setUserInfo] = useState({
-    first_name: userFirstName || '',
-    last_name: '',
-    username: '',
-    dob: '',
-    image_file: userProfilePic || 'default.jpg'
-  });
-
-  const refreshUserInfo = async () => {
-    const email = localStorage.getItem('current_email');
-    if (!email) return;
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/get_user_info`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        console.error('Failed to refresh user info:', data);
-        return;
-      }
-
-      setUserInfo({
-        first_name: data.first_name || '',
-        last_name: data.last_name || '',
-        username: data.username || '',
-        dob: data.dob || '',
-        image_file: data.image_file || 'default.jpg'
-      });
-
-      if (data.favorite_destinations && Array.isArray(data.favorite_destinations)) {
-        setUserDestinations(data.favorite_destinations);
-      }
-
-      if (data.favorite_artists && Array.isArray(data.favorite_artists)) {
-        setUserFavoriteArtists(data.favorite_artists);
-      }
-
-    } catch (err) {
-      console.error('Failed to fetch user info:', err);
-    }
+  const handleNav = (action) => {
+    if (typeof action === 'function') action();
+    if (isMobile()) setCollapsed(true);
   };
 
-  useEffect(() => {
-    refreshUserInfo();
-  }, []);
-
-  useEffect(() => {
-    setUserInfo((prev) => ({
-      ...prev,
-      first_name: userFirstName || prev.first_name,
-      image_file: userProfilePic || prev.image_file
-    }));
-  }, [userFirstName, userProfilePic]);
-
-  const handleArtistClick = (artist) => {
-    setSelectedArtist(artist);
-    setActiveView('artist-details');
-  };
-
-  const handleDestinationClick = (destination) => {
-    setSelectedDestination(destination);
-    setActiveView('destination-details');
-  };
-
-  const pushView = (nextView) => {
-    setViewStack((prev) => [...prev, activeView]);
-    setActiveView(nextView);
-  };
-
-  const goBack = () => {
-    setViewStack((prev) => {
-      const next = [...prev];
-      const back = next.pop();
-      setActiveView(back || 'home');
-      return next;
+  const [userInfo, setUserInfo] = useState({
+      first_name: userFirstName || '',
+      last_name: '',
+      username: '',
+      dob: '',
+      image_file: userProfilePic || 'default.jpg'
     });
-  };
 
-  const handleEventClick = (evt) => {
-    setSelectedEvent(evt);
-    pushView('event-details');
-  };
+    const refreshUserInfo = async () => {
+      const email = localStorage.getItem('current_email');
+      if (!email) return;
 
-  const isFavorite = (artist) => {
-    if (!userFavoriteArtists) return false;
-    return userFavoriteArtists.some(fav => fav.id === artist.id || fav.name === artist.name);
-  };
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/get_user_info`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
 
-  const handleToggleFavorite = async (artist) => {
-    const email = localStorage.getItem('current_email');
-    if (!email) return;
+        const data = await res.json();
+        if (!res.ok) {
+          console.error('Failed to refresh user info:', data);
+          return;
+        }
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/toggle_favorite_artist`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email,
-          artist_name: artist.name,
-          artist_id: artist.id,
-          artist_image: artist.image
-        })
-      });
+        setUserInfo({
+          first_name: data.first_name || '',
+          last_name: data.last_name || '',
+          username: data.username || '',
+          dob: data.dob || '',
+          image_file: data.image_file || 'default.jpg'
+        });
 
-      if (res.ok) {
-         await refreshUserInfo();
-      } else {
-        console.error("Failed to toggle favorite");
+        if (data.favorite_destinations && Array.isArray(data.favorite_destinations)) {
+          setUserDestinations(data.favorite_destinations);
+        }
+
+        if (data.favorite_artists && Array.isArray(data.favorite_artists)) {
+          setUserFavoriteArtists(data.favorite_artists);
+        }
+
+      } catch (err) {
+        console.error('Failed to fetch user info:', err);
       }
-    } catch (err) {
-      console.error("Error toggling favorite:", err);
-    }
-  };
+    };
 
-  // Wrapper for flight search to handle state
-  const handleFlightSearch = (params) => {
-    setIsSearchCollapsed(true);
-    onSearchFlights(params);
-  };
+    useEffect(() => {
+      refreshUserInfo();
+    }, []);
 
-  const renderContent = () => {
-    switch (activeView) {
-      case 'events': 
-        // ✅ CHANGED: Now using ExploreEvents instead of placeholder
-        return <ExploreEvents onBack={() => setActiveView('home')} />;
-      case 'flights':
-        return (
-          <FlightsView
-            onBack={() => { 
-                if (isSearchCollapsed) {
-                    setIsSearchCollapsed(false);
-                } else {
-                    onClearFlightSearch && onClearFlightSearch(); 
-                    setActiveView('home'); 
-                }
-            }}
-            onSearchFlights={handleFlightSearch}
-            flightState={flightState}
-            isSearchCollapsed={isSearchCollapsed}
-            setIsSearchCollapsed={setIsSearchCollapsed}
-          />
-        );
-      case 'artists':
-        return (
-          <ExploreArtist
-            onBack={() => setActiveView('home')}
-            onArtistClick={handleArtistClick}
-          />
-        );
-      case 'plan': return <PlanView />;
-      case 'itinerary': return <UserTimeline apiBaseUrl={API_BASE_URL} isBlackoutDate={isBlackoutDate} />;
-      case 'friends': return <FriendsView />;
-      
-      case 'artist-details': 
-        return (
-          <ArtistDetailsView 
-            artist={selectedArtist} 
-            onBack={goBack} 
-            isFavorite={isFavorite(selectedArtist)}
-            onToggleFavorite={handleToggleFavorite}
-            eventsCacheByArtistId={eventsCacheByArtistId}
-            setEventsCacheByArtistId={setEventsCacheByArtistId}
-            onEventClick={handleEventClick}
-          />
-        );
+    useEffect(() => {
+      setUserInfo((prev) => ({
+        ...prev,
+        first_name: userFirstName || prev.first_name,
+        image_file: userProfilePic || prev.image_file
+      }));
+    }, [userFirstName, userProfilePic]);
 
-      case 'destination-details':
-        return (
-            <DestinationDetailsView
-                destination={selectedDestination}
-                onBack={goBack}
+    const handleArtistClick = (artist) => {
+      setSelectedArtist(artist);
+      setActiveView('artist-details');
+    };
+
+    const handleDestinationClick = (destination) => {
+      setSelectedDestination(destination);
+      setActiveView('destination-details');
+    };
+
+    const pushView = (nextView) => {
+      setViewStack((prev) => [...prev, activeView]);
+      setActiveView(nextView);
+    };
+
+    const goBack = () => {
+      setViewStack((prev) => {
+        const next = [...prev];
+        const back = next.pop();
+        setActiveView(back || 'home');
+        return next;
+      });
+    };
+
+    const handleEventClick = (evt) => {
+      setSelectedEvent(evt);
+      pushView('event-details');
+    };
+
+    const isFavorite = (artist) => {
+      if (!userFavoriteArtists) return false;
+      return userFavoriteArtists.some(fav => fav.id === artist.id || fav.name === artist.name);
+    };
+
+    const handleToggleFavorite = async (artist) => {
+      const email = localStorage.getItem('current_email');
+      if (!email) return;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/toggle_favorite_artist`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email,
+            artist_name: artist.name,
+            artist_id: artist.id,
+            artist_image: artist.image
+          })
+        });
+
+        if (res.ok) {
+           await refreshUserInfo();
+        } else {
+          console.error("Failed to toggle favorite");
+        }
+      } catch (err) {
+        console.error("Error toggling favorite:", err);
+      }
+    };
+
+    // Wrapper for flight search to handle state
+    const handleFlightSearch = (params) => {
+      setIsSearchCollapsed(true);
+      onSearchFlights(params);
+    };
+
+    const renderContent = () => {
+      switch (activeView) {
+        case 'events': 
+          return <ExploreEvents onBack={() => setActiveView('home')} />;
+        case 'flights':
+          return (
+            <FlightsView
+              onBack={() => { 
+                  if (isSearchCollapsed) {
+                      setIsSearchCollapsed(false);
+                  } else {
+                      onClearFlightSearch && onClearFlightSearch(); 
+                      setActiveView('home'); 
+                  }
+              }}
+              onSearchFlights={handleFlightSearch}
+              flightState={flightState}
+              isSearchCollapsed={isSearchCollapsed}
+              setIsSearchCollapsed={setIsSearchCollapsed}
             />
-        );
+          );
+        case 'artists':
+          return (
+            <ExploreArtist
+              onBack={() => setActiveView('home')}
+              onArtistClick={handleArtistClick}
+            />
+          );
+        case 'plan': return <PlanView />;
+        case 'itinerary': return <UserTimeline apiBaseUrl={API_BASE_URL} isBlackoutDate={isBlackoutDate} />;
+        case 'friends': return <FriendsView />;
+        
+        case 'artist-details': 
+          return (
+            <ArtistDetailsView 
+              artist={selectedArtist} 
+              onBack={goBack} 
+              isFavorite={isFavorite(selectedArtist)}
+              onToggleFavorite={handleToggleFavorite}
+              eventsCacheByArtistId={eventsCacheByArtistId}
+              setEventsCacheByArtistId={setEventsCacheByArtistId}
+              onEventClick={handleEventClick}
+            />
+          );
 
-      case 'event-details':
-        return (
-          <EventDetailsView
-            event={selectedEvent}
-            onBack={goBack}
-          />
-        );
+        case 'destination-details':
+          return (
+              <DestinationDetailsView
+                  destination={selectedDestination}
+                  onBack={goBack}
+              />
+          );
 
-      case 'profile':
-        return <ProfileView
-          userFirstName={userInfo.first_name}
-          userProfilePic={userInfo.image_file}
-          onEditProfile={() => {
-            refreshUserInfo();
-            setActiveView('edit-profile');
-          }}
-          onOpenSettings={() => setActiveView('profile-settings')}
-          onOpenNotifications={() => setActiveView('profile-notifications')}
-        />;
-      case 'profile-settings':
-        return <SettingsView
-          onBack={() => setActiveView('profile')}
-          darkModeEnabled={darkModeEnabled}
-          setDarkModeEnabled={setDarkModeEnabled}
-          showHeadlinerEventCount={showHeadlinerEventCount}
-          setShowHeadlinerEventCount={setShowHeadlinerEventCount}
-        />;
+        case 'event-details':
+          return (
+            <EventDetailsView
+              event={selectedEvent}
+              onBack={goBack}
+            />
+          );
 
-      case 'profile-notifications':
-        return <NotificationsView
-          onBack={() => setActiveView('profile')}
-          travelTripReminders={travelTripReminders}
-          setTravelTripReminders={setTravelTripReminders}
-          travelNewGoWildFares={travelNewGoWildFares}
-          setTravelNewGoWildFares={setTravelNewGoWildFares}
-          eventsLineupAnnouncement={eventsLineupAnnouncement}
-          setEventsLineupAnnouncement={setEventsLineupAnnouncement}
-          eventsShowUpdates={eventsShowUpdates}
-          setEventsShowUpdates={setEventsShowUpdates}
-          eventsNewHeadlinerSet={eventsNewHeadlinerSet}
-          setEventsNewHeadlinerSet={setEventsNewHeadlinerSet}
-          eventsFriendsAttending={eventsFriendsAttending}
-          setEventsFriendsAttending={setEventsFriendsAttending}
-        />;
+        case 'profile':
+          return <ProfileView
+            userFirstName={userInfo.first_name}
+            userProfilePic={userInfo.image_file}
+            onEditProfile={() => {
+              refreshUserInfo();
+              setActiveView('edit-profile');
+            }}
+            onOpenSettings={() => setActiveView('profile-settings')}
+            onOpenNotifications={() => setActiveView('profile-notifications')}
+          />;
+        case 'profile-settings':
+          return <SettingsView
+            onBack={() => setActiveView('profile')}
+            darkModeEnabled={darkModeEnabled}
+            setDarkModeEnabled={setDarkModeEnabled}
+            showHeadlinerEventCount={showHeadlinerEventCount}
+            setShowHeadlinerEventCount={setShowHeadlinerEventCount}
+          />;
 
-      case 'edit-profile':
-        return <EditUser
-          userInfo={userInfo}
-          apiBaseUrl={API_BASE_URL}
-          onBack={() => setActiveView('profile')}
-          onSaved={refreshUserInfo}
-        />;
-      default:
-        return (
-          <HomeView 
-            favoriteArtists={userFavoriteArtists} 
-            favoriteDestinations={userDestinations} 
-            onArtistClick={handleArtistClick} 
-            onDestinationClick={handleDestinationClick} 
-            tourCounts={tourCounts || {}}
-            toursLoading={toursLoading}
-            onNavigate={(view) => setActiveView(view)} // Pass navigation handler
-          />
-        );
-    }
-  };
+        case 'profile-notifications':
+          return <NotificationsView
+            onBack={() => setActiveView('profile')}
+            travelTripReminders={travelTripReminders}
+            setTravelTripReminders={setTravelTripReminders}
+            travelNewGoWildFares={travelNewGoWildFares}
+            setTravelNewGoWildFares={setTravelNewGoWildFares}
+            eventsLineupAnnouncement={eventsLineupAnnouncement}
+            setEventsLineupAnnouncement={setEventsLineupAnnouncement}
+            eventsShowUpdates={eventsShowUpdates}
+            setEventsShowUpdates={setEventsShowUpdates}
+            eventsNewHeadlinerSet={eventsNewHeadlinerSet}
+            setEventsNewHeadlinerSet={setEventsNewHeadlinerSet}
+            eventsFriendsAttending={eventsFriendsAttending}
+            setEventsFriendsAttending={setEventsFriendsAttending}
+          />;
 
-  const isDetailsView = ['artist-details', 'event-details', 'destination-details'].includes(activeView);
+        case 'edit-profile':
+          return <EditUser
+            userInfo={userInfo}
+            apiBaseUrl={API_BASE_URL}
+            onBack={() => setActiveView('profile')}
+            onSaved={refreshUserInfo}
+          />;
+        default:
+          return (
+            <HomeView 
+              favoriteArtists={userFavoriteArtists} 
+              favoriteDestinations={userDestinations} 
+              onArtistClick={handleArtistClick} 
+              onDestinationClick={handleDestinationClick} 
+              tourCounts={tourCounts || {}}
+              toursLoading={toursLoading}
+              onNavigate={(view) => setActiveView(view)} // Pass navigation handler
+            />
+          );
+      }
+    };
 
-  return (
-    <div className="user-home-root">
-      <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-top">
-          <img
-            src="/logos/Logo5.png"
-            alt="SetJet"
-            className="sidebar-logo"
-            onClick={() => handleNav(() => setActiveView('home'))}
-            style={{ cursor: 'pointer' }}
-          />
-        </div>
+    const isDetailsView = ['artist-details', 'event-details', 'destination-details'].includes(activeView);
 
-        <div className="sidebar-search">
-          <Search size={18} />
-          <input type="text" placeholder="Search" />
-        </div>
+    return (
+      <div className="user-home-root">
+        <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+          <div className="sidebar-top">
+            <img
+              src="/logos/Logo5.png"
+              alt="SetJet"
+              className="sidebar-logo"
+              onClick={() => handleNav(() => setActiveView('home'))}
+              style={{ cursor: 'pointer' }}
+            />
+          </div>
 
-        <div className="sidebar-section">
-          <button onClick={() => handleNav(() => setActiveView('home'))} className={activeView === 'home' ? 'active' : ''}>
-            <Home size={20} />
-            <span>Home</span>
-          </button>
-        </div>
+          <div className="sidebar-search">
+            <Search size={18} />
+            <input type="text" placeholder="Search" />
+          </div>
 
-        <div className="sidebar-section">
-          <h4>Explore</h4>
-
-          <button onClick={() => handleNav(() => setActiveView('flights'))} className={activeView === 'flights' ? 'active' : ''}>
-            <PlaneTakeoff size={20} />
-            <span>Flights</span>
-          </button>
-
-          <button onClick={() => handleNav(() => setActiveView('events'))} className={activeView === 'events' ? 'active' : ''}>
-            <Calendar size={20} />
-            <span>Events</span>
-          </button>
-
-          <button onClick={() => handleNav(() => setActiveView('artists'))} className={activeView === 'artists' ? 'active' : ''}>
-            <MicVocal size={20} />
-            <span>Artists</span>
-          </button>
-        </div>
-
-        <div className="sidebar-section">
-          <h4>Tools</h4>
-          
-          <button onClick={() => handleNav(() => setActiveView('itinerary'))} className={activeView === 'itinerary' ? 'active' : ''}>
-            <BookOpen size={20} />
-            <span>Itinerary</span>
-          </button>
-
-          <button onClick={() => handleNav(() => setActiveView('friends'))} className={activeView === 'friends' ? 'active' : ''}>
-            <Users size={20} />
-            <span>Friends</span>
-          </button>
-
-          <button onClick={() => onClearCache && onClearCache()}>
-            <Trash size={20} />
-            <span>Clear Cache</span>
-          </button>
-
-        </div>
-      </aside>
-
-{!collapsed && (
-  <div className="sidebar-overlay" onClick={() => setCollapsed(true)} />
-)}
-
-      <div className={`main-wrapper ${collapsed ? 'collapsed' : ''} ${isDetailsView ? 'details-view-mode' : ''}`}>
-        <header className="main-header">
-          <div className="header-left">
-            <button className="header-toggle-btn" onClick={() => setCollapsed(!collapsed)}>
-              {collapsed ? <PanelLeftOpen size={24} /> : <PanelLeftClose size={24} />}
+          <div className="sidebar-section">
+            <button onClick={() => handleNav(() => setActiveView('home'))} className={activeView === 'home' ? 'active' : ''}>
+              <Home size={20} />
+              <span>Home</span>
             </button>
           </div>
 
-          <div className="header-center">
-            <div
-              className={`places-input-wrap header-airport-search ${globalFocused ? 'focused' : ''}`}
-              style={{ position: 'relative', zIndex: 120, overflow: 'visible' }} 
-              ref={globalSearchWrapRef}
-            >
-              <Search size={18} className="places-input-icon" />
-              <input
-                type="text"
-                placeholder="Search"
-                className="places-airport-input"
-                autoComplete="off"
-                value={globalQuery}
-                onChange={(e) => setGlobalQuery(e.target.value)}
-                onFocus={() => { setGlobalFocused(true); if ((globalQuery || '').trim().length >= 2) setGlobalOpen(true); }}
-                onBlur={() => { setTimeout(() => setGlobalOpen(false), 180); }}
-              />
+          <div className="sidebar-section">
+            <h4>Explore</h4>
 
-              {globalOpen && (
-                <div className="artist-dropdown" role="listbox">
-                  {globalLoading && (
-                    <div className="artist-dropdown-item" style={{ cursor: 'default' }}>
-                      <div className="artist-text-group">
-                        <div className="artist-main">Searching…</div>
-                      </div>
-                    </div>
-                  )}
+            <button onClick={() => handleNav(() => setActiveView('flights'))} className={activeView === 'flights' ? 'active' : ''}>
+              <PlaneTakeoff size={20} />
+              <span>Flights</span>
+            </button>
 
-                  {!globalLoading && (
-                    <>
-                      {globalResults.artists && globalResults.artists.length > 0 && (
-                        <>
-                          <div className="global-dropdown-group-label">Artists</div>
-                          {globalResults.artists.map((item) => (
-                            <div
-                              key={`artist-${item.id}`}
-                              className="artist-dropdown-item"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => selectGlobalArtist(item)}
-                            >
-                              <CircleUserRound size={16} className="dropdown-icon" />
-                              <div className="artist-main">{item.label || item.display_name}</div>
-                            </div>
-                          ))}
-                        </>
-                      )}
+            <button onClick={() => handleNav(() => setActiveView('events'))} className={activeView === 'events' ? 'active' : ''}>
+              <Calendar size={20} />
+              <span>Events</span>
+            </button>
 
-                      {globalResults.locations && globalResults.locations.length > 0 && (
-                        <>
-                          <div className="global-dropdown-group-label">Locations</div>
-                          {globalResults.locations.map((item) => (
-                            <div
-                              key={`loc-${item.id}`}
-                              className="artist-dropdown-item"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => selectGlobalLocation(item)}
-                            >
-                              <MapPin size={16} className="dropdown-icon" />
-                              <div className="artist-main">{item.label || item.name}</div>
-                            </div>
-                          ))}
-                        </>
-                      )}
+            <button onClick={() => handleNav(() => setActiveView('artists'))} className={activeView === 'artists' ? 'active' : ''}>
+              <MicVocal size={20} />
+              <span>Artists</span>
+            </button>
+          </div>
 
-                      {globalResults.airports && globalResults.airports.length > 0 && (
-                        <>
-                          <div className="global-dropdown-group-label">Airports</div>
-                          {globalResults.airports.map((item) => (
-                            <div
-                              key={`ap-${item.id}`}
-                              className="artist-dropdown-item"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => selectGlobalAirport(item)}
-                            >
-                              <TowerControl size={16} className="dropdown-icon" />
-                              <div className="artist-main">{item.label || item.iata_code}</div>
-                            </div>
-                          ))}
-                        </>
-                      )}
+          <div className="sidebar-section">
+            <h4>Tools</h4>
+            
+            <button onClick={() => handleNav(() => setActiveView('itinerary'))} className={activeView === 'itinerary' ? 'active' : ''}>
+              <BookOpen size={20} />
+              <span>Itinerary</span>
+            </button>
 
-                      {(!globalResults.artists?.length && !globalResults.locations?.length && !globalResults.airports?.length) && (
-                        <div className="artist-dropdown-item" style={{ cursor: 'default' }}>
-                          <div className="artist-text-group">
-                            <div className="artist-main">No results</div>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
+            <button onClick={() => handleNav(() => setActiveView('friends'))} className={activeView === 'friends' ? 'active' : ''}>
+              <Users size={20} />
+              <span>Friends</span>
+            </button>
+
+            <button onClick={() => onClearCache && onClearCache()}>
+              <Trash size={20} />
+              <span>Clear Cache</span>
+            </button>
+
+          </div>
+        </aside>
+
+  {!collapsed && (
+    <div className="sidebar-overlay" onClick={() => setCollapsed(true)} />
+  )}
+
+        <div className={`main-wrapper ${collapsed ? 'collapsed' : ''} ${isDetailsView ? 'details-view-mode' : ''}`}>
+          <header className="main-header">
+            <div className="header-left">
+              <button className="header-toggle-btn" onClick={() => setCollapsed(!collapsed)}>
+                {collapsed ? <PanelLeftOpen size={24} /> : <PanelLeftClose size={24} />}
+              </button>
             </div>
-          </div>
 
-          <div className="header-right">
-            <img
-              src={`${API_BASE_URL}/static/profile_pics/${userInfo.image_file || 'default.jpg'}`}
-              alt="Profile"
-              className={`header-profile-pic ${activeView === 'profile' || activeView === 'edit-profile' ? 'active' : ''}`}
-              onClick={() => setActiveView('profile')}
-              onError={(e) => { e.target.src = 'https://via.placeholder.com/40'; }}
-            />
-          </div>
-        </header>
+            <div className="header-center">
+              <div
+                className={`places-input-wrap header-airport-search ${globalFocused ? 'focused' : ''}`}
+                style={{ position: 'relative', zIndex: 120, overflow: 'visible' }} 
+                ref={globalSearchWrapRef}
+              >
+                <Search size={18} className="places-input-icon" />
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="places-airport-input"
+                  autoComplete="off"
+                  value={globalQuery}
+                  onChange={(e) => setGlobalQuery(e.target.value)}
+                  onFocus={() => { setGlobalFocused(true); if ((globalQuery || '').trim().length >= 2) setGlobalOpen(true); }}
+                  onBlur={() => { setTimeout(() => setGlobalOpen(false), 180); }}
+                />
 
-        <main className={`user-home-content ${(activeView === 'artist-details' || activeView === 'event-details' || activeView === 'destination-details') ? 'artist-view-active' : ''}`}>
-          {renderContent()}
-        </main>
+                {globalOpen && (
+                  <div className="artist-dropdown" role="listbox">
+                    {globalLoading && (
+                      <div className="artist-dropdown-item" style={{ cursor: 'default' }}>
+                        <div className="artist-text-group">
+                          <div className="artist-main">Searching…</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {!globalLoading && (
+                      <>
+                        {globalResults.artists && globalResults.artists.length > 0 && (
+                          <>
+                            <div className="global-dropdown-group-label">Artists</div>
+                            {globalResults.artists.map((item) => (
+                              <div
+                                key={`artist-${item.id}`}
+                                className="artist-dropdown-item"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => selectGlobalArtist(item)}
+                              >
+                                <CircleUserRound size={16} className="dropdown-icon" />
+                                <div className="artist-main">{item.label || item.display_name}</div>
+                              </div>
+                            ))}
+                          </>
+                        )}
+
+                        {globalResults.locations && globalResults.locations.length > 0 && (
+                          <>
+                            <div className="global-dropdown-group-label">Locations</div>
+                            {globalResults.locations.map((item) => (
+                              <div
+                                key={`loc-${item.id}`}
+                                className="artist-dropdown-item"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => selectGlobalLocation(item)}
+                              >
+                                <MapPin size={16} className="dropdown-icon" />
+                                <div className="artist-main">{item.label || item.name}</div>
+                              </div>
+                            ))}
+                          </>
+                        )}
+
+                        {globalResults.airports && globalResults.airports.length > 0 && (
+                          <>
+                            <div className="global-dropdown-group-label">Airports</div>
+                            {globalResults.airports.map((item) => (
+                              <div
+                                key={`ap-${item.id}`}
+                                className="artist-dropdown-item"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => selectGlobalAirport(item)}
+                              >
+                                <TowerControl size={16} className="dropdown-icon" />
+                                <div className="artist-main">{item.label || item.iata_code}</div>
+                              </div>
+                            ))}
+                          </>
+                        )}
+
+                        {(!globalResults.artists?.length && !globalResults.locations?.length && !globalResults.airports?.length) && (
+                          <div className="artist-dropdown-item" style={{ cursor: 'default' }}>
+                            <div className="artist-text-group">
+                              <div className="artist-main">No results</div>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="header-right">
+              <img
+                src={`${API_BASE_URL}/static/profile_pics/${userInfo.image_file || 'default.jpg'}`}
+                alt="Profile"
+                className={`header-profile-pic ${activeView === 'profile' || activeView === 'edit-profile' ? 'active' : ''}`}
+                onClick={() => setActiveView('profile')}
+                onError={(e) => { e.target.src = 'https://via.placeholder.com/40'; }}
+              />
+            </div>
+          </header>
+
+          <main className={`user-home-content ${(activeView === 'artist-details' || activeView === 'event-details' || activeView === 'destination-details') ? 'artist-view-active' : ''}`}>
+            {renderContent()}
+          </main>
+        </div>
       </div>
-    </div>
-  );
+    );
 }
 
 export default UserHome;

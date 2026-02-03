@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
- 
+
   width: 100%;
   margin-bottom: 6px;
 }
@@ -11,7 +11,7 @@
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center; /* month text stays centered */
+  justify-content: center;
   gap: 14px;
 }
 
@@ -77,6 +77,78 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
+}
+
+/* Calendar / Timeline toggle (smaller footprint) */
+.view-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  background-color: #f1f5f9;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  gap: 3px;
+  height: 34px;
+}
+
+.view-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  height: 28px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  background: transparent;
+  color: #94a3b8;
+  font-weight: 650;
+  font-size: 0.9rem;
+  line-height: 1;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  user-select: none;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.view-toggle-btn:hover:not(.active) {
+  color: #64748b;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.view-toggle-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+}
+
+.view-toggle-btn.active {
+  background: #004e5a;
+  color: #ffffff;
+  font-weight: 750;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 78, 90, 0.22),
+    0 2px 4px -1px rgba(0, 78, 90, 0.12);
+  transform: translateY(-1px);
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .view-toggle-label {
+    display: none;
+  }
+
+  .view-toggle {
+    height: 32px;
+    padding: 3px;
+  }
+
+  .view-toggle-btn {
+    gap: 0;
+    padding: 0 9px;
+    height: 26px;
+  }
 }
 
 .large-itinerary-calendar {
@@ -150,42 +222,66 @@
   gap: 16px;
 }
 
-.timeline-month-label {
+/* Timeline month nav (restored) */
+.timeline-month-nav{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.timeline-month-text{
   font-size: 1.2rem;
   font-weight: 800;
   color: #1e293b;
-  padding-left: 4px;
+  text-align: center;
+  white-space: nowrap;
+  flex: 1;
 }
 
+/* ✅ Scroll-snap makes the timeline feel like "Next Up" */
 .timeline-days-scroll {
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  margin-bottom: -1.5rem;
   scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 50%;
+  scroll-padding-right: 50%;
+  scroll-behavior: smooth;
+  padding-bottom: 6px;
+}
+
+.timeline-days-scroll::-webkit-scrollbar{
+  display: none;
 }
 
 .timeline-day-item {
   flex-shrink: 0;
+  scroll-snap-align: center;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 68px; /* Slightly wider */
-  height: 80px; /* Taller */
+  width: 68px;
+  height: 80px;
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s;
-  touch-action: manipulation; /* Improve touch responsiveness */
+  touch-action: pan-x;
   color: #1e293b;
 }
 
 @media (max-width: 600px) {
   .timeline-day-item {
-    width: 60px; /* Keep somewhat compact on very small screens */
-    min-width: 60px; /* Force minimum width */
+    width: 60px;
+    min-width: 60px;
   }
 }
 
@@ -277,12 +373,12 @@
 }
 
 .timeline-card.flight .timeline-line::before {
-  background: #06b6d4; 
+  background: #06b6d4;
   margin-top: 1.2rem;
 }
 
 .timeline-card.event .timeline-line::before {
-  background: #8b5cf6; 
+  background: #8b5cf6;
   margin-top: 1.2rem;
 }
 
@@ -294,24 +390,23 @@
   border-left: 4px solid #cbd5e1;
 }
 
-.timeline-card.blackout .timeline-card-content { 
-  background: #1e293b; 
-  border-left-color: #0f172a; 
+.timeline-card.blackout .timeline-card-content {
+  background: #1e293b;
+  border-left-color: #0f172a;
   color: white;
 }
 
 .timeline-card.blackout .timeline-card-title { color: white; }
-
 .timeline-card.blackout .timeline-card-sub { color: #94a3b8; }
 
-.timeline-card.flight .timeline-card-content { 
-  background: #ecfeff; 
-  border-left-color: #06b6d4; 
+.timeline-card.flight .timeline-card-content {
+  background: #ecfeff;
+  border-left-color: #06b6d4;
 }
 
-.timeline-card.event .timeline-card-content { 
-  background: #f5f3ff; 
-  border-left-color: #8b5cf6; 
+.timeline-card.event .timeline-card-content {
+  background: #f5f3ff;
+  border-left-color: #8b5cf6;
 }
 
 .timeline-card-tag {
@@ -332,134 +427,4 @@
 .timeline-card-sub {
   font-size: 0.85rem;
   color: #64748b;
-}
-
-@media (max-width: 600px) {
-  /* 1. Wrapper fills the screen */
-  .itinerary-calendar-wrapper {
-    width: 100% !important;
-    padding: 0 !important;
-    overflow: hidden;
-  }
-
-  .itinerary-header {
-    margin-bottom: 4px !important; /* Reduced from 24px */
-  }
-
-  /* 2. Remove box-shadow and border from the calendar */
-  .large-itinerary-calendar {
-    box-shadow: none !important;
-    border: none !important;
-    background: transparent !important; /* Optional: blends better if shadow is gone */
-  }
-  
-  /* Ensure the wrapper doesn't add extra spacing or shadow */
-  .itinerary-calendar-wrapper {
-    box-shadow: none !important;
-    margin-top: 0 !important;
-  }
-
-  /* 2. Calendar takes 100% width, no max-width */
-  .large-itinerary-calendar {
-    width: 100% !important;
-    max-width: none !important; 
-    border: none !important;
-    font-size: 0.85rem !important;
-  }
-
-  .large-itinerary-calendar .react-datepicker__month-container {
-    width: 100% !important;
-    float: none !important;
-  }
-
-  /* 3. Force Weeks & Headers to be Flex Rows (Stretches contents) */
-  .large-itinerary-calendar .react-datepicker__day-names,
-  .large-itinerary-calendar .react-datepicker__week {
-    display: flex !important;
-    width: 100% !important;
-    justify-content: space-between !important;
-  }
-
-  /* 4. Make Days Expand to Fill Available Space */
-  .large-itinerary-calendar .react-datepicker__day,
-  .large-itinerary-calendar .react-datepicker__day-name {
-    flex: 1 !important;        /* Grow to fill width */
-    width: auto !important;    /* Ignore fixed width */
-    margin: 1px !important;    /* Tiny gap between days */
-    height: 3.5rem !important; /* Tall enough for dots */
-    border-radius: 4px !important;
-  }
-
-  /* 5. Center content inside the day cell */
-  .custom-calendar-day {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start; /* Start at top */
-    padding-top: 4px;
-    height: 100%;
-    width: 100%;
-  }
-
-  /* 6. Adjust Dots */
-  .day-dots {
-    display: flex;
-    gap: 2px !important;
-    margin-top: 4px !important;
-  }
-  
-  .dot {
-    width: 4px !important;
-    height: 4px !important;
-  }
-
-  /* 7. Month Header Text */
-  .large-itinerary-calendar .react-datepicker__current-month {
-    font-size: 1.2rem !important;
-    padding-bottom: 8px !important;
-  }
-}
-
-.daily-agenda-container .timeline-card {
-  margin-bottom: 12px;
-  align-items: stretch;
-}
-
-.daily-agenda-container .timeline-time {
-  width: 65px;
-  padding-top: 14px;
-}
-
-.daily-agenda-container .timeline-line {
-  width: 2px;
-  background: #e2e8f0;
-  position: relative;
-}
-
-.daily-agenda-container .timeline-line::before {
-  content: '';
-  position: absolute;
-  top: 18px;
-  left: -5px; /* Centers 12px circle on 2px line */
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #cbd5e1;
-  border: 3px solid white;
-  z-index: 2;
-}
-
-.daily-agenda-container .timeline-card.flight .timeline-line::before { background: #0096a6; }
-
-.daily-agenda-container .timeline-card.event .timeline-line::before { background: #8b5cf6; }
-
-.daily-agenda-container .timeline-card-content {
-  flex: 1;
-  background: #ffffff;
-  padding: 16px;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
-  margin-left: 8px;
-  border-left: none; /* remove legacy itinerary border */
 }

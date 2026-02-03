@@ -4,12 +4,14 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+  margin: 0;
   background: #f8fafc;
   overflow: hidden;
 }
 
 .explore-header {
-  padding: 24px 32px 16px 32px;
+  padding: 6px 0 6px 0 !important;
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
@@ -19,32 +21,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-}
-
-.explore-filters-wrapper {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.explore-search {
-  flex: 1;
-  height: 48px;
-  background: #f8fafc;
+  margin-bottom: 0;
 }
 
 .explore-content-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 24px 32px;
+  padding: 24px 0;
 }
 
 /* === BASE CARD === */
 .explore-card {
   position: relative;
-  height: 180px;
-  border-radius: 16px;
+  height: 160px;
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
   background: #0f172a;
@@ -91,7 +81,7 @@
   pointer-events: none;
 }
 
-/* ✅ Clamp artist name to 2 lines */
+/* âœ… Clamp artist name to 2 lines + Raleway font */
 .artist-card-name {
   position: absolute;
   left: 50%;
@@ -100,9 +90,10 @@
   margin: 0;
   width: calc(100% - 24px);
 
-  font-size: 1.15rem;
+  font-family: 'Raleway', sans-serif;
+  font-size: 1.5rem;
   line-height: 1.15;
-  color: white;
+  color: whitesmoke;
   font-weight: 800;
   text-shadow: 0 4px 10px rgba(0,0,0,0.8);
   text-transform: uppercase;
@@ -117,12 +108,12 @@
 .artist-card-count {
   position: absolute;
   left: 50%;
-  top: calc(50% + 38px);
+  top: calc(50% + 16px);
   transform: translateX(-50%);
   background: transparent;
   color: white;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 400;
   padding: 0;
   border-radius: 0;
   display: inline-flex;
@@ -134,18 +125,11 @@
 }
 
 .artist-section {
-  margin-bottom: 28px;
+  margin-bottom: 8px;
 }
 
 .artist-rail-header {
-  margin: 4px 0px 14px;
-}
-
-.artist-rail-header--with-right {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
+  margin: 4px 0px 4px;
 }
 
 .artist-rail-title-row {
@@ -164,7 +148,7 @@
 .artist-rail-title {
   margin: 0;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 300;
   letter-spacing: 0.08em;
   color: #0f172a;
   text-transform: uppercase;
@@ -178,9 +162,9 @@
 .artist-rail-subtitle {
   margin: 0;
   color: #64748b;
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   line-height: 1;
-  margin-top: -6px;
+  margin-top: -8px;
 }
 
 /* Icon badge */
@@ -229,25 +213,20 @@
   scroll-snap-type: x mandatory;
 }
 
-/* ✅ Increase card width by another 35px (175px -> 210px) */
 .explore-horizontal-scroll .explore-card {
   flex: 0 0 210px;
   width: 210px;
   scroll-snap-align: start;
 }
 
-/* Optional scrollbar */
+/* Hide horizontal scrollbars (still scrollable) */
+.explore-horizontal-scroll {
+  -ms-overflow-style: none; /* IE/Edge legacy */
+  scrollbar-width: none; /* Firefox */
+}
 .explore-horizontal-scroll::-webkit-scrollbar {
-  height: 8px;
+  display: none; /* Chrome/Safari */
 }
-.explore-horizontal-scroll::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.6);
-  border-radius: 999px;
-}
-.explore-horizontal-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
 .explore-loading {
   display: flex;
   flex-direction: column;
@@ -270,19 +249,13 @@
 
 @media (max-width: 768px) {
   .explore-header {
-    padding: 16px;
+    padding: 16px 0;
   }
 
   .explore-content-scroll {
-    padding: 16px;
+    padding: 16px 0;
   }
 
-  .explore-filters-wrapper {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  /* ✅ Mobile: +35px wider than previous calc(...) */
   .explore-horizontal-scroll .explore-card {
     flex: 0 0 calc(34vw + 115px);
     width: calc(34vw + 115px);

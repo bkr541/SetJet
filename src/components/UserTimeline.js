@@ -1,23 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
-import { format } from 'date-fns';
-import { ChevronRight, ChevronLeft, Calendar as CalendarIcon, LayoutList } from 'lucide-react';
+import 'react-datepicker/dist/react-datepicker.css';
+import { format, addMonths, subMonths } from 'date-fns';
+import {
+  ChevronRight,
+  ChevronLeft,
+  Calendar as CalendarIcon,
+  LayoutList
+} from 'lucide-react';
 import './UserTimeline.css';
 
 const UserTimeline = ({ apiBaseUrl, isBlackoutDate }) => {
-  const [viewMode, setViewMode] = useState('calendar'); 
+  const [viewMode, setViewMode] = useState('calendar');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [itineraryData, setItineraryData] = useState({ events: [], flights: [] });
   const [loading, setLoading] = useState(false);
-  // Daily itinerary expand/collapse (resets when the selected day changes)
+
+  // Daily itinerary expand/collapse
   const [dayExpanded, setDayExpanded] = useState(true);
+
+  // Timeline centering (mirrors UserHome "Next Up" behavior)
+  const todayRef = useRef(null);
+  const shouldCenterTodayRef = useRef(false);
 
   useEffect(() => {
     const fetchItinerary = async () => {
       const email = localStorage.getItem('current_email');
       if (!email) return;
-      
+
       setLoading(true);
       try {
         const res = await fetch(`${apiBaseUrl}/api/user_itinerary`, {
@@ -25,61 +35,104 @@ const UserTimeline = ({ apiBaseUrl, isBlackoutDate }) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email })
         });
-        
+
         if (res.ok) {
-           const data = await res.json();
-           setItineraryData({
+          const data = await res.json();
+          setItineraryData({
             events: data.events || [],
             flights: data.flights || []
           });
         }
       } catch (err) {
-        console.error("Failed to load itinerary", err);
+        console.error('Failed to load itinerary', err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchItinerary();
-  }, []);
+  }, [apiBaseUrl]);
 
   const getDataForDate = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const dayEvents = itineraryData.events.filter(e => e.date === dateStr);
-    const dayFlights = itineraryData.flights.filter(f => f.date === dateStr);
-    const isBlackout = isBlackoutDate(date);
-    return { dayEvents, dayFlights, isBlackout };
+    const dayEvents = (itineraryData.events || []).filter((e) => e.date === dateStr);
+    const dayFlights = (itineraryData.flights || []).filter((f) => f.date === dateStr);
+    const blackout = isBlackoutDate(date);
+    return { dayEvents, dayFlights, isBlackout: blackout };
   };
 
+  // Timeline month navigation (restored)
+  const handlePrevMonth = () => setSelectedDate((prev) => subMonths(prev, 1));
+  const handleNextMonth = () => setSelectedDate((prev) => addMonths(prev, 1));
 
-  // Default behavior:
-  // - If the day has any items (events, flights, blackout), start COLLAPSED.
-  // - If the day has nothing, keep expanded so the empty state is visible.
+  // Expand/collapse default logic per selected date
   useEffect(() => {
     const { dayEvents, dayFlights, isBlackout } = getDataForDate(selectedDate);
-    const hasAny = (dayEvents?.length || 0) > 0 || (dayFlights?.length || 0) > 0 || !!isBlackout;
+    const hasAny =
+      (dayEvents?.length || 0) > 0 ||
+      (dayFlights?.length || 0) > 0 ||
+      !!isBlackout;
+
+    // If there's stuff, start collapsed; if empty, stay expanded to show empty state.
     setDayExpanded(!hasAny);
-  }, [selectedDate, itineraryData]); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate, itineraryData]);
+
+  // When entering Timeline view, select TODAY and center it in the scroll row
+  const handleViewModeChange = (mode) => {
+    if (mode === 'timeline') {
+      shouldCenterTodayRef.current = true;
+      setSelectedDate(new Date()); // ensures today is selected
+    }
+    setViewMode(mode);
+  };
+
+  useEffect(() => {
+    if (viewMode !== 'timeline') return;
+    if (loading) return;
+
+    const isTodaySelected =
+      format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+
+    if (!shouldCenterTodayRef.current) return;
+    if (!isTodaySelected) return;
+
+    const t = setTimeout(() => {
+      if (todayRef.current) {
+        todayRef.current.scrollIntoView({
+          behavior: 'smooth',
+          inline: 'center',
+          block: 'nearest'
+        });
+      }
+      shouldCenterTodayRef.current = false;
+    }, 0);
+
+    return () => clearTimeout(t);
+  }, [viewMode, loading, selectedDate]);
 
   const normalizeSnapshot = (snap) => {
     if (!snap) return null;
     if (typeof snap === 'string') {
-      try { return JSON.parse(snap); } catch { return null; }
+      try {
+        return JSON.parse(snap);
+      } catch {
+        return null;
+      }
     }
     return snap;
   };
 
   const getEventDisplayTitle = (evt) => {
-    // Try multiple shapes: itinerary event object may carry snapshot_json directly
-    // or nested under user_event / user_events depending on API response.
     const snap = normalizeSnapshot(
       evt?.snapshot_json ??
-      evt?.snapshotJson ??
-      evt?.snapshot ??
-      evt?.user_event?.snapshot_json ??
-      evt?.user_event?.snapshotJson ??
-      evt?.user_events?.snapshot_json ??
-      evt?.user_events?.snapshotJson ??
-      null
+        evt?.snapshotJson ??
+        evt?.snapshot ??
+        evt?.user_event?.snapshot_json ??
+        evt?.user_event?.snapshotJson ??
+        evt?.user_events?.snapshot_json ??
+        evt?.user_events?.snapshotJson ??
+        null
     );
 
     const pick = (...vals) => {
@@ -106,8 +159,6 @@ const UserTimeline = ({ apiBaseUrl, isBlackoutDate }) => {
       snap?.place?.name
     );
 
-    // Event name priority: prefer explicit event fields over generic "name"
-    // to avoid accidentally grabbing an artist name.
     const eventName = pick(
       snap?.event?.name,
       snap?.eventName,
@@ -116,16 +167,13 @@ const UserTimeline = ({ apiBaseUrl, isBlackoutDate }) => {
       snap?.name
     );
 
-    // Primary requirement: show snapshot event name only.
     if (eventName) return eventName;
 
-    // Fallback requirement: "<artist name> @ <Venue Name>" if event name is blank
     if (artistName || venueName) {
       if (artistName && venueName) return `${artistName} @ ${venueName}`;
       return artistName || venueName;
     }
 
-    // Last resorts (avoid showing Event #<id> unless we truly have nothing else)
     return evt?.title || evt?.name || 'Event';
   };
 
@@ -157,33 +205,44 @@ const UserTimeline = ({ apiBaseUrl, isBlackoutDate }) => {
     return (
       <div className="timeline-days-scroll">
         {days.map((d, i) => {
-          const isSelected = format(d, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
-          const isToday = format(d, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+          const isSelected =
+            format(d, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+          const isToday =
+            format(d, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+
           const { dayEvents, dayFlights, isBlackout } = getDataForDate(d);
           const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-          
+
           return (
-            <button 
-              key={i} 
-              className={`timeline-day-item ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
+            <button
+              key={i}
+              type="button"
+              ref={isToday ? todayRef : null}
+              className={`timeline-day-item ${isSelected ? 'selected' : ''} ${
+                isToday ? 'today' : ''
+              }`}
               onClick={() => setSelectedDate(d)}
             >
-              <span 
-                className="timeline-day-name" 
-                style={{ color: isSelected ? "white" : (isWeekend ? "#ef4444" : "#1e293b") }}
+              <span
+                className="timeline-day-name"
+                style={{
+                  color: isSelected ? 'white' : isWeekend ? '#ef4444' : '#1e293b'
+                }}
               >
                 {format(d, 'EEE')}
               </span>
-              <span 
-                className="timeline-day-num" 
-                style={{ color: isSelected ? "white" : "#1e293b" }}
+
+              <span
+                className="timeline-day-num"
+                style={{ color: isSelected ? 'white' : '#1e293b' }}
               >
                 {format(d, 'd')}
               </span>
+
               <div className="timeline-dots">
-                 {isBlackout && <span className="dot blackout" title="Blackout Date" />}
-                 {dayFlights.length > 0 && <span className="dot flight" title="Flight" />}
-                 {dayEvents.length > 0 && <span className="dot event" title="Event" />}
+                {isBlackout && <span className="dot blackout" title="Blackout Date" />}
+                {dayFlights.length > 0 && <span className="dot flight" title="Flight" />}
+                {dayEvents.length > 0 && <span className="dot event" title="Event" />}
               </div>
             </button>
           );
@@ -194,20 +253,19 @@ const UserTimeline = ({ apiBaseUrl, isBlackoutDate }) => {
 
   const renderTimelineDetails = () => {
     const { dayEvents, dayFlights, isBlackout } = getDataForDate(selectedDate);
-    const nothingScheduled = dayEvents.length === 0 && dayFlights.length === 0 && !isBlackout;
+    const nothingScheduled =
+      dayEvents.length === 0 && dayFlights.length === 0 && !isBlackout;
 
     const setsCount = dayEvents.length;
     const flightsCount = dayFlights.length;
     const hasAny = setsCount > 0 || flightsCount > 0 || !!isBlackout;
 
     const handleToggleDay = () => {
-      // Only require expand/collapse when there is something to show
-      if (hasAny) setDayExpanded(prev => !prev);
+      if (hasAny) setDayExpanded((prev) => !prev);
     };
 
     return (
       <div className="timeline-details-list fade-in">
-        {/* Parent expand/collapse group for the selected day */}
         <button
           type="button"
           onClick={handleToggleDay}
@@ -245,14 +303,12 @@ const UserTimeline = ({ apiBaseUrl, isBlackoutDate }) => {
           </div>
         </button>
 
-        {/* Collapsed hint */}
         {hasAny && !dayExpanded && (
           <div style={{ marginTop: 10, color: '#7A8799', fontSize: 14 }}>
             Click the day header to expand.
           </div>
         )}
 
-        {/* Only show itinerary contents when expanded (or when empty day) */}
         {(!hasAny || dayExpanded) && (
           <>
             {isBlackout && (
@@ -305,19 +361,28 @@ const UserTimeline = ({ apiBaseUrl, isBlackoutDate }) => {
     <div className="dashboard-panel fade-in">
       <div className="itinerary-header">
         <h2 className="section-title" style={{ margin: 0 }}>ITINERARY</h2>
-        
+
         <div className="view-toggle">
-          <button 
+          <button
+            type="button"
             className={`view-toggle-btn ${viewMode === 'calendar' ? 'active' : ''}`}
-            onClick={() => setViewMode('calendar')}
+            onClick={() => handleViewModeChange('calendar')}
           >
-            <CalendarIcon size={16} /> Calendar
+            <span className="view-toggle-icon">
+              <CalendarIcon size={14} />
+            </span>
+            <span className="view-toggle-label">Calendar</span>
           </button>
-          <button 
+
+          <button
+            type="button"
             className={`view-toggle-btn ${viewMode === 'timeline' ? 'active' : ''}`}
-            onClick={() => setViewMode('timeline')}
+            onClick={() => handleViewModeChange('timeline')}
           >
-            <LayoutList size={16} /> Timeline
+            <span className="view-toggle-icon">
+              <LayoutList size={14} />
+            </span>
+            <span className="view-toggle-label">Timeline</span>
           </button>
         </div>
       </div>
@@ -331,40 +396,44 @@ const UserTimeline = ({ apiBaseUrl, isBlackoutDate }) => {
             onChange={(date) => setSelectedDate(date)}
             inline
             calendarClassName="large-itinerary-calendar"
-            renderCustomHeader={({
-              date,
-              decreaseMonth,
-              increaseMonth
-            }) => (
+            renderCustomHeader={({ date, decreaseMonth, increaseMonth }) => (
               <div className="itinerary-calendar-header">
-                <div 
-                  className="itinerary-calendar-header-top" 
+                <div
+                  className="itinerary-calendar-header-top"
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
-                  <button className="calendar-nav-btn" onClick={decreaseMonth} aria-label="Previous Month">
+                  <button
+                    type="button"
+                    className="calendar-nav-btn"
+                    onClick={decreaseMonth}
+                    aria-label="Previous Month"
+                  >
                     <ChevronLeft size={18} />
                   </button>
 
-                  <div className="itinerary-month-text">
-                    {format(date, 'MMMM yyyy')}
-                  </div>
+                  <div className="itinerary-month-text">{format(date, 'MMMM yyyy')}</div>
 
-                  <button className="calendar-nav-btn" onClick={increaseMonth} aria-label="Next Month">
+                  <button
+                    type="button"
+                    className="calendar-nav-btn"
+                    onClick={increaseMonth}
+                    aria-label="Next Month"
+                  >
                     <ChevronRight size={18} />
                   </button>
                 </div>
 
-                <div className="calendar-legend-row" style={{ display: 'flex', justifyContent: 'center', marginTop: '12px', gap: '16px' }}>
-                  <div className="legend-item"><span className="dot blackout"/> Blackout</div>
-                  <div className="legend-item"><span className="dot flight"/> Flight</div>
-                  <div className="legend-item"><span className="dot event"/> Event</div>
+                <div className="calendar-legend-row" style={{ display: 'flex', justifyContent: 'center', marginTop: 12, gap: 16 }}>
+                  <div className="legend-item"><span className="dot blackout" /> Blackout</div>
+                  <div className="legend-item"><span className="dot flight" /> Flight</div>
+                  <div className="legend-item"><span className="dot event" /> Event</div>
                 </div>
               </div>
             )}
             renderDayContents={renderDayContents}
           />
 
-          <div style={{ marginTop: '24px' }}>
+          <div style={{ marginTop: 24 }}>
             {renderTimelineDetails()}
           </div>
         </div>
@@ -372,10 +441,30 @@ const UserTimeline = ({ apiBaseUrl, isBlackoutDate }) => {
 
       {!loading && viewMode === 'timeline' && (
         <div className="itinerary-timeline-wrapper fade-in">
-          <div className="timeline-month-label">
-             {format(selectedDate, 'MMMM yyyy')}
+          <div className="timeline-month-nav">
+            <button
+              type="button"
+              className="calendar-nav-btn"
+              onClick={handlePrevMonth}
+              aria-label="Previous Month"
+            >
+              <ChevronLeft size={18} />
+            </button>
+
+            <div className="timeline-month-text">
+              {format(selectedDate, 'MMMM yyyy')}
+            </div>
+
+            <button
+              type="button"
+              className="calendar-nav-btn"
+              onClick={handleNextMonth}
+              aria-label="Next Month"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
-          
+
           {renderTimelineDays()}
           {renderTimelineDetails()}
         </div>

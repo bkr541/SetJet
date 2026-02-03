@@ -1,6 +1,5 @@
-// ExploreArtist.js
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, Ticket, Flame, Music, CloudMoon } from 'lucide-react';
+import { Flame, Music, CloudMoon } from 'lucide-react';
 import './ExploreArtist.css';
 
 const API_BASE_URL = "";
@@ -19,7 +18,6 @@ const ExploreArtist = ({ onBack, onArtistClick }) => {
   const [loading, setLoading] = useState(false);
   const [dbArtists, setDbArtists] = useState([]);
   const [tourData, setTourData] = useState({});
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const initData = async () => {
@@ -49,8 +47,6 @@ const ExploreArtist = ({ onBack, onArtistClick }) => {
 
   const heavyBassKeywords = useMemo(() => (['tearout', 'dubstep', 'riddim']), []);
   const houseHeadsKeywords = useMemo(() => (['tech house', 'melodic house']), []);
-
-  // ✅ Bottom group now ONLY matches Future Bass
   const sadboiFeelsKeywords = useMemo(() => (['future bass']), []);
 
   const MAX_PER_GROUP = 15;
@@ -66,18 +62,11 @@ const ExploreArtist = ({ onBack, onArtistClick }) => {
     return keywords.some((k) => lower.includes(k));
   };
 
-  const applyCountsSearchSortAndLimit = (artists) => {
-    let processed = (artists || []).map((localArtist) => {
+  const applyCountsSortAndLimit = (artists) => {
+    const processed = (artists || []).map((localArtist) => {
       const count = tourData?.[localArtist.edmtrain_id] || 0;
       return { ...localArtist, eventCount: count };
     });
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      processed = processed.filter((a) =>
-        (a.display_name || '').toLowerCase().includes(q)
-      );
-    }
 
     processed.sort((a, b) => (b.eventCount || 0) - (a.eventCount || 0));
     return processed.slice(0, MAX_PER_GROUP);
@@ -87,22 +76,22 @@ const ExploreArtist = ({ onBack, onArtistClick }) => {
     const filtered = (dbArtists || []).filter((a) =>
       hasAnyGenreKeyword(a, heavyBassKeywords)
     );
-    return applyCountsSearchSortAndLimit(filtered);
-  }, [dbArtists, tourData, searchQuery, heavyBassKeywords]);
+    return applyCountsSortAndLimit(filtered);
+  }, [dbArtists, tourData, heavyBassKeywords]);
 
   const houseHeadsArtists = useMemo(() => {
     const filtered = (dbArtists || []).filter((a) =>
       hasAnyGenreKeyword(a, houseHeadsKeywords)
     );
-    return applyCountsSearchSortAndLimit(filtered);
-  }, [dbArtists, tourData, searchQuery, houseHeadsKeywords]);
+    return applyCountsSortAndLimit(filtered);
+  }, [dbArtists, tourData, houseHeadsKeywords]);
 
   const sadboiFeelsArtists = useMemo(() => {
     const filtered = (dbArtists || []).filter((a) =>
       hasAnyGenreKeyword(a, sadboiFeelsKeywords)
     );
-    return applyCountsSearchSortAndLimit(filtered);
-  }, [dbArtists, tourData, searchQuery, sadboiFeelsKeywords]);
+    return applyCountsSortAndLimit(filtered);
+  }, [dbArtists, tourData, sadboiFeelsKeywords]);
 
   const renderArtistCard = (artist) => (
     <div
@@ -132,7 +121,6 @@ const ExploreArtist = ({ onBack, onArtistClick }) => {
 
         {artist.eventCount > 0 && (
           <div className="artist-card-count">
-            <Ticket size={12} style={{ marginRight: 4 }} />
             {artist.eventCount} EVENTS
           </div>
         )}
@@ -148,19 +136,6 @@ const ExploreArtist = ({ onBack, onArtistClick }) => {
             <span>EXPLORE </span>
             <span className="accent">ARTISTS</span>
           </h3>
-        </div>
-
-        <div className="explore-filters-wrapper">
-          <div className="places-input-wrap explore-search">
-            <Search size={18} className="places-input-icon" />
-            <input
-              type="text"
-              placeholder="Search Artist..."
-              className="places-airport-input"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
         </div>
       </div>
 
@@ -238,7 +213,6 @@ const ExploreArtist = ({ onBack, onArtistClick }) => {
 
             {/* SADBOI FEELS */}
             <div className="artist-section">
-              {/* ✅ Icon moved LEFT of the title by using the same header layout as other groups */}
               <div className="artist-rail-header">
                 <div className="artist-rail-title-row">
                   <div className="icon-badge icon-badge--yellow" aria-hidden="true">
