@@ -54,6 +54,7 @@ import ExploreEvents from './ExploreEvents';
 import EditUser from './EditUser';
 import UserTimeline from './UserTimeline';
 import ExploreArtist from './ExploreArtist';
+import ExploreRoutes from './ExploreRoutes'; // ✅ Added import
 
 // ✅ Lazy load HubMap to implement the map in ArtistDetails
 const TourMap = lazy(() => import('./TourMap'));
@@ -1700,7 +1701,8 @@ const EditProfileView = ({ userInfo, onBack, onSaved }) => {
 };
 
 function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDestinations, onSearchFlights, flightState, onClearFlightSearch, onClearCache }) {
-  const [collapsed, setCollapsed] = useState(false);
+  // ✅ CHANGED: Default collapsed to true
+  const [collapsed, setCollapsed] = useState(true);
   const [activeView, setActiveView] = useState('home');
   // =========================
   // Settings (localStorage)
@@ -1927,9 +1929,10 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
     };
   }, [tourCounts]);
 
+  // ✅ CHANGED: Always collapse on navigation
   const handleNav = (action) => {
     if (typeof action === 'function') action();
-    if (isMobile()) setCollapsed(true);
+    setCollapsed(true); 
   };
 
   const [userInfo, setUserInfo] = useState({
@@ -2084,6 +2087,13 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
               onArtistClick={handleArtistClick}
             />
           );
+        // ✅ ADDED CASE FOR ROUTES
+        case 'routes':
+          return (
+            <div className="routes-view-wrapper">
+              <ExploreRoutes onBack={() => setActiveView('home')} />
+            </div>
+          );
         case 'plan': return <PlanView />;
         case 'itinerary': return <UserTimeline apiBaseUrl={API_BASE_URL} isBlackoutDate={isBlackoutDate} />;
         case 'friends': return <FriendsView />;
@@ -2219,6 +2229,12 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
             <button onClick={() => handleNav(() => setActiveView('artists'))} className={activeView === 'artists' ? 'active' : ''}>
               <MicVocal size={20} />
               <span>Artists</span>
+            </button>
+
+            {/* ✅ ADDED ROUTES BUTTON */}
+            <button onClick={() => handleNav(() => setActiveView('routes'))} className={activeView === 'routes' ? 'active' : ''}>
+              <Map size={20} />
+              <span>Routes</span>
             </button>
           </div>
 
@@ -2361,7 +2377,9 @@ function UserHome({ userFirstName, userProfilePic, favoriteArtists, favoriteDest
             </div>
           </header>
 
-          <main className={`user-home-content ${(activeView === 'artist-details' || activeView === 'event-details' || activeView === 'destination-details') ? 'artist-view-active' : ''}`}>
+          <main className={`user-home-content ${
+            (activeView === 'artist-details' || activeView === 'event-details' || activeView === 'destination-details') ? 'artist-view-active' : ''
+          } ${activeView === 'routes' ? 'routes-active' : ''}`}>
             {renderContent()}
           </main>
         </div>

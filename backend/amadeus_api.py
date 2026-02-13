@@ -412,6 +412,86 @@ class AmadeusFlightSearch:
             print(f"Error determining GoWild eligibility: {e}")
             return False
 
+
+    def has_frontier_flight_on_date(self, origin, destination, departure_date, carrier_code="F9"):
+        """
+        Check if there is at least one flight on a given date for the given route
+        operated/marketed by the given carrier (Frontier = F9).
+
+        Uses Amadeus Flight Availabilities Search API:
+        POST /v1/shopping/availability/flight-availabilities
+        """
+        if not origin or not destination or not departure_date:
+            return False
+
+        body = {
+            "originDestinations": [
+                {
+                    "id": "1",
+                    "originLocationCode": origin,
+                    "destinationLocationCode": destination,
+                    "departureDateTime": {"date": departure_date},
+                }
+            ],
+            "travelers": [{"id": "1", "travelerType": "ADULT"}],
+            "sources": ["GDS"],
+        }
+
+        try:
+            # Preferred SDK call (supported by amadeus-python)
+            response = self.amadeus.shopping.availability.flight_availabilities.post(body)
+            data = getattr(response, "data", None)
+        except AttributeError:
+            # Fallback to raw path call if SDK surface changes
+            response = self.amadeus.client.post("/v1/shopping/availability/flight-availabilities", body)
+            data = getattr(response, "data", None)
+        except ResponseError:
+            return False
+
+        if data is None:
+            return False
+
+        def _contains_carrier(obj):
+            if isinstance(obj, dict):
+                # Common keys are 'carrierCode' and/or 'marketingCarrierCode'
+                for k in ("carrierCode", "marketingCarrierCode", "operatingCarrierCode"):
+                    v = obj.get(k)
+                    if isinstance(v, str) and v.upper() == carrier_code.upper():
+                        return True
+                return any(_contains_carrier(v) for v in obj.values())
+            if isinstance(obj, list):
+                return any(_contains_carrier(v) for v in obj)
+            return False
+
+        return _contains_carrier(data)
+
+    def frontier_available_days_for_month(self, origin, destination, year, month, carrier_code="F9"):
+        """
+        For a given month, return a list[int] of days that have at least one
+        available flight on that day for the given route with the given carrier.
+        """
+        from calendar import monthrange
+        from datetime import date
+
+        try:
+            year_i = int(year)
+            month_i = int(month)
+        except Exception:
+            return []
+
+        if month_i < 1 or month_i > 12:
+            return []
+
+        days_in_month = monthrange(year_i, month_i)[1]
+        available = []
+
+        for d in range(1, days_in_month + 1):
+            dep = date(year_i, month_i, d).strftime("%Y-%m-%d")
+            if self.has_frontier_flight_on_date(origin, destination, dep, carrier_code=carrier_code):
+                available.append(d)
+
+        return available
+
     def _get_popular_destinations(self, origins):
         """
         Get popular destinations for 'ANY' airport search

@@ -1283,6 +1283,56 @@ def generate_mock_flights(origins, destinations, departure_date, return_date=Non
                 })
     return flights
 
+
+# ==========================================
+# ROUTES: Monthly Frontier (F9) Availability
+# ==========================================
+@app.route('/api/routes/availabilities', methods=['GET'])
+def routes_availabilities():
+    """Return list of days in a month that have at least one Frontier (F9) flight for origin->destination."""
+    try:
+        origin = (request.args.get('origin') or '').strip().upper()
+        destination = (request.args.get('destination') or '').strip().upper()
+        year = request.args.get('year')
+        month = request.args.get('month')
+
+        if not origin or not destination or not year or not month:
+            return jsonify({'error': 'Missing required query params: origin, destination, year, month'}), 400
+        if origin == destination:
+            return jsonify({'error': 'Origin and destination cannot be the same'}), 400
+
+        try:
+            year_i = int(year)
+            month_i = int(month)
+        except Exception:
+            return jsonify({'error': 'year and month must be integers'}), 400
+
+        if month_i < 1 or month_i > 12:
+            return jsonify({'error': 'month must be 1-12'}), 400
+
+        # DEV_MODE: return a deterministic, mock pattern so UI is testable without Amadeus creds
+        if DEV_MODE:
+            from calendar import monthrange
+            days_in_month = monthrange(year_i, month_i)[1]
+            # highlight Mon/Wed/Fri as 'available' just for demo
+            avail = []
+            for d in range(1, days_in_month + 1):
+                dow = datetime(year_i, month_i, d).weekday()  # Mon=0
+                if dow in (0, 2, 4):
+                    avail.append(d)
+            return jsonify({'available_days': avail, 'devMode': True})
+
+        if not AMADEUS_ENABLED or amadeus_client is None:
+            return jsonify({'error': 'Amadeus is not configured on the server', 'devMode': DEV_MODE}), 503
+
+        # Real mode: call Flight Availabilities Search per day
+        avail = amadeus_client.frontier_available_days_for_month(origin, destination, year_i, month_i, carrier_code='F9')
+        return jsonify({'available_days': avail, 'devMode': False})
+
+    except Exception as e:
+        app.logger.exception('Error in /api/routes/availabilities')
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/search', methods=['POST'])
 def search_flights():
     """Search for flights based on provided parameters"""
